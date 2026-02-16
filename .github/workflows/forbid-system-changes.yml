@@ -1,0 +1,28 @@
+name: forbid system file changes
+
+on:
+  push:
+    paths:
+      - Directory.Build.props
+      - .github/**
+      - .gitattributes
+
+jobs:
+  check:
+    name: Check for config file changes
+    permissions:
+      pull-requests: write
+      id-token: write
+    runs-on: ubuntu-latest
+    if: github.event.repository.name != 'template' && github.actor != 'asap-itmo-bot[bot]' && github.actor != 'ronimizy'
+
+    steps:
+      - name: Post report to pull request
+        uses: mshick/add-pr-comment@v2
+        with:
+          refresh-message-position: true
+          message: |
+            Don't 1: Были внесены изменения в файлы конфигурации!
+
+      - name: Send error exit code
+        run: exit 1
