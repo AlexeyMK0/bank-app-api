@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RootNamespace>Lab1.Application</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\Domain\BankApp.Domain\BankApp.Domain.csproj" />
+      <ProjectReference Include="..\BankApp.Application.Abstractions\BankApp.Application.Abstractions.csproj" />
+      <ProjectReference Include="..\BankApp.Application.Contracts\BankApp.Application.Contracts.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+      <PackageReference Include="Microsoft.Extensions.Logging.Console" />
+      <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
+      <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" />
+    </ItemGroup>
+
+</Project>

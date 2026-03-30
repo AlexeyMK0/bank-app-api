@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RootNamespace>Abstractions</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\Domain\BankApp.Domain\BankApp.Domain.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="SourceKit" />
+      <PackageReference Include="SourceKit.Generators.Builder" />
+      <PackageReference Include="SourceKit.Generators.Builder.Annotations" />
+    </ItemGroup>
+
+</Project>

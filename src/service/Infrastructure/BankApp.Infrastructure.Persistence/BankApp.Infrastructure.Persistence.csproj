@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RootNamespace>Lab1.Infrastructure.Persistence</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\Application\BankApp.Application.Abstractions\BankApp.Application.Abstractions.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="FluentMigrator" />
+      <PackageReference Include="FluentMigrator.Extensions.Postgres" />
+      <PackageReference Include="FluentMigrator.Runner.Postgres" />
+      <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" />
+      <PackageReference Include="Microsoft.Extensions.Logging.Console" />
+      <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
+      <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" />
+      <PackageReference Include="Npgsql" />
+    </ItemGroup>
+
+</Project>

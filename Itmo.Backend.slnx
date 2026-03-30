@@ -1,5 +1,25 @@
 ﻿<Solution>
-  <Folder Name="/common/" />
+  <Folder Name="/common/">
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+  </Folder>
   <Folder Name="/src/" />
+  <Folder Name="/src/service/">
+    <Project Path="src\service\Main\Main.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/src/service/Application/">
+    <Project Path="src\service\Application\BankApp.Application.Abstractions\BankApp.Application.Abstractions.csproj" Type="Classic C#" />
+    <Project Path="src\service\Application\BankApp.Application.Contracts\BankApp.Application.Contracts.csproj" Type="Classic C#" />
+    <Project Path="src\service\Application\BankApp.Application\BankApp.Application.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/src/service/Domain/">
+    <Project Path="src\service\Domain\BankApp.Domain\BankApp.Domain.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/src/service/Infrastructure/">
+    <Project Path="src\service\Infrastructure\BankApp.Infrastructure.Persistence\BankApp.Infrastructure.Persistence.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/src/service/Presentation/">
+    <Project Path="src\service\Presentation\BankApp.Presentation.Http\BankApp.Presentation.Http.csproj" Type="Classic C#" />
+  </Folder>
   <Folder Name="/tests/" />
 </Solution>
