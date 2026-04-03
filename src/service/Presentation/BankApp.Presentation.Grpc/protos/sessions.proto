@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package BankApp;
+option csharp_namespace = "BankApp.Grpc";
+
+service SessionService {
+  rpc CreateUserSession(CreateUserSessionRequest) returns (CreateUserSessionResponse); 
+  
+  rpc CreateAdminSession(CreateAdminSessionRequest) returns (CreateAdminSessionResponse); 
+}
+
+message CreateUserSessionRequest {
+  int64 account_id = 1;
+  string pin_code = 2;
+}
+
+message CreateUserSessionResponse {
+  string user_session_id = 1;
+}
+
+message CreateAdminSessionRequest {
+  string system_password = 1;
+}
+
+message CreateAdminSessionResponse {
+  string admin_session_id = 1;
+}

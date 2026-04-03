@@ -1,6 +1,6 @@
 namespace Lab1.Domain.ValueObjects;
 
-public record Money
+public record Money : IComparable<Money>
 {
     public static Money Zero => new Money(0);
 
@@ -20,5 +20,12 @@ public record Money
     public Money IncreaseBy(Money amount)
     {
         return new Money(Value + amount.Value);
+    }
+
+    public int CompareTo(Money? other)
+    {
+        if (ReferenceEquals(this, other)) return 0;
+        if (other is null) return 1;
+        return Value.CompareTo(other.Value);
     }
 }

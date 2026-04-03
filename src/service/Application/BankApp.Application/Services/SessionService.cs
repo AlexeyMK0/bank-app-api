@@ -1,7 +1,7 @@
 using Abstractions.Repositories;
-using Abstractions.Transactions;
 using Contracts.Sessions;
 using Contracts.Sessions.Operations;
+using Itmo.Dev.Platform.Persistence.Abstractions.Transactions;
 using Lab1.Application.Mappers;
 using Lab1.Application.Options;
 using Lab1.Application.RepositoryExtensions;
@@ -21,13 +21,13 @@ public sealed class SessionService : ISessionService
     private readonly IAccountRepository _accounts;
     private readonly IUserSessionRepository _users;
     private readonly IAdminSessionRepository _adminSessions;
-    private readonly ITransactionProvider _transactionProvider;
+    private readonly IPersistenceTransactionProvider _transactionProvider;
 
     public SessionService(
         IAccountRepository repository,
         IUserSessionRepository users,
         IAdminSessionRepository adminSessions,
-        ITransactionProvider transactionProvider,
+        IPersistenceTransactionProvider transactionProvider,
         IOptions<PasswordOptions> passwordOptions)
     {
         _accounts = repository;
@@ -50,13 +50,13 @@ public sealed class SessionService : ISessionService
         if (account.PinCode != pinCode)
             return new CreateUserSession.Response.Failure("Wrong pin code");
 
-        using ITransaction transaction =
-            _transactionProvider.BeginTransaction(IsolationLevel);
+        await using IPersistenceTransaction transaction = await _transactionProvider
+            .BeginTransactionAsync(IsolationLevel, cancellationToken);
 
         var session = new UserSession(SessionId.Default, accountId);
         session = await _users.AddAsync(session, cancellationToken);
 
-        transaction.Commit();
+        await transaction.CommitAsync(cancellationToken);
 
         return new CreateUserSession.Response.Success(session.MapToDto());
     }
@@ -68,13 +68,13 @@ public sealed class SessionService : ISessionService
             return new CreateAdminSession.Response.Failure("Wrong password");
         }
 
-        using ITransaction transaction =
-            _transactionProvider.BeginTransaction(IsolationLevel);
+        await using IPersistenceTransaction transaction = await _transactionProvider
+            .BeginTransactionAsync(IsolationLevel, cancellationToken);
 
         var adminSession = new AdminSession(SessionId.Default);
         adminSession = await _adminSessions.AddAsync(adminSession, cancellationToken);
 
-        transaction.Commit();
+        await transaction.CommitAsync(cancellationToken);
 
         return new CreateAdminSession.Response.Success(adminSession.SessionGuid.Value);
     }

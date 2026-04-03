@@ -1,16 +1,25 @@
-using Contracts.Accounts.Model;
-using Lab1.Domain.ValueObjects;
+using Contracts.OperationHistory;
+using Lab1.Application.Mappers.OperationMappers;
+using Lab1.Domain.Operations;
+using Lab1.Domain.Operations.Implementation;
 
 namespace Lab1.Application.Mappers;
 
 public static class OperationMappingExtension
 {
-    public static OperationRecordDto MapToDto(this OperationRecord record)
+    public static OperationDto MapToDto(this OperationRecord record)
     {
-        return new OperationRecordDto(
-            record.Type.ToString(),
-            record.Time,
-            record.AccountId.Value,
-            record.SessionId.Value);
+        return record switch
+        {
+            CancelInvoiceOperationRecord cancelInvoiceRecord => cancelInvoiceRecord.MapImplToDto(),
+            CreateInvoiceOperationRecord createInvoiceRecord => createInvoiceRecord.MapImplToDto(),
+            DepositOperationRecord depositRecord => depositRecord.MapImplToDto(),
+            InvoiceReceivedOperationRecord invoiceReceivedRecord => invoiceReceivedRecord.MapImplToDto(),
+            InvoiceWasCancelledOperationRecord invoiceWasCancelledRecord => invoiceWasCancelledRecord.MapImplToDto(),
+            PayInvoiceOperationRecord payInvoiceRecord => payInvoiceRecord.MapImplToDto(),
+            PaymentReceivedOperationRecord paymentReceivedRecord => paymentReceivedRecord.MapImplToDto(),
+            WithdrawOperationRecord withdrawRecord => withdrawRecord.MapImplToDto(),
+            _ => throw new Exception(),
+        };
     }
 }

@@ -3,39 +3,45 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <EnablePackageVersionOverride>false</EnablePackageVersionOverride>
   </PropertyGroup>
-    <ItemGroup>
-        <PackageVersion Include="coverlet.collector" Version="6.0.4">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageVersion>
-        <PackageVersion Include="FluentMigrator" Version="8.0.1" />
-        <PackageVersion Include="FluentMigrator.Extensions.Postgres" Version="8.0.1" />
-        <PackageVersion Include="FluentMigrator.Runner.Postgres" Version="8.0.1" />
-        <PackageVersion Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="2.3.9" />
-        <PackageVersion Include="Microsoft.Extensions.Configuration.UserSecrets" Version="10.0.5" />
-        <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.5" />
-        <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.5" />
-        <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.5" />
-        <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.5" />
-        <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.5" />
-        <PackageVersion Include="Microsoft.Extensions.Options.DataAnnotations" Version="10.0.5" />
-        <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
-        <PackageVersion Include="Npgsql" Version="10.0.1" />
-        <PackageVersion Include="Refit" Version="10.0.1" />
-        <PackageVersion Include="Refit.HttpClientFactory" Version="10.0.1" />
-        <PackageVersion Include="SourceKit" Version="1.1.54" />
-        <PackageVersion Include="SourceKit.Analyzers.Collections" Version="1.0.52" />
-        <PackageVersion Include="SourceKit.Analyzers.Enumerable" Version="1.0.52" />
-        <PackageVersion Include="SourceKit.Analyzers.MemberAccessibility" Version="1.0.52" />
-        <PackageVersion Include="SourceKit.Analyzers.Nullable" Version="1.0.52" />
-        <PackageVersion Include="SourceKit.Analyzers.Properties" Version="1.0.52" />
-        <PackageVersion Include="Itmo.Dev.Editorconfig" Version="1.0.14" />
-        <PackageVersion Include="SourceKit.Generators.Builder" Version="1.2.54" />
-        <PackageVersion Include="SourceKit.Generators.Builder.Annotations" Version="1.1.54" />
-        <PackageVersion Include="Spectre.Console.Cli" Version="0.53.1" />
-        <PackageVersion Include="Spectre.Console.Registrars.Microsoft-Di" Version="0.6.0" />
-        <PackageVersion Include="StyleCop.Analyzers" Version="1.2.0-beta.556" />
-        <PackageVersion Include="xunit" Version="2.9.3" />
-        <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.4" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" />
-    </ItemGroup>
+  <ItemGroup>
+    <PackageVersion Include="coverlet.collector" Version="6.0.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageVersion>
+    <PackageVersion Include="FluentMigrator" Version="8.0.1" />
+    <PackageVersion Include="FluentMigrator.Extensions.Postgres" Version="8.0.1" />
+    <PackageVersion Include="FluentMigrator.Runner.Postgres" Version="8.0.1" />
+    <PackageVersion Include="Google.Api.CommonProtos" Version="2.17.0" />
+    <PackageVersion Include="Grpc.AspNetCore" Version="2.76.0" />
+    <PackageVersion Include="Grpc.Tools" Version="2.80.0" />
+    <PackageVersion Include="Itmo.Dev.Platform.Persistence.Abstractions" Version="1.2.364" />
+    <PackageVersion Include="Itmo.Dev.Platform.Persistence.Postgres" Version="1.2.364" />
+    <PackageVersion Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="2.3.9" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.UserSecrets" Version="10.0.5" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.5" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.5" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.5" />
+    <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.5" />
+    <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.5" />
+    <PackageVersion Include="Microsoft.Extensions.Options.DataAnnotations" Version="10.0.5" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageVersion Include="Npgsql" Version="10.0.1" />
+    <PackageVersion Include="Refit" Version="10.0.1" />
+    <PackageVersion Include="Refit.HttpClientFactory" Version="10.0.1" />
+    <PackageVersion Include="SourceKit" Version="1.1.54" />
+    <PackageVersion Include="SourceKit.Analyzers.Collections" Version="1.0.52" />
+    <PackageVersion Include="SourceKit.Analyzers.Enumerable" Version="1.0.52" />
+    <PackageVersion Include="SourceKit.Analyzers.MemberAccessibility" Version="1.0.52" />
+    <PackageVersion Include="SourceKit.Analyzers.Nullable" Version="1.0.52" />
+    <PackageVersion Include="SourceKit.Analyzers.Properties" Version="1.0.52" />
+    <PackageVersion Include="Itmo.Dev.Editorconfig" Version="1.0.14" />
+    <PackageVersion Include="SourceKit.Generators.Builder" Version="1.2.54" />
+    <PackageVersion Include="SourceKit.Generators.Builder.Annotations" Version="1.1.54" />
+    <PackageVersion Include="SourceKit.Generators.Grpc" Version="1.0.58" />
+    <PackageVersion Include="Spectre.Console.Cli" Version="0.53.1" />
+    <PackageVersion Include="Spectre.Console.Registrars.Microsoft-Di" Version="0.6.0" />
+    <PackageVersion Include="StyleCop.Analyzers" Version="1.2.0-beta.556" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.4" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" />
+  </ItemGroup>
 </Project>

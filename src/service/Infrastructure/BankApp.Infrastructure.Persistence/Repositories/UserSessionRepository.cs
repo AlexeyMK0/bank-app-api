@@ -1,9 +1,9 @@
 using Abstractions.Queries;
 using Abstractions.Repositories;
+using Itmo.Dev.Platform.Persistence.Abstractions.Commands;
+using Itmo.Dev.Platform.Persistence.Abstractions.Connections;
 using Lab1.Domain.Accounts;
 using Lab1.Domain.Sessions;
-using Lab1.Infrastructure.Persistence.Connections;
-using Npgsql;
 using System.Data;
 using System.Data.Common;
 using System.Runtime.CompilerServices;
@@ -12,11 +12,11 @@ namespace Lab1.Infrastructure.Persistence.Repositories;
 
 public sealed class UserSessionRepository : IUserSessionRepository
 {
-    private readonly IConnectionProvider _dbSession;
+    private readonly IPersistenceConnectionProvider _connectionProvider;
 
-    public UserSessionRepository(IConnectionProvider dbSession)
+    public UserSessionRepository(IPersistenceConnectionProvider connectionProvider)
     {
-        _dbSession = dbSession;
+        _connectionProvider = connectionProvider;
     }
 
     public async Task<UserSession> AddAsync(UserSession userSession, CancellationToken cancellationToken)
@@ -27,12 +27,10 @@ public sealed class UserSessionRepository : IUserSessionRepository
         """;
 
         var guid = Guid.NewGuid();
-        await using DbConnection connection = await _dbSession.GetConnectionAsync(cancellationToken);
-        await using DbCommand command = connection.CreateCommand();
-        command.CommandText = sql;
-
-        command.Parameters.Add(new NpgsqlParameter<Guid>("session_guid", guid));
-        command.Parameters.Add(new NpgsqlParameter<long>("account_id", userSession.AccountId.Value));
+        await using IPersistenceConnection connection = await _connectionProvider.GetConnectionAsync(cancellationToken);
+        await using IPersistenceCommand command = connection.CreateCommand(sql)
+            .AddParameter<Guid>("session_guid", guid)
+            .AddParameter<long>("account_id", userSession.AccountId.Value);
 
         await command.ExecuteNonQueryAsync(cancellationToken);
         return new UserSession(new SessionId(guid), userSession.AccountId);
@@ -51,13 +49,11 @@ public sealed class UserSessionRepository : IUserSessionRepository
         LIMIT :page_size
         """;
 
-        await using DbConnection connection = await _dbSession.GetConnectionAsync(cancellationToken);
-        await using DbCommand command = connection.CreateCommand();
-        command.CommandText = sql;
-
-        command.Parameters.Add(new NpgsqlParameter<int>("page_size", query.PageSize));
-        command.Parameters.Add(new NpgsqlParameter<Guid?>("key_cursor", query.KeyCursor));
-        command.Parameters.Add(new NpgsqlParameter<Guid[]>("session_guids", query.SessionIds.Select(entry => entry.Value).ToArray()));
+        await using IPersistenceConnection connection = await _connectionProvider.GetConnectionAsync(cancellationToken);
+        await using IPersistenceCommand command = connection.CreateCommand(sql)
+            .AddParameter<int>("page_size", query.PageSize)
+            .AddParameter<Guid?>("key_cursor", query.KeyCursor)
+            .AddParameter<Guid[]>("session_guids", query.SessionIds.Select(entry => entry.Value).ToArray());
 
         await using DbDataReader dataReader = await command.ExecuteReaderAsync(cancellationToken);
         while (await dataReader.ReadAsync(cancellationToken))

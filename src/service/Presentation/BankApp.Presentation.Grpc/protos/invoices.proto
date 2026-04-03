@@ -1,0 +1,136 @@
+syntax = "proto3";
+
+package BankApp;
+option csharp_namespace = "BankApp.Grpc";
+
+import "google/type/money.proto";
+import "google/protobuf/wrappers.proto";
+
+service InvoiceService {
+  rpc CreateInvoice(CreateInvoiceRequest) returns (CreateInvoiceResponse);
+
+  rpc CancelInvoice(CancelInvoiceRequest) returns (CancelInvoiceResponse);
+
+  rpc PayInvoice(PayInvoiceRequest) returns (PayInvoiceResponse);
+  
+  rpc GetIncomingInvoices(GetIncomingInvoicesRequest) returns (GetIncomingInvoicesResponse);
+
+  rpc GetOutgoingInvoices(GetOutgoingInvoicesRequest) returns (GetOutgoingInvoicesResponse);
+}
+
+message CreateInvoiceRequest {
+  string session_id = 1;
+  int64 payer_id = 2;
+  google.type.Money amount = 3;
+}
+
+message CreateInvoiceResponse {
+  oneof Result {
+    Success success = 1;
+    Failure failure = 2;
+  }
+
+  message Success {
+    int64 invoice_id = 1;
+  }
+  message Failure {
+    string reason = 1;
+  }
+}
+
+message CancelInvoiceRequest {
+  string session_id = 1;
+  int64 invoice_id = 2;
+}
+
+message CancelInvoiceResponse {
+  oneof Result {
+    Success success = 1;
+    Failure failure = 2;
+  }
+
+  message Success {
+  }
+  message Failure {
+    string reason = 1;
+  }
+}
+
+message PayInvoiceRequest {
+  string session_id = 1;
+  int64 invoice_id = 2;
+}
+
+message PayInvoiceResponse {
+  oneof Result {
+    Success success = 1;
+    Failure failure = 2;
+  }
+
+  message Success {
+  }
+  message Failure {
+    string reason = 1;
+  }
+}
+
+message GetIncomingInvoicesRequest {
+  string session_id = 1;
+  string page_token = 2;
+  int32 page_size = 3;
+  InvoiceState invoice_status = 4;
+  repeated int64 recipient_ids = 5; 
+}
+
+message GetIncomingInvoicesResponse {
+  oneof Result {
+    Success success = 1;
+    Failure failure = 2;
+  }
+  
+  message Success {
+    repeated InvoiceModel invoices = 1;
+    google.protobuf.StringValue page_token = 2;
+  }
+  message Failure {
+    string reason = 1;
+  }
+}
+
+message GetOutgoingInvoicesRequest {
+  string session_id = 1;
+  string page_token = 2;
+  int32 page_size = 3;
+  InvoiceState invoice_status = 4;
+  repeated int64 payer_ids = 5;
+}
+
+message GetOutgoingInvoicesResponse {
+  oneof Result {
+    Success success = 1;
+    Failure failure = 2;
+  }
+  
+  message Success {
+    repeated InvoiceModel invoices = 1;
+    google.protobuf.StringValue page_token = 2;
+  }
+  message Failure {
+    string reason = 1;
+  }
+}
+
+message InvoiceModel {
+  int64 Id = 1;
+  google.type.Money Amount = 2;
+  InvoiceState State = 3;
+  int64 RecipientId = 4;
+  int64 PayerId = 5;
+}
+
+enum InvoiceState {
+  INVOICE_STATE_UNSPECIFIED = 0;
+  INVOICE_STATE_CREATED = 1;
+  INVOICE_STATE_PAID = 2;
+  INVOICE_STATE_CANCELLED = 3;
+}

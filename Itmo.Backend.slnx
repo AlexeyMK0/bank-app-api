@@ -19,6 +19,7 @@
     <Project Path="src\service\Infrastructure\BankApp.Infrastructure.Persistence\BankApp.Infrastructure.Persistence.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/src/service/Presentation/">
+    <Project Path="src\service\Presentation\BankApp.Presentation.Grpc\BankApp.Presentation.Grpc.csproj" Type="Classic C#" />
     <Project Path="src\service\Presentation\BankApp.Presentation.Http\BankApp.Presentation.Http.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/tests/" />

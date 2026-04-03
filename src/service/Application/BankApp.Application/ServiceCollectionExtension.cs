@@ -1,4 +1,5 @@
 using Contracts.Accounts;
+using Contracts.Invoices;
 using Contracts.OperationHistory;
 using Contracts.Sessions;
 using Lab1.Application.Options;
@@ -14,6 +15,7 @@ public static class ServiceCollectionExtension
         services.AddScoped<IAccountService, AccountService>();
         services.AddScoped<ISessionService, SessionService>();
         services.AddScoped<IOperationHistoryService, OperationHistoryService>();
+        services.AddScoped<IInvoiceService, InvoiceService>();
 
         services.AddOptions<PasswordOptions>()
             .BindConfiguration("SystemPasswordSettings")

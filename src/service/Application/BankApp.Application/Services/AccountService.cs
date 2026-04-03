@@ -1,11 +1,12 @@
 using Abstractions.Repositories;
-using Abstractions.Transactions;
 using Contracts.Accounts;
 using Contracts.Accounts.Operations;
+using Itmo.Dev.Platform.Persistence.Abstractions.Transactions;
 using Lab1.Application.Mappers;
 using Lab1.Application.RepositoryExtensions;
 using Lab1.Domain.Accounts;
 using Lab1.Domain.Operations;
+using Lab1.Domain.Operations.Implementation;
 using Lab1.Domain.Sessions;
 using Lab1.Domain.ValueObjects;
 using System.Data;
@@ -19,14 +20,14 @@ public sealed class AccountService : IAccountService
     private readonly IAccountRepository _accountRepository;
     private readonly IAdminSessionRepository _adminSessionRepository;
     private readonly IUserSessionRepository _userSessionRepository;
-    private readonly ITransactionProvider _transactionProvider;
+    private readonly IPersistenceTransactionProvider _transactionProvider;
     private readonly IOperationRepository _operationRepository;
 
     public AccountService(
         IAccountRepository accountRepository,
         IAdminSessionRepository adminSessionRepository,
         IUserSessionRepository userSessionRepository,
-        ITransactionProvider transactionProvider,
+        IPersistenceTransactionProvider transactionProvider,
         IOperationRepository operationRepository)
     {
         _accountRepository = accountRepository;
@@ -50,14 +51,14 @@ public sealed class AccountService : IAccountService
             return new CreateAccount.Response.Failure("Session not found");
         }
 
-        using ITransaction transaction = _transactionProvider
-            .BeginTransaction(IsolationLevel);
+        await using IPersistenceTransaction transaction = await _transactionProvider
+            .BeginTransactionAsync(IsolationLevel, cancellationToken);
 
         Account account = await _accountRepository.AddAsync(
             new Account(AccountId.Default, pinCode, Money.Zero),
             cancellationToken);
 
-        transaction.Commit();
+        await transaction.CommitAsync(cancellationToken);
 
         return new CreateAccount.Response.Success(account.MapToDto());
     }
@@ -109,21 +110,21 @@ public sealed class AccountService : IAccountService
         Account newAccount = account with
             { Balance = account.Balance.DecreaseBy(requestMoney) };
 
-        using ITransaction transaction = _transactionProvider
-            .BeginTransaction(IsolationLevel);
+        await using IPersistenceTransaction transaction = await _transactionProvider
+            .BeginTransactionAsync(IsolationLevel, cancellationToken);
 
         newAccount = await _accountRepository
             .UpdateAsync(newAccount, cancellationToken);
 
-        var operationRecord = new OperationRecord(
+        var operationRecord = new WithdrawOperationRecord(
             OperationRecordId.Default,
-            OperationType.WithdrawMoney,
             DateTimeOffset.Now,
             account.Id,
-            requestSession);
+            requestSession,
+            requestMoney);
         await _operationRepository.AddAsync(operationRecord, cancellationToken);
 
-        transaction.Commit();
+        await transaction.CommitAsync(cancellationToken);
 
         return new WithdrawMoney.Response.Success(newAccount.MapToDto());
     }
@@ -151,20 +152,20 @@ public sealed class AccountService : IAccountService
         Account newAccount = account with
             { Balance = account.Balance.IncreaseBy(requestMoney) };
 
-        using ITransaction transaction = _transactionProvider
-            .BeginTransaction(IsolationLevel);
+        await using IPersistenceTransaction transaction = await _transactionProvider
+            .BeginTransactionAsync(IsolationLevel, cancellationToken);
 
         newAccount = await _accountRepository
             .UpdateAsync(newAccount, cancellationToken);
-        var operationRecord = new OperationRecord(
+        var operationRecord = new DepositOperationRecord(
             OperationRecordId.Default,
-            OperationType.DepositMoney,
             DateTimeOffset.Now,
             account.Id,
-            requestSession);
+            requestSession,
+            requestMoney);
         await _operationRepository.AddAsync(operationRecord, cancellationToken);
 
-        transaction.Commit();
+        await transaction.CommitAsync(cancellationToken);
 
         return new DepositMoney.Response.Success(newAccount.MapToDto());
     }

@@ -1,22 +1,23 @@
 using Abstractions.Queries;
 using Abstractions.Repositories;
+using Itmo.Dev.Platform.Persistence.Abstractions.Commands;
+using Itmo.Dev.Platform.Persistence.Abstractions.Connections;
 using Lab1.Domain.Accounts;
 using Lab1.Domain.ValueObjects;
-using Lab1.Infrastructure.Persistence.Connections;
-using Npgsql;
 using System.Data;
 using System.Data.Common;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace Lab1.Infrastructure.Persistence.Repositories;
 
 public sealed class AccountRepository : IAccountRepository
 {
-    private readonly IConnectionProvider _dbSession;
+    private readonly IPersistenceConnectionProvider _connectionProvider;
 
-    public AccountRepository(IConnectionProvider dbSession)
+    public AccountRepository(IPersistenceConnectionProvider connectionProvider)
     {
-        _dbSession = dbSession;
+        _connectionProvider = connectionProvider;
     }
 
     public async Task<Account> AddAsync(
@@ -29,14 +30,18 @@ public sealed class AccountRepository : IAccountRepository
         RETURNING account_id;
         """;
 
-        await using DbConnection connection = await _dbSession.GetConnectionAsync(cancellationToken);
-        await using DbCommand command = connection.CreateCommand();
-        command.CommandText = sql;
-        command.Parameters.Add(new NpgsqlParameter<decimal>("balance", account.Balance.Value));
-        command.Parameters.Add(new NpgsqlParameter<string>("pincode", account.PinCode.Value));
+        await using IPersistenceConnection connection = await _connectionProvider.GetConnectionAsync(cancellationToken);
+        await using IPersistenceCommand command = connection.CreateCommand(sql)
+            .AddParameter<decimal>("balance", account.Balance.Value)
+            .AddParameter<string>("pincode", account.PinCode.Value);
 
-        object? result = await command.ExecuteScalarAsync(cancellationToken);
-        long newId = Convert.ToInt64(result);
+        await using DbDataReader reader = await command.ExecuteReaderAsync(cancellationToken);
+        if (await reader.ReadAsync(cancellationToken) is false)
+        {
+            throw new UnreachableException("Database didn't create id for account");
+        }
+
+        long newId = reader.GetInt64(0);
         return account with { Id = new AccountId(newId) };
     }
 
@@ -50,12 +55,11 @@ public sealed class AccountRepository : IAccountRepository
         WHERE account_id = :account_id
         """;
 
-        await using DbConnection connection = await _dbSession.GetConnectionAsync(cancellationToken);
-        await using DbCommand command = connection.CreateCommand();
-        command.CommandText = sql;
-        command.Parameters.Add(new NpgsqlParameter<long>("account_id", account.Id.Value));
-        command.Parameters.Add(new NpgsqlParameter<decimal>("balance", account.Balance.Value));
-        command.Parameters.Add(new NpgsqlParameter<string>("pincode", account.PinCode.Value));
+        await using IPersistenceConnection connection = await _connectionProvider.GetConnectionAsync(cancellationToken);
+        await using IPersistenceCommand command = connection.CreateCommand(sql)
+            .AddParameter<long>("account_id", account.Id.Value)
+            .AddParameter<decimal>("balance", account.Balance.Value)
+            .AddParameter<string>("pincode", account.PinCode.Value);
 
         await command.ExecuteNonQueryAsync(cancellationToken);
         return account;
@@ -74,12 +78,11 @@ public sealed class AccountRepository : IAccountRepository
         LIMIT :page_size;
         """;
 
-        await using DbConnection connection = await _dbSession.GetConnectionAsync(cancellationToken);
-        await using DbCommand command = connection.CreateCommand();
-        command.CommandText = sql;
-        command.Parameters.Add(new NpgsqlParameter<long[]>("ids", query.AccountIds.Select(id => id.Value).ToArray()));
-        command.Parameters.Add(new NpgsqlParameter<long?>("key_cursor", query.KeyCursor));
-        command.Parameters.Add(new NpgsqlParameter<int>("page_size", query.PageSize));
+        await using IPersistenceConnection connection = await _connectionProvider.GetConnectionAsync(cancellationToken);
+        await using IPersistenceCommand command = connection.CreateCommand(sql)
+            .AddParameter<long[]>("ids", query.AccountIds.Select(id => id.Value).ToArray())
+            .AddParameter<long?>("key_cursor", query.KeyCursor)
+            .AddParameter<int>("page_size", query.PageSize);
 
         await using DbDataReader reader = await command.ExecuteReaderAsync(cancellationToken);
         while (await reader.ReadAsync(cancellationToken))

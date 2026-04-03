@@ -4,4 +4,7 @@ public enum OperationType
 {
     DepositMoney,
     WithdrawMoney,
+    CreateInvoice,
+    CancelInvoice,
+    PayInvoice,
 }

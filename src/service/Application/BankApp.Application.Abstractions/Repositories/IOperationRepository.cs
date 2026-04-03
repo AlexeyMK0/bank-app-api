@@ -1,5 +1,5 @@
 using Abstractions.Queries;
-using Lab1.Domain.ValueObjects;
+using Lab1.Domain.Operations;
 
 namespace Abstractions.Repositories;
 

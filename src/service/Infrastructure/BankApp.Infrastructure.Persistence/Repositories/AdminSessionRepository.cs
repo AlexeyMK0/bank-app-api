@@ -1,8 +1,8 @@
 using Abstractions.Queries;
 using Abstractions.Repositories;
+using Itmo.Dev.Platform.Persistence.Abstractions.Commands;
+using Itmo.Dev.Platform.Persistence.Abstractions.Connections;
 using Lab1.Domain.Sessions;
-using Lab1.Infrastructure.Persistence.Connections;
-using Npgsql;
 using System.Data;
 using System.Data.Common;
 using System.Runtime.CompilerServices;
@@ -11,11 +11,11 @@ namespace Lab1.Infrastructure.Persistence.Repositories;
 
 public sealed class AdminSessionRepository : IAdminSessionRepository
 {
-    private readonly IConnectionProvider _dbSession;
+    private readonly IPersistenceConnectionProvider _connectionProvider;
 
-    public AdminSessionRepository(IConnectionProvider dbSession)
+    public AdminSessionRepository(IPersistenceConnectionProvider connectionProvider)
     {
-        _dbSession = dbSession;
+        _connectionProvider = connectionProvider;
     }
 
     public async Task<AdminSession> AddAsync(AdminSession adminSession, CancellationToken cancellationToken)
@@ -27,10 +27,9 @@ public sealed class AdminSessionRepository : IAdminSessionRepository
 
         var guid = new SessionId(Guid.NewGuid());
 
-        await using DbConnection connection = await _dbSession.GetConnectionAsync(cancellationToken);
-        await using DbCommand command = connection.CreateCommand();
-        command.CommandText = sql;
-        command.Parameters.Add(new NpgsqlParameter<Guid>("session_guid", guid.Value));
+        await using IPersistenceConnection connection = await _connectionProvider.GetConnectionAsync(cancellationToken);
+        await using IPersistenceCommand command = connection.CreateCommand(sql)
+            .AddParameter<Guid>("session_guid", guid.Value);
 
         await command.ExecuteNonQueryAsync(cancellationToken);
 
@@ -51,13 +50,11 @@ public sealed class AdminSessionRepository : IAdminSessionRepository
         """;
 
         Guid[] ids = query.SessionIds.Select(sessionId => sessionId.Value).ToArray();
-        await using DbConnection connection = await _dbSession.GetConnectionAsync(cancellationToken);
-        await using DbCommand command = connection.CreateCommand();
-        command.CommandText = sql;
-
-        command.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", ids));
-        command.Parameters.Add(new NpgsqlParameter<Guid?>("key_cursor", query.KeyCursor));
-        command.Parameters.Add(new NpgsqlParameter<int>("page_size", Convert.ToInt32(query.PageSize)));
+        await using IPersistenceConnection connection = await _connectionProvider.GetConnectionAsync(cancellationToken);
+        await using IPersistenceCommand command = connection.CreateCommand(sql)
+            .AddParameter<Guid[]>("ids", ids)
+            .AddParameter<Guid?>("key_cursor", query.KeyCursor)
+            .AddParameter<int>("page_size", Convert.ToInt32(query.PageSize));
         await using DbDataReader reader = await command.ExecuteReaderAsync(cancellationToken);
 
         while (await reader.ReadAsync(cancellationToken))

@@ -11,8 +11,9 @@ public static class AccountRepositoryExtension
     {
         return await accountRepository
             .QueryAsync(
-                AccountQuery.Build(builder =>
-                    builder.WithPageSize(1).WithAccountId(accountId)),
+                AccountQuery.Build(builder => builder
+                    .WithPageSize(1)
+                    .WithAccountId(accountId)),
                 cancellationToken)
             .FirstOrDefaultAsync(cancellationToken);
     }
