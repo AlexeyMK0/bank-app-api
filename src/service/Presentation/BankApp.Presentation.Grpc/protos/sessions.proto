@@ -15,7 +15,17 @@ message CreateUserSessionRequest {
 }
 
 message CreateUserSessionResponse {
-  string user_session_id = 1;
+  oneof Result {
+    Success success = 1;
+    Failure failure = 2;
+  }
+
+  message Success {
+    string user_session_id = 1;
+  }
+  message Failure {
+    string reason = 1;
+  }
 }
 
 message CreateAdminSessionRequest {
@@ -23,5 +33,15 @@ message CreateAdminSessionRequest {
 }
 
 message CreateAdminSessionResponse {
-  string admin_session_id = 1;
+  oneof Result {
+    Success success = 1;
+    Failure failure = 2;
+  }
+
+  message Success {
+    string admin_session_id = 1;
+  }
+  message Failure {
+    string reason = 1;
+  }
 }

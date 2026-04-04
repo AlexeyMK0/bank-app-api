@@ -182,10 +182,7 @@ public class InvoiceService : IInvoiceService
         InvoiceId? inputKeyCursor = request.PageToken is null
             ? null
             : new InvoiceId(request.PageToken.InvoiceId);
-        if (Enum.TryParse(request.InvoiceStatus, out InvoiceStatus requestStatus) is false)
-        {
-            return new GetIncomingInvoices.Response.Failure($"Unknown status: {request.InvoiceStatus}");
-        }
+        InvoiceStatus requestStatus = request.InvoiceStatus.MapToDomain();
 
         UserSession? foundSession = await _userSessionRepository
             .FindBySessionIdAsync(requestSession, cancellationToken);
@@ -220,10 +217,7 @@ public class InvoiceService : IInvoiceService
         InvoiceId? inputKeyCursor = request.PageToken is null
             ? null
             : new InvoiceId(request.PageToken.InvoiceId);
-        if (Enum.TryParse(request.InvoiceStatus, out InvoiceStatus requestStatus) is false)
-        {
-            return new GetOutgoingInvoices.Response.Failure($"Unknown status: {request.InvoiceStatus}");
-        }
+        InvoiceStatus requestStatus = request.InvoiceStatus.MapToDomain();
 
         UserSession? foundSession = await _userSessionRepository
             .FindBySessionIdAsync(requestSession, cancellationToken);

@@ -1,0 +1,68 @@
+using BankApp.Grpc;
+using Contracts.Sessions;
+using Contracts.Sessions.Operations;
+using Grpc.Core;
+using System.Diagnostics;
+
+namespace BankApp.Presentation.Grpc.Controllers;
+
+public class SessionController : SessionService.SessionServiceBase
+{
+    private readonly ISessionService _sessionService;
+
+    public SessionController(ISessionService sessionService)
+    {
+        _sessionService = sessionService;
+    }
+
+    public override async Task<CreateUserSessionResponse> CreateUserSession(
+        CreateUserSessionRequest request,
+        ServerCallContext context)
+    {
+        long accountId = request.AccountId;
+        string pinCode = request.PinCode;
+
+        var apiRequest = new CreateUserSession.Request(accountId, pinCode);
+
+        CreateUserSession.Response response =
+            await _sessionService.CreateUserSessionAsync(apiRequest, context.CancellationToken);
+        return response switch
+        {
+            CreateUserSession.Response.Success success => new CreateUserSessionResponse
+            {
+                Success = new CreateUserSessionResponse.Types.Success
+                    { UserSessionId = success.UserSessionDto.SessionId.ToString() },
+            },
+            CreateUserSession.Response.Failure failure => new CreateUserSessionResponse
+            {
+                Failure = new CreateUserSessionResponse.Types.Failure { Reason = failure.Message },
+            },
+            _ => throw new UnreachableException(),
+        };
+    }
+
+    public override async Task<CreateAdminSessionResponse> CreateAdminSession(
+        CreateAdminSessionRequest request,
+        ServerCallContext context)
+    {
+        string password = request.SystemPassword;
+
+        var apiRequest = new CreateAdminSession.Request(password);
+
+        CreateAdminSession.Response response =
+            await _sessionService.CreateAdminSessionAsync(apiRequest, context.CancellationToken);
+        return response switch
+        {
+            CreateAdminSession.Response.Success success => new CreateAdminSessionResponse
+            {
+                Success = new CreateAdminSessionResponse.Types.Success
+                    { AdminSessionId = success.AdminSessionGuid.ToString() },
+            },
+            CreateAdminSession.Response.Failure failure => new CreateAdminSessionResponse
+            {
+                Failure = new CreateAdminSessionResponse.Types.Failure { Reason = failure.Message },
+            },
+            _ => throw new UnreachableException(),
+        };
+    }
+}

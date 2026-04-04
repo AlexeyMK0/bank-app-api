@@ -10,7 +10,7 @@ public static class InvoiceMappingExtension
         return new InvoiceDto(
             invoice.Id.Value,
             invoice.Amount.Value,
-            invoice.State.Status.ToString(),
+            invoice.State.Status.MapToDto(),
             invoice.RecipientId.Value,
             invoice.PayerId.Value);
     }

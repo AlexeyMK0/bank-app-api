@@ -19,7 +19,7 @@ public class AddedJsonbToOperations1775124131 : SqlMigration
                         WHEN 'deposit_money' THEN 'DepositMoney'
                         WHEN 'withdraw_money' THEN 'WithdrawMoney'
                       END,
-                      'amount': amount
+                      'amount', amount
         )
         WHERE payload IS NULL
         """;
