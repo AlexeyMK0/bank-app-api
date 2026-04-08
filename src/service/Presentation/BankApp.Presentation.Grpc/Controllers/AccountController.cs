@@ -53,6 +53,8 @@ public class AccountController : AccountService.AccountServiceBase
                 Success = new DepositMoneyResponse.Types.Success
                     { Balance = new Money { DecimalValue = success.AccountDto.Balance }, },
             },
+
+            // TODO: maybe remove Failure and throw RpcException
             DepositMoney.Response.Failure failure => new DepositMoneyResponse
                 { Failure = new DepositMoneyResponse.Types.Failure { Reason = failure.Message } },
             _ => throw new UnreachableException(),

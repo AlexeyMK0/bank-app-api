@@ -107,6 +107,11 @@ public sealed class AccountService : IAccountService
             return new WithdrawMoney.Response.Failure($"Session {foundSession} not bound to account");
         }
 
+        if (account.Balance.CompareTo(requestMoney) < 0)
+        {
+            return new WithdrawMoney.Response.Failure("Not enough money for withdrawal");
+        }
+
         Account newAccount = account with
             { Balance = account.Balance.DecreaseBy(requestMoney) };
 
@@ -120,7 +125,6 @@ public sealed class AccountService : IAccountService
             OperationRecordId.Default,
             DateTimeOffset.Now,
             account.Id,
-            requestSession,
             requestMoney);
         await _operationRepository.AddAsync(operationRecord, cancellationToken);
 
@@ -161,7 +165,6 @@ public sealed class AccountService : IAccountService
             OperationRecordId.Default,
             DateTimeOffset.Now,
             account.Id,
-            requestSession,
             requestMoney);
         await _operationRepository.AddAsync(operationRecord, cancellationToken);
 

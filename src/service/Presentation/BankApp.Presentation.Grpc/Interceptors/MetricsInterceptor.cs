@@ -6,9 +6,9 @@ namespace BankApp.Presentation.Grpc.Interceptors;
 
 public class MetricsInterceptor : Interceptor
 {
-    private readonly Logger<MetricsInterceptor> _logger;
+    private readonly ILogger<MetricsInterceptor> _logger;
 
-    public MetricsInterceptor(Logger<MetricsInterceptor> logger)
+    public MetricsInterceptor(ILogger<MetricsInterceptor> logger)
     {
         _logger = logger;
     }

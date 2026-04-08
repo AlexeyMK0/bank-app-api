@@ -6,11 +6,14 @@ public sealed partial class GetIncomingInvoicesRequest : IValidatableObject
 {
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
-        if (InvoiceStatus is InvoiceState.Unspecified)
+        foreach (InvoiceState state in InvoiceStatuses)
         {
-            yield return new ValidationResult(
-                "Unknown invoice state",
-                [nameof(InvoiceStatus)]);
+            if (state is InvoiceState.Unspecified)
+            {
+                yield return new ValidationResult(
+                    $"Unknown invoice state {state}",
+                    [nameof(state)]);
+            }
         }
 
         if (PageSize < 1)

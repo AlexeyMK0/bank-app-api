@@ -29,14 +29,9 @@ public class SessionController : SessionService.SessionServiceBase
         return response switch
         {
             CreateUserSession.Response.Success success => new CreateUserSessionResponse
-            {
-                Success = new CreateUserSessionResponse.Types.Success
-                    { UserSessionId = success.UserSessionDto.SessionId.ToString() },
-            },
-            CreateUserSession.Response.Failure failure => new CreateUserSessionResponse
-            {
-                Failure = new CreateUserSessionResponse.Types.Failure { Reason = failure.Message },
-            },
+                { UserSessionId = success.UserSessionDto.SessionId.ToString() },
+            CreateUserSession.Response.Failure failure =>
+                throw new RpcException(new Status(StatusCode.InvalidArgument, failure.Message)),
             _ => throw new UnreachableException(),
         };
     }
@@ -54,14 +49,9 @@ public class SessionController : SessionService.SessionServiceBase
         return response switch
         {
             CreateAdminSession.Response.Success success => new CreateAdminSessionResponse
-            {
-                Success = new CreateAdminSessionResponse.Types.Success
-                    { AdminSessionId = success.AdminSessionGuid.ToString() },
-            },
-            CreateAdminSession.Response.Failure failure => new CreateAdminSessionResponse
-            {
-                Failure = new CreateAdminSessionResponse.Types.Failure { Reason = failure.Message },
-            },
+                { AdminSessionId = success.AdminSessionGuid.ToString() },
+            CreateAdminSession.Response.Failure failure =>
+                throw new RpcException(new Status(StatusCode.InvalidArgument, failure.Message)),
             _ => throw new UnreachableException(),
         };
     }

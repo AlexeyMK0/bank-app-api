@@ -61,16 +61,7 @@ public class InvoiceService : IInvoiceService
             payerId,
             new CreatedInvoiceState());
 
-        await using IPersistenceTransaction transaction = await _transactionProvider
-            .BeginTransactionAsync(DefaultIsolationLevel, cancellationToken);
-
         invoice = await _invoiceRepository.AddAsync(invoice, cancellationToken);
-        CreateInvoiceOperationRecord recipientOperation = CreateCreateInvoiceOperationRecord(invoice, sessionId);
-        InvoiceReceivedOperationRecord payerOperation = CreateInvoiceReceivedOperationRecord(invoice, sessionId);
-        await _operationRepository.AddAsync(recipientOperation, cancellationToken);
-        await _operationRepository.AddAsync(payerOperation, cancellationToken);
-
-        await transaction.CommitAsync(cancellationToken);
 
         return new CreateInvoice.Response.Success(invoice.Id.Value);
     }
@@ -88,7 +79,7 @@ public class InvoiceService : IInvoiceService
         }
 
         Invoice? invoice = await _invoiceRepository.FindInvoiceByIdAsync(invoiceId, cancellationToken);
-        if (invoice is null || IsPayerOrRecipient(invoice, session.AccountId) is false)
+        if (invoice is null || !IsPayerOrRecipient(invoice, session.AccountId))
         {
             return new CancelInvoice.Response.Failure($"Invoice with id: {invoiceId.Value} not found for account {session.AccountId.Value}");
         }
@@ -99,19 +90,7 @@ public class InvoiceService : IInvoiceService
             return new CancelInvoice.Response.Failure(failure.Reason);
         }
 
-        CancelInvoiceOperationRecord initiatorRecord
-            = CreateCancelInvoiceOperationRecord(invoice, sessionId, session.AccountId);
-        InvoiceWasCancelledOperationRecord receiverRecord
-            = CreateInvoiceWasCancelledOperationRecord(invoice, sessionId, session.AccountId);
-
-        await using IPersistenceTransaction transaction = await _transactionProvider
-            .BeginTransactionAsync(DefaultIsolationLevel, cancellationToken);
-
         await _invoiceRepository.UpdateAsync(invoice, cancellationToken);
-        await _operationRepository.AddAsync(initiatorRecord, cancellationToken);
-        await _operationRepository.AddAsync(receiverRecord, cancellationToken);
-
-        await transaction.CommitAsync(cancellationToken);
 
         return new CancelInvoice.Response.Success();
     }
@@ -121,31 +100,33 @@ public class InvoiceService : IInvoiceService
         var invoiceId = new InvoiceId(request.InvoiceId);
         var sessionId = new SessionId(request.SessionId);
 
-        UserSession? session = await _userSessionRepository
+        UserSession? payerSession = await _userSessionRepository
             .FindBySessionIdAsync(sessionId, cancellationToken);
-        if (session is null)
+        if (payerSession is null)
         {
             return new PayInvoice.Response.Failure("Session not found");
         }
 
         Invoice? invoice = await _invoiceRepository
             .FindInvoiceByIdAsync(invoiceId, cancellationToken);
-        if (invoice is null || invoice.PayerId != session.AccountId)
+        if (invoice is null || invoice.PayerId != payerSession.AccountId)
         {
-            return new PayInvoice.Response.Failure($"Cannot pay invoice with id: {invoiceId.Value} not found or account {session.AccountId.Value} is not its payer");
+            return new PayInvoice.Response.Failure($"Cannot pay invoice with id: {invoiceId.Value} - not found or account {payerSession.AccountId.Value} is not its payer");
         }
 
-        Account? account = await _accountRepository
-            .FindAccountByIdAsync(session.AccountId, cancellationToken);
-        if (account is null)
+        Account? payerAccount = await _accountRepository
+            .FindAccountByIdAsync(payerSession.AccountId, cancellationToken);
+        Account? recipientAccount = await _accountRepository
+            .FindAccountByIdAsync(invoice.RecipientId, cancellationToken);
+        if (payerAccount is null || recipientAccount is null)
         {
             return new PayInvoice.Response.Failure("Session not bound to account");
         }
 
-        if (account.Balance.CompareTo(invoice.Amount) < 0)
+        if (payerAccount.Balance.CompareTo(invoice.Amount) < 0)
         {
             return new PayInvoice.Response.Failure(
-                $"Not enough money to pay invoice {account.Balance.Value}/{invoice.Amount.Value}");
+                $"Not enough money to pay invoice {payerAccount.Balance.Value}/{invoice.Amount.Value}");
         }
 
         PayInvoiceResult result = invoice.Pay();
@@ -154,17 +135,20 @@ public class InvoiceService : IInvoiceService
             return new PayInvoice.Response.Failure(failure.Reason);
         }
 
-        account = account with
-            { Balance = account.Balance.DecreaseBy(invoice.Amount) };
+        payerAccount = payerAccount with
+            { Balance = payerAccount.Balance.DecreaseBy(invoice.Amount) };
+        recipientAccount = recipientAccount with
+            { Balance = recipientAccount.Balance.IncreaseBy(invoice.Amount) };
         PayInvoiceOperationRecord payerOperationRecord =
-            CreatePayInvoiceOperationRecord(invoice, sessionId);
+            CreatePayInvoiceOperationRecord(invoice);
         PaymentReceivedOperationRecord recipientOperationRecord =
-            CreatePaymentReceivedOperationRecord(invoice, sessionId);
+            CreatePaymentReceivedOperationRecord(invoice);
 
         await using IPersistenceTransaction transaction = await _transactionProvider
             .BeginTransactionAsync(DefaultIsolationLevel, cancellationToken);
 
-        await _accountRepository.UpdateAsync(account, cancellationToken);
+        await _accountRepository.UpdateAsync(payerAccount, cancellationToken);
+        await _accountRepository.UpdateAsync(recipientAccount, cancellationToken);
         await _invoiceRepository.UpdateAsync(invoice, cancellationToken);
         await _operationRepository.AddAsync(payerOperationRecord, cancellationToken);
         await _operationRepository.AddAsync(recipientOperationRecord, cancellationToken);
@@ -182,7 +166,10 @@ public class InvoiceService : IInvoiceService
         InvoiceId? inputKeyCursor = request.PageToken is null
             ? null
             : new InvoiceId(request.PageToken.InvoiceId);
-        InvoiceStatus requestStatus = request.InvoiceStatus.MapToDomain();
+        InvoiceStatus[] requestStatuses = request
+            .InvoiceStatuses.Select(status => status
+                .MapToDomain())
+            .ToArray();
 
         UserSession? foundSession = await _userSessionRepository
             .FindBySessionIdAsync(requestSession, cancellationToken);
@@ -196,7 +183,7 @@ public class InvoiceService : IInvoiceService
                 .WithPageSize(requestPageSize)
                 .WithKeyCursor(inputKeyCursor)
                 .WithRecipients(requestRecipients)
-                .WithStatus(requestStatus)),
+                .WithStatuses(requestStatuses)),
             cancellationToken)
             .ToArrayAsync(cancellationToken);
 
@@ -217,7 +204,10 @@ public class InvoiceService : IInvoiceService
         InvoiceId? inputKeyCursor = request.PageToken is null
             ? null
             : new InvoiceId(request.PageToken.InvoiceId);
-        InvoiceStatus requestStatus = request.InvoiceStatus.MapToDomain();
+        InvoiceStatus[] requestStatuses = request
+            .InvoiceStatuses.Select(status => status
+                .MapToDomain())
+            .ToArray();
 
         UserSession? foundSession = await _userSessionRepository
             .FindBySessionIdAsync(requestSession, cancellationToken);
@@ -231,7 +221,7 @@ public class InvoiceService : IInvoiceService
                     .WithPageSize(requestPageSize)
                     .WithKeyCursor(inputKeyCursor)
                     .WithPayers(requestPayers)
-                    .WithStatus(requestStatus)),
+                    .WithStatuses(requestStatuses)),
                 cancellationToken)
             .ToArrayAsync(cancellationToken);
 
@@ -245,99 +235,28 @@ public class InvoiceService : IInvoiceService
 
     private static bool IsPayerOrRecipient(Invoice invoice, AccountId id)
     {
-        return invoice.PayerId != id && invoice.RecipientId != id;
+        return invoice.PayerId == id || invoice.RecipientId == id;
     }
 
     private static PayInvoiceOperationRecord CreatePayInvoiceOperationRecord(
-        Invoice invoice,
-        SessionId sessionId)
+        Invoice invoice)
     {
         return new PayInvoiceOperationRecord(
             OperationRecordId.Default,
             DateTimeOffset.Now,
             invoice.PayerId,
-            sessionId,
             invoice.Id,
-            invoice.Amount,
-            invoice.RecipientId);
+            invoice.Amount);
     }
 
     private static PaymentReceivedOperationRecord CreatePaymentReceivedOperationRecord(
-        Invoice invoice,
-        SessionId sessionId)
+        Invoice invoice)
     {
         return new PaymentReceivedOperationRecord(
             OperationRecordId.Default,
             DateTimeOffset.Now,
             invoice.RecipientId,
-            sessionId,
             invoice.Id,
-            invoice.Amount,
-            invoice.PayerId);
-    }
-
-    private static CreateInvoiceOperationRecord CreateCreateInvoiceOperationRecord(
-        Invoice invoice,
-        SessionId sessionId)
-    {
-        return new CreateInvoiceOperationRecord(
-            OperationRecordId.Default,
-            DateTimeOffset.Now,
-            invoice.RecipientId,
-            sessionId,
-            invoice.Id,
-            invoice.Amount,
-            invoice.PayerId);
-    }
-
-    private static InvoiceReceivedOperationRecord CreateInvoiceReceivedOperationRecord(
-        Invoice invoice,
-        SessionId sessionId)
-    {
-        return new InvoiceReceivedOperationRecord(
-            OperationRecordId.Default,
-            DateTimeOffset.Now,
-            invoice.PayerId,
-            sessionId,
-            invoice.Id,
-            invoice.Amount,
-            invoice.RecipientId);
-    }
-
-    private static CancelInvoiceOperationRecord CreateCancelInvoiceOperationRecord(
-        Invoice invoice,
-        SessionId sessionId,
-        AccountId whoCancels)
-    {
-        return new CancelInvoiceOperationRecord(
-            OperationRecordId.Default,
-            DateTimeOffset.Now,
-            whoCancels,
-            sessionId,
-            invoice.Id,
-            invoice.Amount,
-            invoice.RecipientId,
-            invoice.PayerId);
-    }
-
-    private static InvoiceWasCancelledOperationRecord CreateInvoiceWasCancelledOperationRecord(
-        Invoice invoice,
-        SessionId sessionId,
-        AccountId whoCancels)
-    {
-        AccountId cancellationReceiver
-            = whoCancels == invoice.PayerId
-                ? invoice.RecipientId
-                : invoice.PayerId;
-
-        return new InvoiceWasCancelledOperationRecord(
-            OperationRecordId.Default,
-            DateTimeOffset.Now,
-            cancellationReceiver,
-            sessionId,
-            invoice.Id,
-            invoice.Amount,
-            invoice.RecipientId,
-            invoice.PayerId);
+            invoice.Amount);
     }
 }

@@ -1,3 +1,4 @@
+using Lab1.Domain.Accounts;
 using Lab1.Domain.Operations;
 using Lab1.Domain.Operations.Implementation;
 using Lab1.Domain.ValueObjects;
@@ -7,29 +8,34 @@ namespace Lab1.Infrastructure.Persistence.Model.Links;
 
 public class WithdrawParseLink : OperationLinkBase
 {
-    public override Payload Serialize(OperationRecord operationRecord)
+    public override OperationRecordEntity MapToEntity(OperationRecord operationRecord)
     {
         if (operationRecord is WithdrawOperationRecord withdrawRecord)
         {
-            return new WithdrawPayload(
+            var payload = new WithdrawPayload(
                 withdrawRecord.Amount.Value);
+
+            return new OperationRecordEntity(
+                withdrawRecord.Id.Value,
+                withdrawRecord.Time,
+                withdrawRecord.AccountId.Value,
+                payload);
         }
 
-        return SerializeNext(operationRecord);
+        return ToEntityNext(operationRecord);
     }
 
-    public override OperationRecord Deserialize(OperationRecordEntity entity, Payload payload)
+    public override OperationRecord MapToDomain(OperationRecordEntity entity)
     {
-        if (payload is WithdrawPayload withdrawPayload)
+        if (entity.Payload is WithdrawPayload withdrawPayload)
         {
             return new WithdrawOperationRecord(
-                entity.Id,
+                new OperationRecordId(entity.Id),
                 entity.Time,
-                entity.AccountId,
-                entity.SessionId,
+                new AccountId(entity.AccountId),
                 new Money(withdrawPayload.Amount));
         }
 
-        return DeserializeNext(entity, payload);
+        return ToDomainNext(entity);
     }
 }

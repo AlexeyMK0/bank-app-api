@@ -11,9 +11,7 @@ public static class PaymentReceivedMappingExtension
             operationRecord.Id.Value,
             operationRecord.Time,
             operationRecord.AccountId.Value,
-            operationRecord.SessionId.Value,
             operationRecord.InvoiceId.Value,
-            operationRecord.Amount.Value,
-            operationRecord.PayerId.Value);
+            operationRecord.Amount.Value);
     }
 }

@@ -2,9 +2,7 @@ using Abstractions.Queries;
 using Abstractions.Repositories;
 using Itmo.Dev.Platform.Persistence.Abstractions.Commands;
 using Itmo.Dev.Platform.Persistence.Abstractions.Connections;
-using Lab1.Domain.Accounts;
 using Lab1.Domain.Operations;
-using Lab1.Domain.Sessions;
 using Lab1.Infrastructure.Persistence.Model;
 using Lab1.Infrastructure.Persistence.Model.PayloadModel;
 using Lab1.Infrastructure.Persistence.Options;
@@ -33,20 +31,18 @@ public sealed class OperationRepository : IOperationRepository
     public async Task<OperationRecord> AddAsync(OperationRecord record, CancellationToken cancellationToken)
     {
         const string sql = """
-        INSERT INTO operations (operation_time, account_id, session_guid, payload)
-        VALUES (:operation_time, :account_id, :session_id, :payload)
+        INSERT INTO operations (operation_time, account_id, payload)
+        VALUES (:operation_time, :account_id, :payload)
         RETURNING operation_id;
         """;
 
-        Payload payload = _operationLink.Serialize(record);
-        string stringPayload = JsonSerializer.Serialize<Payload>(payload);
+        OperationRecordEntity entity = _operationLink.MapToEntity(record);
 
         await using IPersistenceConnection connection = await _connectionProvider.GetConnectionAsync(cancellationToken);
         await using IPersistenceCommand command = connection.CreateCommand(sql)
-            .AddParameter<DateTimeOffset>("operation_time", record.Time.ToUniversalTime())
-            .AddParameter<long>("account_id", record.AccountId.Value)
-            .AddParameter<Guid>("session_id", record.SessionId.Value)
-            .AddParameter<string>("payload", stringPayload);
+            .AddParameter("operation_time", entity.Time.ToUniversalTime())
+            .AddParameter("account_id", entity.AccountId)
+            .AddJsonParameter<Payload>("payload", entity.Payload);
 
         await using DbDataReader reader = await command.ExecuteReaderAsync(cancellationToken);
         if (await reader.ReadAsync(cancellationToken) is false)
@@ -63,21 +59,21 @@ public sealed class OperationRepository : IOperationRepository
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         const string sql = """
-        SELECT operation_id, operation_time, account_id, session_guid, payload
+        SELECT operation_id, operation_time, account_id, payload
         FROM operations
         WHERE
             (:key_cursor IS NULL or operation_id > :key_cursor)
             and (cardinality(:ids) = 0 or account_id = Any(:ids))
-            and (cardinality(:session_guids) = 0 or session_guid = Any(:session_guids))
+        ORDER BY operation_id
         LIMIT :page_size
         """;
 
+        long[] operationIds = query.AccountIds.Select(entry => entry.Value).ToArray();
         await using IPersistenceConnection connection = await _connectionProvider.GetConnectionAsync(cancellationToken);
         await using IPersistenceCommand command = connection.CreateCommand(sql)
-            .AddParameter<int>("page_size", query.PageSize)
-            .AddParameter<long?>("key_cursor", query.KeyCursor?.Value)
-            .AddParameter<long[]>("ids", query.AccountIds.Select(entry => entry.Value).ToArray())
-            .AddParameter<Guid[]>("session_guids", query.SessionIds.Select(entry => entry.Value).ToArray());
+            .AddParameter("page_size", query.PageSize)
+            .AddParameter("key_cursor", query.KeyCursor?.Value)
+            .AddParameter<long[]>("ids", operationIds);
 
         await using DbDataReader reader = await command.ExecuteReaderAsync(cancellationToken);
         while (await reader.ReadAsync(cancellationToken))
@@ -88,18 +84,17 @@ public sealed class OperationRepository : IOperationRepository
 
     private async ValueTask<OperationRecord> ReadOperationRecord(DbDataReader reader, CancellationToken cancellationToken)
     {
-        var entity = new OperationRecordEntity(
-            new OperationRecordId(reader.GetInt64("operation_id")),
-            await reader.GetFieldValueAsync<DateTimeOffset>("operation_time", cancellationToken),
-            new AccountId(reader.GetInt64("account_id")),
-            new SessionId(reader.GetGuid("session_guid")));
         string payloadString = reader.GetString("payload");
-        Payload? payload = JsonSerializer.Deserialize<Payload>(payloadString);
-        if (payload is null)
-        {
-            throw new InvalidOperationException($"Invalid payload in database with operation id {entity.Id.Value}");
-        }
+        /* TODO: maybe add converter */
+        Payload payload = JsonSerializer.Deserialize<Payload>(payloadString) ?? throw new ArgumentException("Bad json");
 
-        return _operationLink.Deserialize(entity, payload);
+        var entity = new OperationRecordEntity(
+            reader.GetInt64("operation_id"),
+            await reader.GetFieldValueAsync<DateTimeOffset>("operation_time", cancellationToken),
+            reader.GetInt64("account_id"),
+            payload);
+        Console.WriteLine($"Payload type: {entity.Payload.GetType().Name}");
+
+        return _operationLink.MapToDomain(entity);
     }
 }

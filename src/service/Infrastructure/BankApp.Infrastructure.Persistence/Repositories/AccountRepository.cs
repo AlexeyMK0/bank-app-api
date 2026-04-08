@@ -32,7 +32,7 @@ public sealed class AccountRepository : IAccountRepository
 
         await using IPersistenceConnection connection = await _connectionProvider.GetConnectionAsync(cancellationToken);
         await using IPersistenceCommand command = connection.CreateCommand(sql)
-            .AddParameter<decimal>("balance", account.Balance.Value)
+            .AddParameter("balance", account.Balance.Value)
             .AddParameter<string>("pincode", account.PinCode.Value);
 
         await using DbDataReader reader = await command.ExecuteReaderAsync(cancellationToken);
@@ -57,8 +57,8 @@ public sealed class AccountRepository : IAccountRepository
 
         await using IPersistenceConnection connection = await _connectionProvider.GetConnectionAsync(cancellationToken);
         await using IPersistenceCommand command = connection.CreateCommand(sql)
-            .AddParameter<long>("account_id", account.Id.Value)
-            .AddParameter<decimal>("balance", account.Balance.Value)
+            .AddParameter("account_id", account.Id.Value)
+            .AddParameter("balance", account.Balance.Value)
             .AddParameter<string>("pincode", account.PinCode.Value);
 
         await command.ExecuteNonQueryAsync(cancellationToken);
@@ -75,14 +75,15 @@ public sealed class AccountRepository : IAccountRepository
         WHERE (
             (:key_cursor IS NULL or account_id > :key_cursor))
             and (cardinality(:ids) = 0 or account_id = ANY(:ids))
+        ORDER BY account_id
         LIMIT :page_size;
         """;
 
         await using IPersistenceConnection connection = await _connectionProvider.GetConnectionAsync(cancellationToken);
         await using IPersistenceCommand command = connection.CreateCommand(sql)
             .AddParameter<long[]>("ids", query.AccountIds.Select(id => id.Value).ToArray())
-            .AddParameter<long?>("key_cursor", query.KeyCursor)
-            .AddParameter<int>("page_size", query.PageSize);
+            .AddParameter("key_cursor", query.KeyCursor)
+            .AddParameter("page_size", query.PageSize);
 
         await using DbDataReader reader = await command.ExecuteReaderAsync(cancellationToken);
         while (await reader.ReadAsync(cancellationToken))

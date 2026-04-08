@@ -6,7 +6,7 @@ using Itmo.Dev.Platform.Persistence.Postgres.Migrations;
 namespace Lab1.Infrastructure.Persistence.Migrations;
 
 [Migration(1775114439, "AddedAmountToOperations")]
-public class AddedAmountToOperations1775114439 : SqlMigration
+public class AddedAmountToOperations : SqlMigration
 {
     protected override string GetUpSql(IServiceProvider serviceProvider)
     {

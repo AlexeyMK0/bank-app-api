@@ -9,33 +9,36 @@ namespace Lab1.Infrastructure.Persistence.Model.Links;
 
 public class PaymentReceivedParseLink : OperationLinkBase
 {
-    public override Payload Serialize(OperationRecord operationRecord)
+    public override OperationRecordEntity MapToEntity(OperationRecord operationRecord)
     {
         if (operationRecord is PaymentReceivedOperationRecord paymentReceivedOperationRecord)
         {
-            return new PaymentReceivedPayload(
+            var payload = new PaymentReceivedPayload(
                 paymentReceivedOperationRecord.InvoiceId.Value,
-                paymentReceivedOperationRecord.Amount.Value,
-                paymentReceivedOperationRecord.PayerId.Value);
+                paymentReceivedOperationRecord.Amount.Value);
+
+            return new OperationRecordEntity(
+                paymentReceivedOperationRecord.Id.Value,
+                paymentReceivedOperationRecord.Time,
+                paymentReceivedOperationRecord.AccountId.Value,
+                payload);
         }
 
-        return SerializeNext(operationRecord);
+        return ToEntityNext(operationRecord);
     }
 
-    public override OperationRecord Deserialize(OperationRecordEntity entity, Payload payload)
+    public override OperationRecord MapToDomain(OperationRecordEntity entity)
     {
-        if (payload is PaymentReceivedPayload paymentReceivedPayload)
+        if (entity.Payload is PaymentReceivedPayload paymentReceivedPayload)
         {
             return new PaymentReceivedOperationRecord(
-                entity.Id,
+                new OperationRecordId(entity.Id),
                 entity.Time,
-                entity.AccountId,
-                entity.SessionId,
+                new AccountId(entity.AccountId),
                 new InvoiceId(paymentReceivedPayload.InvoiceId),
-                new Money(paymentReceivedPayload.Amount),
-                new AccountId(paymentReceivedPayload.PayerId));
+                new Money(paymentReceivedPayload.Amount));
         }
 
-        return DeserializeNext(entity, payload);
+        return ToDomainNext(entity);
     }
 }

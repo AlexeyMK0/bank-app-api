@@ -1,7 +1,9 @@
 using BankApp.Grpc;
 using BankApp.Presentation.Grpc.Mappers;
+using BankApp.Presentation.Grpc.Options;
 using Contracts.OperationHistory;
 using Grpc.Core;
+using Microsoft.Extensions.Options;
 using System.Diagnostics;
 using System.Text.Json;
 
@@ -10,16 +12,22 @@ namespace BankApp.Presentation.Grpc.Controllers;
 public class OperationHistoryController : OperationHistoryService.OperationHistoryServiceBase
 {
     private readonly IOperationHistoryService _historyService;
+    private readonly int _defaultPageSize;
 
-    public OperationHistoryController(IOperationHistoryService historyService)
+    public OperationHistoryController(
+        IOperationHistoryService historyService,
+        IOptions<OperationsControllerOptions> options)
     {
         _historyService = historyService;
+        _defaultPageSize = options.Value.DefaultPageSize;
     }
 
-    public override async Task<GetOperationHistoryResponse> GetOperationHistory(GetOperationHistoryRequest request, ServerCallContext context)
+    public override async Task<GetOperationHistoryResponse> GetOperationHistory(
+        GetOperationHistoryRequest request,
+        ServerCallContext context)
     {
         var sessionId = Guid.Parse(request.SessionId);
-        int pageSize = request.PageSize;
+        int pageSize = request.PageSize ?? _defaultPageSize;
         GetAccountOperations.PageToken? pageToken
             = request.PageToken is null
                 ? null
@@ -27,21 +35,19 @@ public class OperationHistoryController : OperationHistoryService.OperationHisto
 
         var apiRequest = new GetAccountOperations.Request(sessionId, pageToken, pageSize);
 
-        GetAccountOperations.Response result = await _historyService.GetAccountOperationsAsync(apiRequest, context.CancellationToken);
+        GetAccountOperations.Response result =
+            await _historyService.GetAccountOperationsAsync(apiRequest, context.CancellationToken);
         return result switch
         {
             GetAccountOperations.Response.Success success => new ProtoGetOperationHistoryResponse
             {
-                Success = new GetOperationHistoryResponse.Types.Success
-                {
-                    KeyCursor = success.KeyCursor is null
-                        ? null
-                        : JsonSerializer.Serialize<GetAccountOperations.PageToken>(success.KeyCursor),
-                    Records = { success.HistoryDto.Operations.Select(operation => operation.MapToGrpc()) },
-                },
+                PageToken = success.KeyCursor is null
+                    ? null
+                    : JsonSerializer.Serialize(success.KeyCursor),
+                Records = { success.HistoryDto.Operations.Select(operation => operation.MapToGrpc()) },
             },
-            GetAccountOperations.Response.Failure failure => new GetOperationHistoryResponse
-                { Failure = new GetOperationHistoryResponse.Types.Failure(failure.Message) },
+            GetAccountOperations.Response.Failure failure
+                => throw new RpcException(new Status(StatusCode.InvalidArgument, failure.Message)),
             _ => throw new UnreachableException(),
         };
     }

@@ -7,11 +7,8 @@ import "google/type/money.proto";
 
 service AccountService {
   rpc CheckBalance(CheckBalanceRequest) returns (CheckBalanceResponse);
-
   rpc DepositMoney(DepositMoneyRequest) returns (DepositMoneyResponse);
-
   rpc WithdrawMoney(WithdrawMoneyRequest) returns (WithdrawMoneyResponse);
-
   rpc CreateAccount(CreateAccountRequest) returns (CreateAccountResponse);
 }
 
@@ -24,7 +21,7 @@ message CheckBalanceResponse {
     Success success = 1;
     Failure failure = 2;
   }
-  
+
   message Success {
     google.type.Money balance = 1;
   }
@@ -43,7 +40,7 @@ message DepositMoneyResponse {
     Success success = 1;
     Failure failure = 2;
   }
-  
+
   message Success {
     google.type.Money balance = 1;
   }

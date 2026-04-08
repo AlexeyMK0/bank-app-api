@@ -1,4 +1,4 @@
-using BankApp.Presentation.Grpc.Mappers.OperatoinMappers;
+using BankApp.Presentation.Grpc.Mappers.OperationMappers;
 using Contracts.OperationHistory;
 using Contracts.OperationHistory.Operations;
 using System.Diagnostics;
@@ -11,11 +11,7 @@ public static class OperationMapper
     {
         return operationDto switch
         {
-            CancelInvoiceOperationDto cancelInvoiceDto => cancelInvoiceDto.MapToGrpcImpl(),
-            CreateInvoiceOperationDto createInvoiceDto => createInvoiceDto.MapToGrpcImpl(),
             DepositOperationDto depositDto => depositDto.MapToGrpcImpl(),
-            InvoiceReceivedOperationDto invoiceReceivedDto => invoiceReceivedDto.MapToGrpcImpl(),
-            InvoiceWasCancelledOperationDto invoiceWasCancelledDto => invoiceWasCancelledDto.MapToGrpcImpl(),
             PayInvoiceOperationDto payInvoiceDto => payInvoiceDto.MapToGrpcImpl(),
             PaymentReceivedOperationDto paymentReceivedDto => paymentReceivedDto.MapToGrpcImpl(),
             WithdrawOperationDto withdrawDto => withdrawDto.MapToGrpcImpl(),

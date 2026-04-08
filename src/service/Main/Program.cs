@@ -5,16 +5,16 @@ using Lab1.Infrastructure.Persistence;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-builder.Services
-    .AddPlatform(c =>
-        c.WithSystemTextJsonConfiguration());
+builder.Services.AddPlatform(platform => platform
+    .WithSystemTextJsonConfiguration());
 
 builder.Services
     .AddPersistence(builder.Configuration)
     .AddApplication()
     .AddPresentationGrpc();
 
-builder.Services.AddLogging(loggerBuilder => loggerBuilder.AddConsole());
+builder.Services.AddLogging(loggerBuilder => loggerBuilder
+    .AddConsole());
 
 WebApplication app = builder.Build();
 

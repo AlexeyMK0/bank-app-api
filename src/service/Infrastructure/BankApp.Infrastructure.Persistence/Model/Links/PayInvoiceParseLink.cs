@@ -9,33 +9,35 @@ namespace Lab1.Infrastructure.Persistence.Model.Links;
 
 public class PayInvoiceParseLink : OperationLinkBase
 {
-    public override Payload Serialize(OperationRecord operationRecord)
+    public override OperationRecordEntity MapToEntity(OperationRecord operationRecord)
     {
         if (operationRecord is PayInvoiceOperationRecord payInvoiceRecord)
         {
-            return new PayInvoicePayload(
+            var payload = new PayInvoicePayload(
                 payInvoiceRecord.InvoiceId.Value,
-                payInvoiceRecord.Amount.Value,
-                payInvoiceRecord.RecipientId.Value);
+                payInvoiceRecord.Amount.Value);
+            return new OperationRecordEntity(
+                payInvoiceRecord.Id.Value,
+                payInvoiceRecord.Time,
+                payInvoiceRecord.AccountId.Value,
+                payload);
         }
 
-        return SerializeNext(operationRecord);
+        return ToEntityNext(operationRecord);
     }
 
-    public override OperationRecord Deserialize(OperationRecordEntity entity, Payload payload)
+    public override OperationRecord MapToDomain(OperationRecordEntity entity)
     {
-        if (payload is PayInvoicePayload payInvoicePayload)
+        if (entity.Payload is PayInvoicePayload payInvoicePayload)
         {
             return new PayInvoiceOperationRecord(
-                entity.Id,
+                new OperationRecordId(entity.Id),
                 entity.Time,
-                entity.AccountId,
-                entity.SessionId,
+                new AccountId(entity.AccountId),
                 new InvoiceId(payInvoicePayload.InvoiceId),
-                new Money(payInvoicePayload.Amount),
-                new AccountId(payInvoicePayload.RecipientId));
+                new Money(payInvoicePayload.Amount));
         }
 
-        return DeserializeNext(entity, payload);
+        return ToDomainNext(entity);
     }
 }

@@ -21,15 +21,15 @@ public sealed class AdminSessionRepository : IAdminSessionRepository
     public async Task<AdminSession> AddAsync(AdminSession adminSession, CancellationToken cancellationToken)
     {
         const string sql = """
-        INSERT INTO admin_sessions (session_guid)
-        VALUES (:session_guid)
+        INSERT INTO admin_sessions (session_id)
+        VALUES (:session_id)
         """;
 
         var guid = new SessionId(Guid.NewGuid());
 
         await using IPersistenceConnection connection = await _connectionProvider.GetConnectionAsync(cancellationToken);
         await using IPersistenceCommand command = connection.CreateCommand(sql)
-            .AddParameter<Guid>("session_guid", guid.Value);
+            .AddParameter("session_id", guid.Value);
 
         await command.ExecuteNonQueryAsync(cancellationToken);
 
@@ -41,11 +41,12 @@ public sealed class AdminSessionRepository : IAdminSessionRepository
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         const string sql = """
-        SELECT session_guid
+        SELECT session_id
         FROM admin_sessions
         WHERE 
-            (:key_cursor is NULL or session_guid > :key_cursor)
-            and (cardinality(:ids) = 0 or session_guid = ANY(:ids))
+            (:key_cursor is NULL or session_id > :key_cursor)
+            and (cardinality(:ids) = 0 or session_id = ANY(:ids))
+        ORDER BY session_id
         LIMIT :page_size
         """;
 
@@ -53,14 +54,14 @@ public sealed class AdminSessionRepository : IAdminSessionRepository
         await using IPersistenceConnection connection = await _connectionProvider.GetConnectionAsync(cancellationToken);
         await using IPersistenceCommand command = connection.CreateCommand(sql)
             .AddParameter<Guid[]>("ids", ids)
-            .AddParameter<Guid?>("key_cursor", query.KeyCursor)
-            .AddParameter<int>("page_size", Convert.ToInt32(query.PageSize));
+            .AddParameter("key_cursor", query.KeyCursor)
+            .AddParameter("page_size", Convert.ToInt32(query.PageSize));
         await using DbDataReader reader = await command.ExecuteReaderAsync(cancellationToken);
 
         while (await reader.ReadAsync(cancellationToken))
         {
             yield return new AdminSession(
-                new SessionId(reader.GetGuid("session_guid")));
+                new SessionId(reader.GetGuid("session_id")));
         }
     }
 }

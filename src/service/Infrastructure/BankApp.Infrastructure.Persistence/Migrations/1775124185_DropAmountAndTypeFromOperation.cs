@@ -6,7 +6,7 @@ using Itmo.Dev.Platform.Persistence.Postgres.Migrations;
 namespace Lab1.Infrastructure.Persistence.Migrations;
 
 [Migration(1775124185, "DropAmountAndTypeFromOperation")]
-public class DropAmountAndTypeFromOperation1775124185 : SqlMigration
+public class DropAmountAndTypeFromOperation : SqlMigration
 {
     protected override string GetUpSql(IServiceProvider serviceProvider)
     {
@@ -25,17 +25,17 @@ public class DropAmountAndTypeFromOperation1775124185 : SqlMigration
         // TODO: somehow save invoice operations
         // language=sql
         return """
-        DELETE FROM operations WHERE jsonb->>'Type' NOT IN ('DepositMoney', 'WithdrawMoney');
+        DELETE FROM operations WHERE jsonb->>'$type' NOT IN ('DepositMoney', 'WithdrawMoney');
 
         CREATE TYPE OPERATION_TYPE AS ENUM ('deposit_money', 'withdraw_money');
 
         UPDATE operations
         SET
-            operation_type = CASE jsonb->>'Type'
+            operation_type = CASE jsonb->>'$type'
                                  WHEN 'DepositMoney' THEN 'deposit_money'::OPERATION_TYPE
                                  WHEN 'WithdrawMoney' THEN 'withdraw_money'::OPERATION_TYPE
                              END,
-            amount = (jsonb->>'Amount')::decimal;
+            amount = (jsonb->>'amount')::decimal;
         """;
     }
 }

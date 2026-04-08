@@ -11,11 +11,7 @@ public static class OperationMappingExtension
     {
         return record switch
         {
-            CancelInvoiceOperationRecord cancelInvoiceRecord => cancelInvoiceRecord.MapImplToDto(),
-            CreateInvoiceOperationRecord createInvoiceRecord => createInvoiceRecord.MapImplToDto(),
             DepositOperationRecord depositRecord => depositRecord.MapImplToDto(),
-            InvoiceReceivedOperationRecord invoiceReceivedRecord => invoiceReceivedRecord.MapImplToDto(),
-            InvoiceWasCancelledOperationRecord invoiceWasCancelledRecord => invoiceWasCancelledRecord.MapImplToDto(),
             PayInvoiceOperationRecord payInvoiceRecord => payInvoiceRecord.MapImplToDto(),
             PaymentReceivedOperationRecord paymentReceivedRecord => paymentReceivedRecord.MapImplToDto(),
             WithdrawOperationRecord withdrawRecord => withdrawRecord.MapImplToDto(),

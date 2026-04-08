@@ -1,8 +1,10 @@
 using BankApp.Grpc;
 using BankApp.Presentation.Grpc.Mappers;
+using BankApp.Presentation.Grpc.Options;
 using Contracts.Invoices;
 using Contracts.Invoices.Operations;
 using Grpc.Core;
+using Microsoft.Extensions.Options;
 using System.Diagnostics;
 using System.Text.Json;
 
@@ -12,9 +14,12 @@ public class InvoiceController : InvoiceService.InvoiceServiceBase
 {
     private readonly IInvoiceService _invoiceService;
 
-    public InvoiceController(IInvoiceService invoiceService)
+    private readonly int _defaultPageSize;
+
+    public InvoiceController(IInvoiceService invoiceService, IOptions<InvoiceControllerOptions> options)
     {
         _invoiceService = invoiceService;
+        _defaultPageSize = options.Value.DefaultPageSize;
     }
 
     public override async Task<CreateInvoiceResponse> CreateInvoice(CreateInvoiceRequest request, ServerCallContext context)
@@ -74,15 +79,19 @@ public class InvoiceController : InvoiceService.InvoiceServiceBase
     public override async Task<GetIncomingInvoicesResponse> GetIncomingInvoices(GetIncomingInvoicesRequest request, ServerCallContext context)
     {
         var sessionId = Guid.Parse(request.SessionId);
-        InvoiceStateDto state = request.InvoiceStatus.MapToDto();
-        int pageSize = request.PageSize;
+        InvoiceStateDto[] states = request
+            .InvoiceStatuses.Select(state => state
+                .MapToDto())
+            .ToArray();
+        int pageSize = request.PageSize ?? _defaultPageSize;
         long[] recipientIds = request.RecipientIds.ToArray();
+        Console.WriteLine($"Page token is null: {request.PageToken is null}");
         GetIncomingInvoices.PageToken? pageToken
             = request.PageToken is null
                 ? null
                 : JsonSerializer.Deserialize<GetIncomingInvoices.PageToken>(request.PageToken);
 
-        var apiRequest = new GetIncomingInvoices.Request(sessionId, pageToken, pageSize, state, recipientIds);
+        var apiRequest = new GetIncomingInvoices.Request(sessionId, pageToken, pageSize, states, recipientIds);
 
         GetIncomingInvoices.Response result = await _invoiceService.GetIncomingInvoicesAsync(apiRequest, context.CancellationToken);
         return result switch
@@ -106,15 +115,18 @@ public class InvoiceController : InvoiceService.InvoiceServiceBase
     public override async Task<GetOutgoingInvoicesResponse> GetOutgoingInvoices(GetOutgoingInvoicesRequest request, ServerCallContext context)
     {
         var sessionId = Guid.Parse(request.SessionId);
-        InvoiceStateDto state = request.InvoiceStatus.MapToDto();
-        int pageSize = request.PageSize;
+        InvoiceStateDto[] states = request
+            .InvoiceStatuses.Select(state => state
+                .MapToDto())
+            .ToArray();
+        int pageSize = request.PageSize ?? _defaultPageSize;
         long[] payerIds = request.PayerIds.ToArray();
         GetOutgoingInvoices.PageToken? pageToken
             = request.PageToken is null
                 ? null
                 : JsonSerializer.Deserialize<GetOutgoingInvoices.PageToken>(request.PageToken);
 
-        var apiRequest = new GetOutgoingInvoices.Request(sessionId, pageToken, pageSize, state, payerIds);
+        var apiRequest = new GetOutgoingInvoices.Request(sessionId, pageToken, pageSize, states, payerIds);
 
         GetOutgoingInvoices.Response result = await _invoiceService.GetOutgoingInvoicesAsync(apiRequest, context.CancellationToken);
         return result switch

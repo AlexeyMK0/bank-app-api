@@ -8,13 +8,9 @@ import "google/protobuf/wrappers.proto";
 
 service InvoiceService {
   rpc CreateInvoice(CreateInvoiceRequest) returns (CreateInvoiceResponse);
-
   rpc CancelInvoice(CancelInvoiceRequest) returns (CancelInvoiceResponse);
-
   rpc PayInvoice(PayInvoiceRequest) returns (PayInvoiceResponse);
-  
   rpc GetIncomingInvoices(GetIncomingInvoicesRequest) returns (GetIncomingInvoicesResponse);
-
   rpc GetOutgoingInvoices(GetOutgoingInvoicesRequest) returns (GetOutgoingInvoicesResponse);
 }
 
@@ -76,9 +72,9 @@ message PayInvoiceResponse {
 
 message GetIncomingInvoicesRequest {
   string session_id = 1;
-  string page_token = 2;
-  int32 page_size = 3;
-  InvoiceState invoice_status = 4;
+  google.protobuf.StringValue page_token = 2;
+  google.protobuf.Int32Value page_size = 3;
+  repeated InvoiceState invoice_statuses = 4;
   repeated int64 recipient_ids = 5; 
 }
 
@@ -99,9 +95,9 @@ message GetIncomingInvoicesResponse {
 
 message GetOutgoingInvoicesRequest {
   string session_id = 1;
-  string page_token = 2;
-  int32 page_size = 3;
-  InvoiceState invoice_status = 4;
+  google.protobuf.StringValue page_token = 2;
+  google.protobuf.Int32Value page_size = 3;
+  repeated InvoiceState invoice_statuses = 4;
   repeated int64 payer_ids = 5;
 }
 

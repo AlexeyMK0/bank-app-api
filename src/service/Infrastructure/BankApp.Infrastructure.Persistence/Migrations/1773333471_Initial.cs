@@ -6,7 +6,7 @@ using Itmo.Dev.Platform.Persistence.Postgres.Migrations;
 namespace Lab1.Infrastructure.Persistence.Migrations;
 
 [Migration(1773333471, "Initial")]
-public class Initial1773333471 : SqlMigration
+public class Initial : SqlMigration
 {
     protected override string GetUpSql(IServiceProvider serviceProvider)
     {
@@ -20,13 +20,13 @@ public class Initial1773333471 : SqlMigration
 
         CREATE TABLE admin_sessions
         (
-            session_guid UUID PRIMARY KEY
+            session_id UUID PRIMARY KEY
         );
 
         CREATE TABLE user_sessions
         (
-            session_guid UUID PRIMARY KEY,
-            account_id BIGSERIAL NOT NULL
+            session_id UUID PRIMARY KEY,
+            account_id BIGINT NOT NULL
         );
         """;
     }

@@ -19,8 +19,7 @@ public sealed class OperationsAdded : SqlMigration
            operation_id BIGSERIAL NOT NULL PRIMARY KEY,
            operation_type OPERATION_TYPE NOT NULL,
            operation_time TIMESTAMP with time zone NOT NULL,
-           account_id BIGSERIAL NOT NULL,
-           session_guid UUID NOT NULL
+           account_id BIGINT NOT NULL
         );
         """;
     }

@@ -35,14 +35,15 @@ public class InvoiceRepository : IInvoiceRepository
            and (cardinality(:ids) = 0 or invoice_id = Any(:ids))
            and (cardinality(:recipient_ids) = 0 or recipient_id = Any(:recipient_ids))
            and (cardinality(:payer_ids) = 0 or payer_id = Any(:payer_ids)) 
-           and (cardinality(:statuses) = 0 or state = Any(:statuses)) 
+           and (cardinality(:statuses) = 0 or state = Any(:statuses))
+        ORDER BY invoice_id
         LIMIT :page_size
         """;
 
         await using IPersistenceConnection connection = await _connectionProvider.GetConnectionAsync(cancellationToken);
         await using IPersistenceCommand command = connection.CreateCommand(sql)
-            .AddParameter<int>("page_size", query.PageSize)
-            .AddParameter<long?>("key_cursor", query.KeyCursor?.Value)
+            .AddParameter("page_size", query.PageSize)
+            .AddParameter("key_cursor", query.KeyCursor?.Value)
             .AddParameter<long[]>("ids", query.InvoiceIds.Select(entry => entry.Value).ToArray())
             .AddParameter<long[]>("recipient_ids", query.Recipients.Select(entry => entry.Value).ToArray())
             .AddParameter<long[]>("payer_ids", query.Payers.Select(entry => entry.Value).ToArray())
@@ -70,11 +71,11 @@ public class InvoiceRepository : IInvoiceRepository
 
         await using IPersistenceConnection connection = await _connectionProvider.GetConnectionAsync(cancellationToken);
         await using IPersistenceCommand command = connection.CreateCommand(sql)
-            .AddParameter<long>("invoice_id", invoice.Id.Value)
-            .AddParameter<decimal>("amount", invoice.Amount.Value)
-            .AddParameter<long>("recipient_id", invoice.RecipientId.Value)
-            .AddParameter<long>("payer_id", invoice.PayerId.Value)
-            .AddParameter<InvoiceStatus>("state", invoice.State.Status);
+            .AddParameter("invoice_id", invoice.Id.Value)
+            .AddParameter("amount", invoice.Amount.Value)
+            .AddParameter("recipient_id", invoice.RecipientId.Value)
+            .AddParameter("payer_id", invoice.PayerId.Value)
+            .AddParameter("state", invoice.State.Status);
 
         await command.ExecuteNonQueryAsync(cancellationToken);
         return invoice;
@@ -91,9 +92,9 @@ public class InvoiceRepository : IInvoiceRepository
         await using IPersistenceConnection connection = await _connectionProvider.GetConnectionAsync(cancellationToken);
         await using IPersistenceCommand command = connection.CreateCommand(sql)
             .AddParameter<InvoiceStatus>("state", invoice.State.Status)
-            .AddParameter<decimal>("amount", invoice.Amount.Value)
-            .AddParameter<long>("recipient_id", invoice.RecipientId.Value)
-            .AddParameter<long>("payer_id", invoice.PayerId.Value);
+            .AddParameter("amount", invoice.Amount.Value)
+            .AddParameter("recipient_id", invoice.RecipientId.Value)
+            .AddParameter("payer_id", invoice.PayerId.Value);
 
         DbDataReader reader = await command.ExecuteReaderAsync(cancellationToken);
         if (await reader.ReadAsync(cancellationToken) is false)

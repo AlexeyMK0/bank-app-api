@@ -2,7 +2,8 @@ using System.Text.Json.Serialization;
 
 namespace Lab1.Infrastructure.Persistence.Model.PayloadModel;
 
-[JsonPolymorphic(TypeDiscriminatorPropertyName = "Type")]
-[JsonDerivedType(typeof(CancelInvoicePayload), typeDiscriminator: "CancelInvoice")]
-[JsonDerivedType(typeof(CreateInvoicePayload), typeDiscriminator: "CreateInvoice")]
+[JsonDerivedType(typeof(WithdrawPayload), typeDiscriminator: "Withdraw")]
+[JsonDerivedType(typeof(DepositPayload), typeDiscriminator: "Deposit")]
+[JsonDerivedType(typeof(PayInvoicePayload), typeDiscriminator: "PayInvoice")]
+[JsonDerivedType(typeof(PaymentReceivedPayload), typeDiscriminator: "PaymentReceived")]
 public record Payload;

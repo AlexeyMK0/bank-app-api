@@ -1,3 +1,4 @@
+using Lab1.Domain.Accounts;
 using Lab1.Domain.Operations;
 using Lab1.Domain.Operations.Implementation;
 using Lab1.Domain.ValueObjects;
@@ -7,29 +8,33 @@ namespace Lab1.Infrastructure.Persistence.Model.Links;
 
 public class DepositParseLink : OperationLinkBase
 {
-    public override Payload Serialize(OperationRecord operationRecord)
+    public override OperationRecordEntity MapToEntity(OperationRecord operationRecord)
     {
         if (operationRecord is DepositOperationRecord depositRecord)
         {
-            return new DepositPayload(
+            var payload = new DepositPayload(
                 depositRecord.Amount.Value);
+            return new OperationRecordEntity(
+                depositRecord.Id.Value,
+                depositRecord.Time,
+                depositRecord.AccountId.Value,
+                payload);
         }
 
-        return SerializeNext(operationRecord);
+        return ToEntityNext(operationRecord);
     }
 
-    public override OperationRecord Deserialize(OperationRecordEntity entity, Payload payload)
+    public override OperationRecord MapToDomain(OperationRecordEntity entity)
     {
-        if (payload is DepositPayload depositPayload)
+        if (entity.Payload is DepositPayload depositPayload)
         {
             return new DepositOperationRecord(
-                entity.Id,
+                new OperationRecordId(entity.Id),
                 entity.Time,
-                entity.AccountId,
-                entity.SessionId,
+                new AccountId(entity.AccountId),
                 new Money(depositPayload.Amount));
         }
 
-        return DeserializeNext(entity, payload);
+        return ToDomainNext(entity);
     }
 }

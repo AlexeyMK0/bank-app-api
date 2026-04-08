@@ -6,7 +6,7 @@ using Itmo.Dev.Platform.Persistence.Postgres.Migrations;
 namespace Lab1.Infrastructure.Persistence.Migrations;
 
 [Migration(1775124131, "AddedJsonbToOperations")]
-public class AddedJsonbToOperations1775124131 : SqlMigration
+public class AddedJsonbToOperations : SqlMigration
 {
     protected override string GetUpSql(IServiceProvider serviceProvider)
     {
@@ -15,7 +15,7 @@ public class AddedJsonbToOperations1775124131 : SqlMigration
 
         UPDATE operations
         SET payload = jsonb_build_object(
-                      'type', CASE operation_type
+                      '$type', CASE operation_type
                         WHEN 'deposit_money' THEN 'DepositMoney'
                         WHEN 'withdraw_money' THEN 'WithdrawMoney'
                       END,

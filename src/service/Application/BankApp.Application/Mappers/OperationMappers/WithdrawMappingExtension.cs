@@ -11,7 +11,6 @@ public static class WithdrawMappingExtension
             operationRecord.Id.Value,
             operationRecord.Time,
             operationRecord.AccountId.Value,
-            operationRecord.SessionId.Value,
             operationRecord.Amount.Value);
     }
 }

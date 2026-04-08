@@ -5,7 +5,6 @@ option csharp_namespace = "BankApp.Grpc";
 
 service SessionService {
   rpc CreateUserSession(CreateUserSessionRequest) returns (CreateUserSessionResponse); 
-  
   rpc CreateAdminSession(CreateAdminSessionRequest) returns (CreateAdminSessionResponse); 
 }
 
@@ -15,17 +14,7 @@ message CreateUserSessionRequest {
 }
 
 message CreateUserSessionResponse {
-  oneof Result {
-    Success success = 1;
-    Failure failure = 2;
-  }
-
-  message Success {
-    string user_session_id = 1;
-  }
-  message Failure {
-    string reason = 1;
-  }
+  string user_session_id = 1;
 }
 
 message CreateAdminSessionRequest {
@@ -33,15 +22,5 @@ message CreateAdminSessionRequest {
 }
 
 message CreateAdminSessionResponse {
-  oneof Result {
-    Success success = 1;
-    Failure failure = 2;
-  }
-
-  message Success {
-    string admin_session_id = 1;
-  }
-  message Failure {
-    string reason = 1;
-  }
+  string admin_session_id = 1;
 }

@@ -5,6 +5,7 @@ using Lab1.Infrastructure.Persistence.HostedService;
 using Lab1.Infrastructure.Persistence.Model;
 using Lab1.Infrastructure.Persistence.Model.Links;
 using Lab1.Infrastructure.Persistence.Options;
+using Lab1.Infrastructure.Persistence.Plugins;
 using Lab1.Infrastructure.Persistence.Repositories;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,20 +18,18 @@ public static class ServiceCollectionExtension
     {
         services.AddPlatformPersistence(persistence => persistence
             .UsePostgres(postgres => postgres
-                .WithConnectionOptions(static builder => builder.BindConfiguration(
+                .WithConnectionOptions(static builder => builder
+                    .BindConfiguration(
                     "Infrastructure:Persistence:Postgres"))
-                .WithMigrationsFrom(typeof(IMigrationsAssemblyMarker).Assembly)));
+                .WithMigrationsFrom(typeof(IMigrationsAssemblyMarker).Assembly)
+                .WithDataSourcePlugin<MappingPlugin>()));
 
         services.AddScoped<OperationParserOptions>(servicesProvider =>
         {
-            IOperationLink link = new CancelInvoiceParseLink()
-                .AddNext(new CreateInvoiceParseLink())
-                .AddNext(new DepositParseLink())
+            IOperationLink link = new DepositParseLink()
                 .AddNext(new PayInvoiceParseLink())
                 .AddNext(new WithdrawParseLink())
-                .AddNext(new PaymentReceivedParseLink())
-                .AddNext(new InvoiceReceivedParseLink())
-                .AddNext(new InvoiceWasCancelledParseLink());
+                .AddNext(new PaymentReceivedParseLink());
 
             return new OperationParserOptions
                 { OperationParser = link };

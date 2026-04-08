@@ -2,7 +2,7 @@ using Contracts.OperationHistory.Operations;
 using Google.Protobuf.WellKnownTypes;
 using Google.Type;
 
-namespace BankApp.Presentation.Grpc.Mappers.OperatoinMappers;
+namespace BankApp.Presentation.Grpc.Mappers.OperationMappers;
 
 public static class PayInvoiceMappingExtension
 {
@@ -10,18 +10,16 @@ public static class PayInvoiceMappingExtension
     {
         var money = new Money { DecimalValue = operationRecord.Amount };
         var timestamp = Timestamp.FromDateTimeOffset(operationRecord.Time);
-        var resultOperationRecord = new ProtoPayInvoiceOperationRecord(
-            operationRecord.Id,
-            timestamp,
-            operationRecord.AccountId,
-            operationRecord.SessionId.ToString(),
+        var payInvoiceOperationRecord = new ProtoPayInvoiceOperationRecord(
             operationRecord.InvoiceId,
-            money,
-            operationRecord.RecipientId);
+            money);
 
         return new ProtoOperationRecord
         {
-            PayInvoiceOperationRecord = resultOperationRecord,
+            Id = operationRecord.Id,
+            Time = timestamp,
+            AccountId = operationRecord.AccountId,
+            PayInvoiceOperationRecord = payInvoiceOperationRecord,
         };
     }
 }

@@ -13,111 +13,42 @@ service OperationHistoryService {
 
 message GetOperationHistoryRequest {
   google.protobuf.StringValue page_token = 1;
-  int32 page_size = 2;
+  google.protobuf.Int32Value page_size = 2;
   string session_id = 3;
 }
 
 message GetOperationHistoryResponse {
-  oneof Result {
-    Success success = 1;
-    Failure failure = 2;
-  }
-
-  message Success {
-    repeated OperationRecord records = 1;
-    google.protobuf.StringValue key_cursor = 2; 
-  }
-  message Failure {
-    string reason = 1;
-  }
+  repeated OperationRecord records = 1;
+  google.protobuf.StringValue page_token = 2;
 }
 
 message OperationRecord {
+  int64 id = 1;
+  google.protobuf.Timestamp time = 2;
+  int64 account_id = 3; 
+
   oneof Record {
-    CancelInvoiceOperationRecord cancel_invoice_operation_record = 1;
-    CreateInvoiceOperationRecord create_invoice_operation_record = 2;
-    DepositOperationRecord deposit_operation_record = 3;
-    InvoiceReceivedOperationRecord invoice_received_operation_record = 4;
-    InvoiceWasCancelledOperationRecord invoice_was_cancelled_operation_record = 5;
-    PayInvoiceOperationRecord pay_invoice_operation_record = 6;
-    PaymentReceivedOperationRecord payment_received_operation_record = 7;
-    WithdrawOperationRecord withdraw_operation_record = 8;
+    DepositOperationRecord deposit_operation_record = 4;
+    PayInvoiceOperationRecord pay_invoice_operation_record = 5;
+    PaymentReceivedOperationRecord payment_received_operation_record = 6;
+    WithdrawOperationRecord withdraw_operation_record = 7;
   }
 }
 
-message CancelInvoiceOperationRecord {
-  int64 id = 1;
-  google.protobuf.Timestamp time = 2;
-  int64 account_id = 3;
-  string session_id = 4;
-  int64 invoice_id = 5;
-  google.type.Money amount = 6;
-  int64 recipient_id = 7;
-  int64 payer_id = 8;
-}
-
-message CreateInvoiceOperationRecord {
-  int64 id = 1;
-  google.protobuf.Timestamp time = 2;
-  int64 account_id = 3;
-  string session_id = 4;
-  int64 invoice_id = 5;
-  google.type.Money amount = 6;
-  int64 payer_id = 8;
-}
-
 message DepositOperationRecord {
-  int64 id = 1;
-  google.protobuf.Timestamp time = 2;
-  int64 account_id = 3;
-  string session_id = 4;
-  google.type.Money amount = 5;
+  google.type.Money amount = 1;
 }
 
-message InvoiceReceivedOperationRecord {
-  int64 Id = 1;
-  google.protobuf.Timestamp Time = 2;
-  int64 AccountId = 3;
-  string SessionId = 4;
-  int64 InvoiceId = 5;
-  google.type.Money Amount = 6;
-  int64 RecipientId = 7;
-}
-
-message InvoiceWasCancelledOperationRecord {
-  int64 Id = 1;
-  google.protobuf.Timestamp Time = 2;
-  int64 AccountId = 3;
-  string SessionId = 4;
-  int64 InvoiceId = 5;
-  google.type.Money Amount = 6;
-  int64 RecipientId = 7;
-  int64 PayerId = 8;
-}
 message PayInvoiceOperationRecord {
-  int64 id = 1;
-  google.protobuf.Timestamp time = 2;
-  int64 account_id = 3;
-  string session_id = 4;
-  int64 invoice_id = 5;
-  google.type.Money amount = 6;
-  int64 recipient_id = 7;
+  int64 invoice_id = 1;
+  google.type.Money amount = 2;
 }
 
 message PaymentReceivedOperationRecord {
-  int64 id = 1;
-  google.protobuf.Timestamp time = 2;
-  int64 account_id = 3;
-  string session_id = 4;
-  int64 invoice_id = 5;
-  google.type.Money amount = 6;
-  int64 payer_id = 7;
+  int64 invoice_id = 1;
+  google.type.Money amount = 2;
 }
 
 message WithdrawOperationRecord {
-  int64 id = 1;
-  google.protobuf.Timestamp time = 2;
-  int64 account_id = 3;
-  string session_id = 4;
-  google.type.Money amount = 5;
+  google.type.Money amount = 1;
 }
