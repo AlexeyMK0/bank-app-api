@@ -1,3 +1,3 @@
 namespace Contracts.Invoices.Model;
 
-public record InvoiceDto(long Id, decimal Amount, InvoiceStateDto State, long RecipientId, long PayerId);
+public record InvoiceDto(long Id, decimal Amount, InvoiceStatusDto Status, long RecipientId, long PayerId);

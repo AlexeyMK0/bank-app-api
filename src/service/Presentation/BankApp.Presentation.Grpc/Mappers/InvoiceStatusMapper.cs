@@ -5,25 +5,25 @@ namespace BankApp.Presentation.Grpc.Mappers;
 
 public static class InvoiceStatusMapper
 {
-    public static InvoiceStateDto MapToDto(this ProtoInvoiceState status)
+    public static InvoiceStatusDto MapToDto(this ProtoInvoiceStatus status)
     {
         return status switch
         {
-            ProtoInvoiceState.Created => InvoiceStateDto.Created,
-            ProtoInvoiceState.Paid => InvoiceStateDto.Paid,
-            ProtoInvoiceState.Cancelled => InvoiceStateDto.Cancelled,
-            ProtoInvoiceState.Unspecified => throw new InvalidOperationException("Unknown invoice state"),
+            ProtoInvoiceStatus.Created => InvoiceStatusDto.Created,
+            ProtoInvoiceStatus.Paid => InvoiceStatusDto.Paid,
+            ProtoInvoiceStatus.Cancelled => InvoiceStatusDto.Cancelled,
+            ProtoInvoiceStatus.Unspecified => throw new InvalidOperationException("Unknown invoice state"),
             _ => throw new UnreachableException(),
         };
     }
 
-    public static ProtoInvoiceState MapToGrpc(this InvoiceStateDto dto)
+    public static ProtoInvoiceStatus MapToGrpc(this InvoiceStatusDto dto)
     {
         return dto switch
         {
-            InvoiceStateDto.Created => ProtoInvoiceState.Created,
-            InvoiceStateDto.Paid => ProtoInvoiceState.Paid,
-            InvoiceStateDto.Cancelled => ProtoInvoiceState.Cancelled,
+            InvoiceStatusDto.Created => ProtoInvoiceStatus.Created,
+            InvoiceStatusDto.Paid => ProtoInvoiceStatus.Paid,
+            InvoiceStatusDto.Cancelled => ProtoInvoiceStatus.Cancelled,
             _ => throw new UnreachableException(),
         };
     }

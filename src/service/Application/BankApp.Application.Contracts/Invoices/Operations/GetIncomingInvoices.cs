@@ -10,7 +10,7 @@ public class GetIncomingInvoices
         Guid SessionId,
         PageToken? PageToken,
         int PageSize,
-        InvoiceStateDto[] InvoiceStatuses,
+        InvoiceStatusDto[] InvoiceStatuses,
         long[] RecipientIds);
 
     public abstract record Response

@@ -1,6 +1,6 @@
 namespace Contracts.Invoices;
 
-public enum InvoiceStateDto
+public enum InvoiceStatusDto
 {
     Created,
     Paid,

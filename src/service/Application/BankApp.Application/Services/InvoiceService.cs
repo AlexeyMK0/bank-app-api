@@ -54,6 +54,12 @@ public class InvoiceService : IInvoiceService
             return new CreateInvoice.Response.Failure("You cannot create invoice to yourself :(");
         }
 
+        Account? otherAccount = await _accountRepository.FindAccountByIdAsync(payerId, cancellationToken);
+        if (otherAccount is null)
+        {
+            return new CreateInvoice.Response.Failure($"Account with id {payerId.Value} doesn't exist");
+        }
+
         var invoice = new Invoice(
             InvoiceId.Default,
             invoiceAmount,

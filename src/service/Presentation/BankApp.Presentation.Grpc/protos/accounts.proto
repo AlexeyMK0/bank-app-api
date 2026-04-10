@@ -17,17 +17,7 @@ message CheckBalanceRequest {
 }
 
 message CheckBalanceResponse {
-  oneof Response {
-    Success success = 1;
-    Failure failure = 2;
-  }
-
-  message Success {
     google.type.Money balance = 1;
-  }
-  message Failure {
-    string reason = 1;
-  }
 }
 
 message DepositMoneyRequest {
@@ -36,17 +26,7 @@ message DepositMoneyRequest {
 }
 
 message DepositMoneyResponse {
-  oneof Response {
-    Success success = 1;
-    Failure failure = 2;
-  }
-
-  message Success {
-    google.type.Money balance = 1;
-  }
-  message Failure {
-    string reason = 1;
-  }
+  google.type.Money balance = 1;
 }
 
 message WithdrawMoneyRequest {
@@ -55,17 +35,7 @@ message WithdrawMoneyRequest {
 }
 
 message WithdrawMoneyResponse {
-  oneof Response {
-    Success success = 1;
-    Failure failure = 2;
-  }
-  
-  message Success {
     google.type.Money balance = 1;
-  }
-  message Failure {
-    string reason = 1;
-  }
 }
 
 message CreateAccountRequest {
@@ -74,16 +44,6 @@ message CreateAccountRequest {
 }
 
 message CreateAccountResponse {
-  oneof Response {
-    Success success = 1;
-    Failure failure = 2;
-  }
-  
-  message Success {
-    int64 account_id = 1;
-    google.type.Money balance = 2;
-  }
-  message Failure {
-    string reason = 1;
-  }
+  int64 account_id = 1;
+  google.type.Money balance = 2;
 }

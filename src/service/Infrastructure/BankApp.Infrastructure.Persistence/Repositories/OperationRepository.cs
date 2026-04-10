@@ -85,7 +85,6 @@ public sealed class OperationRepository : IOperationRepository
     private async ValueTask<OperationRecord> ReadOperationRecord(DbDataReader reader, CancellationToken cancellationToken)
     {
         string payloadString = reader.GetString("payload");
-        /* TODO: maybe add converter */
         Payload payload = JsonSerializer.Deserialize<Payload>(payloadString) ?? throw new ArgumentException("Bad json");
 
         var entity = new OperationRecordEntity(

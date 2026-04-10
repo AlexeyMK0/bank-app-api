@@ -26,13 +26,10 @@ public class AccountController : AccountService.AccountServiceBase
         CheckBalance.Response result = await _accountService.CheckBalanceAsync(apiRequest, context.CancellationToken);
         return result switch
         {
-            CheckBalance.Response.Success success => new ProtoCheckBalanceResponse
-            {
-                Success = new ProtoCheckBalanceResponse.Types.Success(
+            CheckBalance.Response.Success success => new ProtoCheckBalanceResponse(
                     new Money { DecimalValue = success.Balance }),
-            },
-            CheckBalance.Response.Failure failure => new CheckBalanceResponse
-                { Failure = new CheckBalanceResponse.Types.Failure(failure.Message) },
+            CheckBalance.Response.Failure failure =>
+                throw new RpcException(new Status(StatusCode.InvalidArgument, failure.Message)),
             _ => throw new UnreachableException(),
         };
     }
@@ -48,15 +45,10 @@ public class AccountController : AccountService.AccountServiceBase
         DepositMoney.Response result = await _accountService.DepositMoneyAsync(apiRequest, context.CancellationToken);
         return result switch
         {
-            DepositMoney.Response.Success success => new ProtoDepositMoneyResponse
-            {
-                Success = new DepositMoneyResponse.Types.Success
-                    { Balance = new Money { DecimalValue = success.AccountDto.Balance }, },
-            },
-
-            // TODO: maybe remove Failure and throw RpcException
-            DepositMoney.Response.Failure failure => new DepositMoneyResponse
-                { Failure = new DepositMoneyResponse.Types.Failure { Reason = failure.Message } },
+            DepositMoney.Response.Success success => new ProtoDepositMoneyResponse(
+                new Money { DecimalValue = success.AccountDto.Balance }),
+            DepositMoney.Response.Failure failure =>
+                throw new RpcException(new Status(StatusCode.InvalidArgument, failure.Message)),
             _ => throw new UnreachableException(),
         };
     }
@@ -72,13 +64,10 @@ public class AccountController : AccountService.AccountServiceBase
         WithdrawMoney.Response result = await _accountService.WithdrawMoneyAsync(apiRequest, context.CancellationToken);
         return result switch
         {
-            WithdrawMoney.Response.Success success => new ProtoWithdrawMoneyResponse
-            {
-                Success = new WithdrawMoneyResponse.Types.Success
-                    { Balance = new Money { DecimalValue = success.AccountDto.Balance }, },
-            },
-            WithdrawMoney.Response.Failure failure => new WithdrawMoneyResponse
-                { Failure = new WithdrawMoneyResponse.Types.Failure { Reason = failure.Message } },
+            WithdrawMoney.Response.Success success => new WithdrawMoneyResponse(
+                new Money { DecimalValue = success.AccountDto.Balance }),
+            WithdrawMoney.Response.Failure failure =>
+                throw new RpcException(new Status(StatusCode.InvalidArgument, failure.Message)),
             _ => throw new UnreachableException(),
         };
     }
@@ -94,16 +83,11 @@ public class AccountController : AccountService.AccountServiceBase
         CreateAccount.Response result = await _accountService.CreateAccountAsync(apiRequest, context.CancellationToken);
         return result switch
         {
-            CreateAccount.Response.Success success => new ProtoCreateAccountResponse
-            {
-                Success = new CreateAccountResponse.Types.Success
-                {
-                    AccountId = success.AccountDto.AccountId,
-                    Balance = new Money { DecimalValue = success.AccountDto.Balance },
-                },
-            },
-            CreateAccount.Response.Failure failure => new CreateAccountResponse
-                { Failure = new CreateAccountResponse.Types.Failure { Reason = failure.Message } },
+            CreateAccount.Response.Success success => new ProtoCreateAccountResponse(
+                success.AccountDto.AccountId,
+                new Money { DecimalValue = success.AccountDto.Balance }),
+            CreateAccount.Response.Failure failure =>
+                throw new RpcException(new Status(StatusCode.InvalidArgument, failure.Message)),
             _ => throw new UnreachableException(),
         };
     }

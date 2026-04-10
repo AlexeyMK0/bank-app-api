@@ -12,7 +12,7 @@ public static class InvoiceMapper
         return new ProtoInvoiceModel(
             invoiceDto.Id,
             money,
-            invoiceDto.State.MapToGrpc(),
+            invoiceDto.Status.MapToGrpc(),
             invoiceDto.RecipientId,
             invoiceDto.PayerId);
     }

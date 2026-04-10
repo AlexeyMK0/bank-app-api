@@ -32,12 +32,9 @@ public class InvoiceController : InvoiceService.InvoiceServiceBase
         CreateInvoice.Response result = await _invoiceService.CreateInvoiceAsync(apiRequest, context.CancellationToken);
         return result switch
         {
-            CreateInvoice.Response.Success success => new ProtoCreateInvoiceResponse
-            {
-                Success = new CreateInvoiceResponse.Types.Success(success.InvoiceId),
-            },
-            CreateInvoice.Response.Failure failure => new CreateInvoiceResponse
-                { Failure = new CreateInvoiceResponse.Types.Failure(failure.Message) },
+            CreateInvoice.Response.Success success => new ProtoCreateInvoiceResponse(success.InvoiceId),
+            CreateInvoice.Response.Failure failure => throw new RpcException(
+                new Status(StatusCode.InvalidArgument, failure.Message)),
             _ => throw new UnreachableException(),
         };
     }
@@ -51,10 +48,9 @@ public class InvoiceController : InvoiceService.InvoiceServiceBase
         CancelInvoice.Response result = await _invoiceService.CancelInvoiceAsync(apiRequest, context.CancellationToken);
         return result switch
         {
-            CancelInvoice.Response.Success success => new ProtoCancelInvoiceResponse
-                { Success = new CancelInvoiceResponse.Types.Success() },
-            CancelInvoice.Response.Failure failure => new CancelInvoiceResponse
-                { Failure = new CancelInvoiceResponse.Types.Failure(failure.Message) },
+            CancelInvoice.Response.Success success => new ProtoCancelInvoiceResponse(),
+            CancelInvoice.Response.Failure failure => throw new RpcException(
+                new Status(StatusCode.InvalidArgument, failure.Message)),
             _ => throw new UnreachableException(),
         };
     }
@@ -68,10 +64,9 @@ public class InvoiceController : InvoiceService.InvoiceServiceBase
         PayInvoice.Response result = await _invoiceService.PayInvoiceAsync(apiRequest, context.CancellationToken);
         return result switch
         {
-            PayInvoice.Response.Success success => new ProtoPayInvoiceResponse
-                { Success = new PayInvoiceResponse.Types.Success() },
-            PayInvoice.Response.Failure failure => new PayInvoiceResponse
-                { Failure = new PayInvoiceResponse.Types.Failure(failure.Message) },
+            PayInvoice.Response.Success success => new ProtoPayInvoiceResponse(),
+            PayInvoice.Response.Failure failure => throw new RpcException(
+                new Status(StatusCode.InvalidArgument, failure.Message)),
             _ => throw new UnreachableException(),
         };
     }
@@ -79,7 +74,7 @@ public class InvoiceController : InvoiceService.InvoiceServiceBase
     public override async Task<GetIncomingInvoicesResponse> GetIncomingInvoices(GetIncomingInvoicesRequest request, ServerCallContext context)
     {
         var sessionId = Guid.Parse(request.SessionId);
-        InvoiceStateDto[] states = request
+        InvoiceStatusDto[] states = request
             .InvoiceStatuses.Select(state => state
                 .MapToDto())
             .ToArray();
@@ -98,16 +93,13 @@ public class InvoiceController : InvoiceService.InvoiceServiceBase
         {
             GetIncomingInvoices.Response.Success success => new ProtoGetIncomingInvoicesResponse
             {
-                Success = new GetIncomingInvoicesResponse.Types.Success
-                {
-                    Invoices = { success.Invoices.Select(invoice => invoice.MapToGrpc()) },
-                    PageToken = success.PageToken is null
-                        ? null
-                        : JsonSerializer.Serialize<GetIncomingInvoices.PageToken>(success.PageToken),
-                },
+                Invoices = { success.Invoices.Select(invoice => invoice.MapToGrpc()) },
+                PageToken = success.PageToken is null
+                    ? null
+                    : JsonSerializer.Serialize<GetIncomingInvoices.PageToken>(success.PageToken),
             },
-            GetIncomingInvoices.Response.Failure failure => new GetIncomingInvoicesResponse
-                { Failure = new GetIncomingInvoicesResponse.Types.Failure(failure.Message) },
+            GetIncomingInvoices.Response.Failure failure => throw new RpcException(
+                new Status(StatusCode.InvalidArgument, failure.Message)),
             _ => throw new UnreachableException(),
         };
     }
@@ -115,7 +107,7 @@ public class InvoiceController : InvoiceService.InvoiceServiceBase
     public override async Task<GetOutgoingInvoicesResponse> GetOutgoingInvoices(GetOutgoingInvoicesRequest request, ServerCallContext context)
     {
         var sessionId = Guid.Parse(request.SessionId);
-        InvoiceStateDto[] states = request
+        InvoiceStatusDto[] states = request
             .InvoiceStatuses.Select(state => state
                 .MapToDto())
             .ToArray();
@@ -133,16 +125,13 @@ public class InvoiceController : InvoiceService.InvoiceServiceBase
         {
             GetOutgoingInvoices.Response.Success success => new ProtoGetOutgoingInvoicesResponse
             {
-                Success = new GetOutgoingInvoicesResponse.Types.Success
-                {
-                    Invoices = { success.Invoices.Select(invoice => invoice.MapToGrpc()) },
-                    PageToken = success.PageToken is null
-                        ? null
-                        : JsonSerializer.Serialize<GetOutgoingInvoices.PageToken>(success.PageToken),
-                },
+                Invoices = { success.Invoices.Select(invoice => invoice.MapToGrpc()) },
+                PageToken = success.PageToken is null
+                    ? null
+                    : JsonSerializer.Serialize<GetOutgoingInvoices.PageToken>(success.PageToken),
             },
-            GetOutgoingInvoices.Response.Failure failure => new GetOutgoingInvoicesResponse
-                { Failure = new GetOutgoingInvoicesResponse.Types.Failure(failure.Message) },
+            GetOutgoingInvoices.Response.Failure failure => throw new RpcException(
+                new Status(StatusCode.InvalidArgument, failure.Message)),
             _ => throw new UnreachableException(),
         };
     }
