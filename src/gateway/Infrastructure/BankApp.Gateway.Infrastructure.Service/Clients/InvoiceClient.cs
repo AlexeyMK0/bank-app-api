@@ -50,7 +50,7 @@ public class InvoiceClient : IInvoiceClient
     {
         IEnumerable<InvoiceStatus> states = statuses.Select(status => status.MapToGrpc());
         var request = new ProtoGetIncomingInvoicesRequest(sessionId.ToString(), pageToken, pageSize, states, recipientIds);
-        GetIncomingInvoicesResponse response =
+        ProtoGetIncomingInvoicesResponse response =
             await _client.GetIncomingInvoicesAsync(request, cancellationToken: cancellationToken);
         return new GetIncomingInvoicesResponseDto(
             response.Invoices.Select(invoice => invoice
@@ -68,7 +68,7 @@ public class InvoiceClient : IInvoiceClient
     {
         IEnumerable<InvoiceStatus> states = statuses.Select(status => status.MapToGrpc());
         var request = new ProtoGetOutgoingInvoicesRequest(sessionId.ToString(), pageToken, pageSize, states, payerIds);
-        GetOutgoingInvoicesResponse response =
+        ProtoGetOutgoingInvoicesResponse response =
             await _client.GetOutgoingInvoicesAsync(request, cancellationToken: cancellationToken);
         return new GetOutgoingInvoicesResponseDto(
             response.Invoices.Select(invoice => invoice

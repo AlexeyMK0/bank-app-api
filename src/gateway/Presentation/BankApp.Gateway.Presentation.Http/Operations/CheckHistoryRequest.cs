@@ -10,7 +10,7 @@ public class CheckHistoryRequest
 
     [FromQuery(Name = "pageSize")]
     [Range(1, int.MaxValue)]
-    public required int PageSize { get; set; }
+    public int? PageSize { get; set; }
 
     [FromQuery(Name = "sessionId")]
     public required Guid SessionId { get; set; }

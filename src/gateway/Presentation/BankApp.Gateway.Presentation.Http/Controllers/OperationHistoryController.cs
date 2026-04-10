@@ -21,11 +21,12 @@ public class OperationHistoryController : ControllerBase
         [FromQuery] CheckHistoryRequest httpRequest,
         CancellationToken cancellationToken)
     {
-        GetOperationHistoryResponseDto response = await _client.GetOperationHistoryAsync(
-            httpRequest.SessionId,
-            httpRequest.PageSize,
-            httpRequest.PageToken,
-            cancellationToken);
+        GetOperationHistoryResponseDto response = await _client
+            .GetOperationHistoryAsync(
+                httpRequest.SessionId,
+                httpRequest.PageSize,
+                httpRequest.PageToken,
+                cancellationToken);
         return Ok(response);
     }
 }

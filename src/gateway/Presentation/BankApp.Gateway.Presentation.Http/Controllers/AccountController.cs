@@ -21,7 +21,8 @@ public class AccountController : ControllerBase
         [FromQuery] Guid sessionId,
         CancellationToken cancellationToken)
     {
-        decimal response = await _client.GetBalanceAsync(sessionId, cancellationToken);
+        decimal response = await _client
+            .GetBalanceAsync(sessionId, cancellationToken);
         return Ok(response);
     }
 
@@ -30,8 +31,8 @@ public class AccountController : ControllerBase
         [FromBody] CreateAccountRequest httpRequest,
         CancellationToken cancellationToken)
     {
-        AccountDto accountDto =
-            await _client.CreateAccountAsync(httpRequest.SessionId, httpRequest.PinCode, cancellationToken);
+        AccountDto accountDto = await _client
+            .CreateAccountAsync(httpRequest.SessionId, httpRequest.PinCode, cancellationToken);
         return Ok(accountDto);
     }
 
@@ -40,7 +41,8 @@ public class AccountController : ControllerBase
         [FromBody] DepositMoneyRequest httpRequest,
         CancellationToken cancellationToken)
     {
-        decimal newBalance = await _client.DepositAsync(httpRequest.SessionId, httpRequest.Amount, cancellationToken);
+        decimal newBalance = await _client
+            .DepositAsync(httpRequest.SessionId, httpRequest.Amount, cancellationToken);
         return Ok(newBalance);
     }
 
@@ -49,7 +51,8 @@ public class AccountController : ControllerBase
         [FromBody] WithdrawMoneyRequest httpRequest,
         CancellationToken cancellationToken)
     {
-        decimal newBalance = await _client.WithdrawAsync(httpRequest.SessionId, httpRequest.Amount, cancellationToken);
+        decimal newBalance = await _client
+            .WithdrawAsync(httpRequest.SessionId, httpRequest.Amount, cancellationToken);
         return Ok(newBalance);
     }
 }

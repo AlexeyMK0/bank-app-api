@@ -15,7 +15,7 @@ public class SessionClient : ISessionClient
     public async Task<Guid> CreateAdminSessionAsync(string systemPassword, CancellationToken cancellationToken)
     {
         var request = new CreateAdminSessionRequest(systemPassword);
-        CreateAdminSessionResponse response =
+        ProtoCreateAdminSessionResponse response =
             await _client.CreateAdminSessionAsync(request, cancellationToken: cancellationToken);
         return Guid.Parse(response.AdminSessionId);
     }
@@ -23,7 +23,7 @@ public class SessionClient : ISessionClient
     public async Task<Guid> CreateUserSessionAsync(long accountId, string pinCode, CancellationToken cancellationToken)
     {
         var request = new CreateUserSessionRequest(accountId, pinCode);
-        CreateUserSessionResponse response =
+        ProtoCreateUserSessionResponse response =
             await _client.CreateUserSessionAsync(request, cancellationToken: cancellationToken);
         return Guid.Parse(response.UserSessionId);
     }

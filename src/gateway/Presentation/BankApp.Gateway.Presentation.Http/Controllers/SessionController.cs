@@ -31,7 +31,8 @@ public class SessionController : ControllerBase
         [FromBody] CreateAdminSessionRequest httpRequest,
         CancellationToken cancellationToken)
     {
-        Guid createdSessionId = await _client.CreateAdminSessionAsync(httpRequest.SystemPassword, cancellationToken);
+        Guid createdSessionId = await _client
+            .CreateAdminSessionAsync(httpRequest.SystemPassword, cancellationToken);
         return Ok(new CreateAdminSessionResponse(createdSessionId));
     }
 }

@@ -23,21 +23,21 @@ public class AccountClient : IAccountClient
 
     public async Task<decimal> DepositAsync(Guid sessionId, decimal amount, CancellationToken cancellationToken)
     {
-        var request = new DepositMoneyRequest(new Money { DecimalValue = amount }, sessionId.ToString());
+        var request = new ProtoDepositMoneyRequest(new Money { DecimalValue = amount }, sessionId.ToString());
         DepositMoneyResponse response = await _client.DepositMoneyAsync(request, cancellationToken: cancellationToken);
         return response.Balance.DecimalValue;
     }
 
     public async Task<decimal> WithdrawAsync(Guid sessionId, decimal amount, CancellationToken cancellationToken)
     {
-        var request = new WithdrawMoneyRequest(new Money { DecimalValue = amount }, sessionId.ToString());
+        var request = new ProtoWithdrawMoneyRequest(new Money { DecimalValue = amount }, sessionId.ToString());
         WithdrawMoneyResponse response = await _client.WithdrawMoneyAsync(request, cancellationToken: cancellationToken);
         return response.Balance.DecimalValue;
     }
 
     public async Task<AccountDto> CreateAccountAsync(Guid sessionId, string pinCode, CancellationToken cancellationToken)
     {
-        var request = new CreateAccountRequest(pinCode, sessionId.ToString());
+        var request = new ProtoCreateAccountRequest(pinCode, sessionId.ToString());
         CreateAccountResponse response =
             await _client.CreateAccountAsync(request, cancellationToken: cancellationToken);
         return new AccountDto(response.AccountId, response.Balance.DecimalValue);

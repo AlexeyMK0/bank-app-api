@@ -52,13 +52,14 @@ public class InvoiceController : ControllerBase
         [FromQuery] GetIncomingInvoicesRequest httpRequest,
         CancellationToken cancellationToken)
     {
-        GetIncomingInvoicesResponseDto response = await _client.GetIncomingInvoicesAsync(
-            httpRequest.SessionId,
-            httpRequest.InvoiceStatuses?.ToArray() ?? [],
-            httpRequest.RecipientIds?.ToArray() ?? [],
-            httpRequest.PageSize,
-            httpRequest.PageToken,
-            cancellationToken);
+        GetIncomingInvoicesResponseDto response = await _client
+            .GetIncomingInvoicesAsync(
+                httpRequest.SessionId,
+                httpRequest.InvoiceStatuses ?? [],
+                httpRequest.RecipientIds ?? [],
+                httpRequest.PageSize,
+                httpRequest.PageToken,
+                cancellationToken);
         return Ok(response);
     }
 
@@ -67,13 +68,14 @@ public class InvoiceController : ControllerBase
         [FromQuery] GetOutgoingInvoicesRequest httpRequest,
         CancellationToken cancellationToken)
     {
-        GetOutgoingInvoicesResponseDto response = await _client.GetOutgoingInvoicesAsync(
-            httpRequest.SessionId,
-            httpRequest.InvoiceStatuses ?? [],
-            httpRequest.PayerIds ?? [],
-            httpRequest.PageSize,
-            httpRequest.PageToken,
-            cancellationToken);
+        GetOutgoingInvoicesResponseDto response = await _client
+            .GetOutgoingInvoicesAsync(
+                httpRequest.SessionId,
+                httpRequest.InvoiceStatuses ?? [],
+                httpRequest.PayerIds ?? [],
+                httpRequest.PageSize,
+                httpRequest.PageToken,
+                cancellationToken);
         return Ok(response);
     }
 }
