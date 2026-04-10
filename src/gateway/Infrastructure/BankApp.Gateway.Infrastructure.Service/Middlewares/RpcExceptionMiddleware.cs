@@ -48,7 +48,7 @@ public class RpcExceptionMiddleware : IMiddleware
             Status = (int)status,
             Title = status.ToString(),
             Instance = context.Request.Path,
-            Detail = exception.Message,
+            Detail = exception.Status.Detail,
         };
 
         if (exception.Trailers.Count > 0)
@@ -63,6 +63,7 @@ public class RpcExceptionMiddleware : IMiddleware
             problemDetails.Extensions.Add("grpc-metadata", details);
         }
 
+        context.Response.StatusCode = (int)status;
         await context.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
     }
 }

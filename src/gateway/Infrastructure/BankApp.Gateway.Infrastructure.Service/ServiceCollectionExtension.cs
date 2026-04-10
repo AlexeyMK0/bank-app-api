@@ -67,7 +67,7 @@ public static class ServiceCollectionExtension
         return collection;
     }
 
-    public static WebApplication AddRpcExceptionMiddleware(this WebApplication application)
+    public static WebApplication UseRpcExceptionMiddleware(this WebApplication application)
     {
         application.UseMiddleware<RpcExceptionMiddleware>();
         return application;

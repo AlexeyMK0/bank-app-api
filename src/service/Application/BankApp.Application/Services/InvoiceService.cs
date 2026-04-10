@@ -188,6 +188,7 @@ public class InvoiceService : IInvoiceService
             InvoiceQuery.Build(builder => builder
                 .WithPageSize(requestPageSize)
                 .WithKeyCursor(inputKeyCursor)
+                .WithPayer(foundSession.AccountId)
                 .WithRecipients(requestRecipients)
                 .WithStatuses(requestStatuses)),
             cancellationToken)
@@ -226,6 +227,7 @@ public class InvoiceService : IInvoiceService
                 InvoiceQuery.Build(builder => builder
                     .WithPageSize(requestPageSize)
                     .WithKeyCursor(inputKeyCursor)
+                    .WithRecipient(foundSession.AccountId)
                     .WithPayers(requestPayers)
                     .WithStatuses(requestStatuses)),
                 cancellationToken)

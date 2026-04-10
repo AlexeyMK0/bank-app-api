@@ -10,6 +10,6 @@ public static class WithdrawMappingExtension
             operationRecord.Id,
             operationRecord.Time.ToDateTimeOffset(),
             operationRecord.AccountId,
-            operationRecord.DepositOperationRecord.Amount.DecimalValue);
+            operationRecord.WithdrawOperationRecord.Amount.DecimalValue);
     }
 }
