@@ -1,12 +1,12 @@
-using Contracts.Accounts;
-using Contracts.Invoices;
-using Contracts.OperationHistory;
-using Contracts.Sessions;
-using Lab1.Application.Options;
-using Lab1.Application.Services;
+using BankApp.Application.Contracts.Accounts;
+using BankApp.Application.Contracts.Invoices;
+using BankApp.Application.Contracts.OperationHistory;
+using BankApp.Application.Contracts.Sessions;
+using BankApp.Application.Options;
+using BankApp.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Lab1.Application;
+namespace BankApp.Application;
 
 public static class ServiceCollectionExtension
 {

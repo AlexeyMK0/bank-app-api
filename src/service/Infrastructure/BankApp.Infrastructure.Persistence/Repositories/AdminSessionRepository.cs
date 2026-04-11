@@ -1,13 +1,13 @@
 using Abstractions.Queries;
-using Abstractions.Repositories;
+using BankApp.Application.Abstractions.Repositories;
+using BankApp.Domain.Sessions;
 using Itmo.Dev.Platform.Persistence.Abstractions.Commands;
 using Itmo.Dev.Platform.Persistence.Abstractions.Connections;
-using Lab1.Domain.Sessions;
 using System.Data;
 using System.Data.Common;
 using System.Runtime.CompilerServices;
 
-namespace Lab1.Infrastructure.Persistence.Repositories;
+namespace BankApp.Infrastructure.Persistence.Repositories;
 
 public sealed class AdminSessionRepository : IAdminSessionRepository
 {
@@ -25,7 +25,7 @@ public sealed class AdminSessionRepository : IAdminSessionRepository
         VALUES (:session_id)
         """;
 
-        var guid = new SessionId(Guid.NewGuid());
+        var guid = new SessionId(Guid.CreateVersion7());
 
         await using IPersistenceConnection connection = await _connectionProvider.GetConnectionAsync(cancellationToken);
         await using IPersistenceCommand command = connection.CreateCommand(sql)

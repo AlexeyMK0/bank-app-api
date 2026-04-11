@@ -1,4 +1,4 @@
-namespace Lab1.Infrastructure.Persistence;
+namespace BankApp.Infrastructure.Persistence;
 
 internal interface IMigrationsAssemblyMarker
 {

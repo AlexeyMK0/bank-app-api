@@ -1,7 +1,7 @@
-using Contracts.Sessions.Model;
-using Lab1.Domain.Sessions;
+using BankApp.Application.Contracts.Sessions.Model;
+using BankApp.Domain.Sessions;
 
-namespace Lab1.Application.Mappers;
+namespace BankApp.Application.Mappers;
 
 public static class UserSessionMappingExtension
 {

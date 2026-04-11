@@ -17,11 +17,11 @@ public class OperationHistoryController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<GetOperationHistoryResponseDto>> CheckHistory(
+    public async Task<ActionResult<GetOperationHistoryResponse>> CheckHistory(
         [FromQuery] CheckHistoryRequest httpRequest,
         CancellationToken cancellationToken)
     {
-        GetOperationHistoryResponseDto response = await _client
+        GetOperationHistoryResponse response = await _client
             .GetOperationHistoryAsync(
                 httpRequest.SessionId,
                 httpRequest.PageSize,

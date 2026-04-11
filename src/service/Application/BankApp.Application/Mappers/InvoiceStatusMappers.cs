@@ -1,8 +1,8 @@
-using Contracts.Invoices;
-using Lab1.Domain.Invoices;
+using BankApp.Application.Contracts.Invoices;
+using BankApp.Domain.Invoices;
 using System.Diagnostics;
 
-namespace Lab1.Application.Mappers;
+namespace BankApp.Application.Mappers;
 
 public static class InvoiceStatusMappers
 {

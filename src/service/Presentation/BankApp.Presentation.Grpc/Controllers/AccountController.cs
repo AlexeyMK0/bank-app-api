@@ -1,6 +1,6 @@
+using BankApp.Application.Contracts.Accounts;
+using BankApp.Application.Contracts.Accounts.Operations;
 using BankApp.Grpc;
-using Contracts.Accounts;
-using Contracts.Accounts.Operations;
 using Google.Type;
 using Grpc.Core;
 using System.Diagnostics;

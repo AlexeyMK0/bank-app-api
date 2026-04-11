@@ -1,7 +1,7 @@
+using BankApp.Application.Contracts.OperationHistory;
 using BankApp.Grpc;
 using BankApp.Presentation.Grpc.Mappers;
 using BankApp.Presentation.Grpc.Options;
-using Contracts.OperationHistory;
 using Grpc.Core;
 using Microsoft.Extensions.Options;
 using System.Diagnostics;
@@ -44,7 +44,7 @@ public class OperationHistoryController : OperationHistoryService.OperationHisto
                 PageToken = success.KeyCursor is null
                     ? null
                     : JsonSerializer.Serialize(success.KeyCursor),
-                Records = { success.HistoryDto.Operations.Select(operation => operation.MapToGrpc()) },
+                Records = { success.HistoryDto.Operations.Select(operation => operation.MapToProto()) },
             },
             GetAccountOperations.Response.Failure failure
                 => throw new RpcException(new Status(StatusCode.InvalidArgument, failure.Message)),

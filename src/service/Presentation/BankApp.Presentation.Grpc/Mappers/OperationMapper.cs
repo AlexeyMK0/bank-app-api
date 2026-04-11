@@ -1,20 +1,20 @@
+using BankApp.Application.Contracts.OperationHistory;
+using BankApp.Application.Contracts.OperationHistory.Operations;
 using BankApp.Presentation.Grpc.Mappers.OperationMappers;
-using Contracts.OperationHistory;
-using Contracts.OperationHistory.Operations;
 using System.Diagnostics;
 
 namespace BankApp.Presentation.Grpc.Mappers;
 
 public static class OperationMapper
 {
-    public static ProtoOperationRecord MapToGrpc(this OperationDto operationDto)
+    public static ProtoOperationRecord MapToProto(this OperationDto operationDto)
     {
         return operationDto switch
         {
-            DepositOperationDto depositDto => depositDto.MapToGrpcImpl(),
-            PayInvoiceOperationDto payInvoiceDto => payInvoiceDto.MapToGrpcImpl(),
-            PaymentReceivedOperationDto paymentReceivedDto => paymentReceivedDto.MapToGrpcImpl(),
-            WithdrawOperationDto withdrawDto => withdrawDto.MapToGrpcImpl(),
+            DepositOperationDto depositDto => depositDto.MapToProtoImpl(),
+            PayInvoiceOperationDto payInvoiceDto => payInvoiceDto.MapToProtoImpl(),
+            PaymentReceivedOperationDto paymentReceivedDto => paymentReceivedDto.MapToProtoImpl(),
+            WithdrawOperationDto withdrawDto => withdrawDto.MapToProtoImpl(),
             _ => throw new UnreachableException(),
         };
     }

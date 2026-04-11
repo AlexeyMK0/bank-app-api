@@ -1,3 +1,3 @@
-namespace Lab1.Infrastructure.Persistence.Model.PayloadModel;
+namespace BankApp.Infrastructure.Persistence.Model.PayloadModel;
 
-public record WithdrawPayload(decimal Amount) : Payload;
+internal sealed record WithdrawPayload(decimal Amount) : Payload;

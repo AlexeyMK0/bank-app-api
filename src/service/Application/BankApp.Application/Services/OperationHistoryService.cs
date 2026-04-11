@@ -1,12 +1,12 @@
 using Abstractions.Queries;
-using Abstractions.Repositories;
-using Contracts.OperationHistory;
-using Lab1.Application.Mappers;
-using Lab1.Application.RepositoryExtensions;
-using Lab1.Domain.Operations;
-using Lab1.Domain.Sessions;
+using BankApp.Application.Abstractions.Repositories;
+using BankApp.Application.Contracts.OperationHistory;
+using BankApp.Application.Mappers;
+using BankApp.Application.RepositoryExtensions;
+using BankApp.Domain.Operations;
+using BankApp.Domain.Sessions;
 
-namespace Lab1.Application.Services;
+namespace BankApp.Application.Services;
 
 public class OperationHistoryService : IOperationHistoryService
 {

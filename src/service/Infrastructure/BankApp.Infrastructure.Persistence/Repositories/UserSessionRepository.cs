@@ -1,14 +1,14 @@
 using Abstractions.Queries;
-using Abstractions.Repositories;
+using BankApp.Application.Abstractions.Repositories;
+using BankApp.Domain.Accounts;
+using BankApp.Domain.Sessions;
 using Itmo.Dev.Platform.Persistence.Abstractions.Commands;
 using Itmo.Dev.Platform.Persistence.Abstractions.Connections;
-using Lab1.Domain.Accounts;
-using Lab1.Domain.Sessions;
 using System.Data;
 using System.Data.Common;
 using System.Runtime.CompilerServices;
 
-namespace Lab1.Infrastructure.Persistence.Repositories;
+namespace BankApp.Infrastructure.Persistence.Repositories;
 
 public sealed class UserSessionRepository : IUserSessionRepository
 {
@@ -26,7 +26,7 @@ public sealed class UserSessionRepository : IUserSessionRepository
         VALUES (:session_id, :account_id)
         """;
 
-        var guid = Guid.NewGuid();
+        var guid = Guid.CreateVersion7();
         await using IPersistenceConnection connection = await _connectionProvider.GetConnectionAsync(cancellationToken);
         await using IPersistenceCommand command = connection.CreateCommand(sql)
             .AddParameter("session_id", guid)

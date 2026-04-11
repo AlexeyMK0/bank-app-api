@@ -1,4 +1,4 @@
-namespace Lab1.Domain.Operations;
+namespace BankApp.Domain.Operations;
 
 public enum OperationType
 {

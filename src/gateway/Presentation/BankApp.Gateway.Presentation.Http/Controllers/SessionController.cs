@@ -1,6 +1,6 @@
 using BankApp.Gateway.Application.Abstractions.Clients;
+using BankApp.Gateway.Application.Abstractions.Requests;
 using BankApp.Gateway.Presentation.Http.Operations;
-using BankApp.Gateway.Presentation.Http.Responses;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BankApp.Gateway.Presentation.Http.Controllers;
@@ -17,22 +17,22 @@ public class SessionController : ControllerBase
     }
 
     [HttpPost("user")]
-    public async Task<ActionResult<CreateUserSessionResponse>> CreateUser(
+    public async Task<ActionResult<Guid>> CreateUser(
         [FromBody] CreateUserSessionRequest httpRequest,
         CancellationToken cancellationToken)
     {
-        Guid createdSessionId = await _client
+        CreateUserSession.Response response = await _client
             .CreateUserSessionAsync(httpRequest.AccountId, httpRequest.PinCode, cancellationToken);
-        return Ok(new CreateUserSessionResponse(createdSessionId));
+        return Ok(response.SessionId);
     }
 
     [HttpPost("admin")]
-    public async Task<ActionResult<CreateAdminSessionResponse>> CreateAdmin(
+    public async Task<ActionResult<Guid>> CreateAdmin(
         [FromBody] CreateAdminSessionRequest httpRequest,
         CancellationToken cancellationToken)
     {
-        Guid createdSessionId = await _client
+        CreateAdminSession.Response response = await _client
             .CreateAdminSessionAsync(httpRequest.SystemPassword, cancellationToken);
-        return Ok(new CreateAdminSessionResponse(createdSessionId));
+        return Ok(response.SessionId);
     }
 }

@@ -1,3 +1,3 @@
-namespace Contracts.OperationHistory;
+namespace BankApp.Application.Contracts.OperationHistory;
 
-public record HistoryDto(IReadOnlyCollection<OperationDto> Operations);
+public sealed record HistoryDto(IReadOnlyCollection<OperationDto> Operations);

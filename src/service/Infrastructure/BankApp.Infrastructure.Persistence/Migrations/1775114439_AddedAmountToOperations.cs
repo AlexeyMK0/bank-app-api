@@ -3,7 +3,7 @@
 using FluentMigrator;
 using Itmo.Dev.Platform.Persistence.Postgres.Migrations;
 
-namespace Lab1.Infrastructure.Persistence.Migrations;
+namespace BankApp.Infrastructure.Persistence.Migrations;
 
 [Migration(1775114439, "AddedAmountToOperations")]
 public class AddedAmountToOperations : SqlMigration

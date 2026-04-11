@@ -1,10 +1,10 @@
-using Lab1.Domain.Accounts;
-using Lab1.Domain.Invoices;
-using Lab1.Domain.Invoices.States;
-using Lab1.Domain.ValueObjects;
+using BankApp.Domain.Accounts;
+using BankApp.Domain.Invoices;
+using BankApp.Domain.Invoices.States;
+using BankApp.Domain.ValueObjects;
 using System.Diagnostics;
 
-namespace Lab1.Infrastructure.Persistence.Model;
+namespace BankApp.Infrastructure.Persistence.Model;
 
 public class InvoiceFactory : IInvoiceFactory
 {

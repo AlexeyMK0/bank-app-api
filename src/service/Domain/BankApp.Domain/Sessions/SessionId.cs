@@ -1,4 +1,4 @@
-namespace Lab1.Domain.Sessions;
+namespace BankApp.Domain.Sessions;
 
 public readonly record struct SessionId(Guid Value)
 {

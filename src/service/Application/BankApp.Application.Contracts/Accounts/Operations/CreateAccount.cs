@@ -1,6 +1,6 @@
-using Contracts.Accounts.Model;
+using BankApp.Application.Contracts.Accounts.Model;
 
-namespace Contracts.Accounts.Operations;
+namespace BankApp.Application.Contracts.Accounts.Operations;
 
 public static class CreateAccount
 {

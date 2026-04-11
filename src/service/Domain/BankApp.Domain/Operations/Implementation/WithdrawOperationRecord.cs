@@ -1,7 +1,7 @@
-using Lab1.Domain.Accounts;
-using Lab1.Domain.ValueObjects;
+using BankApp.Domain.Accounts;
+using BankApp.Domain.ValueObjects;
 
-namespace Lab1.Domain.Operations.Implementation;
+namespace BankApp.Domain.Operations.Implementation;
 
 public record WithdrawOperationRecord(
     OperationRecordId Id,

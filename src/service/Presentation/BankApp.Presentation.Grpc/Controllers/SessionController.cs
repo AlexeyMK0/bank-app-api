@@ -1,6 +1,6 @@
+using BankApp.Application.Contracts.Sessions;
+using BankApp.Application.Contracts.Sessions.Operations;
 using BankApp.Grpc;
-using Contracts.Sessions;
-using Contracts.Sessions.Operations;
 using Grpc.Core;
 using System.Diagnostics;
 

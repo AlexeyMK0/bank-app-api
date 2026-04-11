@@ -1,4 +1,4 @@
-using Lab1.Domain.Accounts;
+using BankApp.Domain.Accounts;
 using SourceKit.Generators.Builder.Annotations;
 
 namespace Abstractions.Queries;

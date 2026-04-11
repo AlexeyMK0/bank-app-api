@@ -1,4 +1,4 @@
-using Contracts.Invoices;
+using BankApp.Application.Contracts.Invoices;
 using System.Diagnostics;
 
 namespace BankApp.Presentation.Grpc.Mappers;
@@ -17,7 +17,7 @@ public static class InvoiceStatusMapper
         };
     }
 
-    public static ProtoInvoiceStatus MapToGrpc(this InvoiceStatusDto dto)
+    public static ProtoInvoiceStatus MapToProto(this InvoiceStatusDto dto)
     {
         return dto switch
         {

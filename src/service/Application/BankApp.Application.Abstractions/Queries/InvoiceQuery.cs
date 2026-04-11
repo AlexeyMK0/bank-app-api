@@ -1,5 +1,5 @@
-using Lab1.Domain.Accounts;
-using Lab1.Domain.Invoices;
+using BankApp.Domain.Accounts;
+using BankApp.Domain.Invoices;
 using SourceKit.Generators.Builder.Annotations;
 
 namespace Abstractions.Queries;

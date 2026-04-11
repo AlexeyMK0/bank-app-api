@@ -1,4 +1,4 @@
-namespace Lab1.Domain.Invoices;
+namespace BankApp.Domain.Invoices;
 
 public enum InvoiceStatus
 {

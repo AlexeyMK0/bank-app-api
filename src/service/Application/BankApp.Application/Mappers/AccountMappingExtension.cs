@@ -1,7 +1,7 @@
-using Contracts.Accounts.Model;
-using Lab1.Domain.Accounts;
+using BankApp.Application.Contracts.Accounts.Model;
+using BankApp.Domain.Accounts;
 
-namespace Lab1.Application.Mappers;
+namespace BankApp.Application.Mappers;
 
 public static class AccountMappingExtension
 {

@@ -1,16 +1,15 @@
-using Abstractions.Repositories;
+using BankApp.Application.Abstractions.Repositories;
+using BankApp.Infrastructure.Persistence.Model;
+using BankApp.Infrastructure.Persistence.Model.Links;
+using BankApp.Infrastructure.Persistence.Options;
+using BankApp.Infrastructure.Persistence.Plugins;
+using BankApp.Infrastructure.Persistence.Repositories;
 using Itmo.Dev.Platform.Persistence.Abstractions.Extensions;
 using Itmo.Dev.Platform.Persistence.Postgres.Extensions;
-using Lab1.Infrastructure.Persistence.HostedService;
-using Lab1.Infrastructure.Persistence.Model;
-using Lab1.Infrastructure.Persistence.Model.Links;
-using Lab1.Infrastructure.Persistence.Options;
-using Lab1.Infrastructure.Persistence.Plugins;
-using Lab1.Infrastructure.Persistence.Repositories;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Lab1.Infrastructure.Persistence;
+namespace BankApp.Infrastructure.Persistence;
 
 public static class ServiceCollectionExtension
 {
@@ -41,8 +40,6 @@ public static class ServiceCollectionExtension
         services.AddScoped<IUserSessionRepository, UserSessionRepository>();
         services.AddScoped<IInvoiceRepository, InvoiceRepository>();
         services.AddScoped<IInvoiceFactory, InvoiceFactory>();
-
-        services.AddHostedService<MigrationHostedService>();
 
         return services;
     }

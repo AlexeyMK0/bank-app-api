@@ -1,6 +1,6 @@
-using Lab1.Domain.Invoices;
+using BankApp.Domain.Invoices;
 
-namespace Lab1.Infrastructure.Persistence.Model;
+namespace BankApp.Infrastructure.Persistence.Model;
 
 public interface IInvoiceFactory
 {

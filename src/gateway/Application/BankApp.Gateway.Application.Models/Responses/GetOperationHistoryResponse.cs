@@ -1,5 +1,5 @@
 namespace BankApp.Gateway.Application.Models.Responses;
 
-public record GetOperationHistoryResponseDto(
+public sealed record GetOperationHistoryResponse(
     IEnumerable<OperationRecordDto> Operations,
     string? PageToken);

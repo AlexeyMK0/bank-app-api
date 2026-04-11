@@ -1,7 +1,7 @@
-using Contracts.Invoices.Model;
-using Lab1.Domain.Invoices;
+using BankApp.Application.Contracts.Invoices.Model;
+using BankApp.Domain.Invoices;
 
-namespace Lab1.Application.Mappers;
+namespace BankApp.Application.Mappers;
 
 public static class InvoiceMappingExtension
 {

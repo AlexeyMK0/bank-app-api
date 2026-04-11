@@ -1,10 +1,10 @@
-using Contracts.Invoices.Model;
+using BankApp.Application.Contracts.Invoices.Model;
 
-namespace Contracts.Invoices.Operations;
+namespace BankApp.Application.Contracts.Invoices.Operations;
 
 public class GetIncomingInvoices
 {
-    public record PageToken(long InvoiceId);
+    public sealed record PageToken(long InvoiceId);
 
     public sealed record Request(
         Guid SessionId,

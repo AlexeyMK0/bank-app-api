@@ -1,17 +1,17 @@
-using Abstractions.Repositories;
-using Contracts.Accounts;
-using Contracts.Accounts.Operations;
+using BankApp.Application.Abstractions.Repositories;
+using BankApp.Application.Contracts.Accounts;
+using BankApp.Application.Contracts.Accounts.Operations;
+using BankApp.Application.Mappers;
+using BankApp.Application.RepositoryExtensions;
+using BankApp.Domain.Accounts;
+using BankApp.Domain.Operations;
+using BankApp.Domain.Operations.Implementation;
+using BankApp.Domain.Sessions;
+using BankApp.Domain.ValueObjects;
 using Itmo.Dev.Platform.Persistence.Abstractions.Transactions;
-using Lab1.Application.Mappers;
-using Lab1.Application.RepositoryExtensions;
-using Lab1.Domain.Accounts;
-using Lab1.Domain.Operations;
-using Lab1.Domain.Operations.Implementation;
-using Lab1.Domain.Sessions;
-using Lab1.Domain.ValueObjects;
 using System.Data;
 
-namespace Lab1.Application.Services;
+namespace BankApp.Application.Services;
 
 public sealed class AccountService : IAccountService
 {

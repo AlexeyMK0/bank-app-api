@@ -1,6 +1,6 @@
-namespace Contracts.OperationHistory.Operations;
+namespace BankApp.Application.Contracts.OperationHistory.Operations;
 
-public record DepositOperationDto(
+public sealed record DepositOperationDto(
     long Id,
     DateTimeOffset Time,
     long AccountId,

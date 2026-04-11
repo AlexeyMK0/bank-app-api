@@ -1,9 +1,9 @@
-using Lab1.Domain.Accounts;
-using Lab1.Domain.Invoices.Results;
-using Lab1.Domain.Invoices.States;
-using Lab1.Domain.ValueObjects;
+using BankApp.Domain.Accounts;
+using BankApp.Domain.Invoices.Results;
+using BankApp.Domain.Invoices.States;
+using BankApp.Domain.ValueObjects;
 
-namespace Lab1.Domain.Invoices;
+namespace BankApp.Domain.Invoices;
 
 public class Invoice
 {

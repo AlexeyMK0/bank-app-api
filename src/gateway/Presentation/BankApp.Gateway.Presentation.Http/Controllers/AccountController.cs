@@ -1,4 +1,5 @@
 using BankApp.Gateway.Application.Abstractions.Clients;
+using BankApp.Gateway.Application.Abstractions.Requests;
 using BankApp.Gateway.Application.Models;
 using BankApp.Gateway.Presentation.Http.Operations;
 using Microsoft.AspNetCore.Mvc;
@@ -21,9 +22,9 @@ public class AccountController : ControllerBase
         [FromQuery] Guid sessionId,
         CancellationToken cancellationToken)
     {
-        decimal response = await _client
+        GetBalance.Response response = await _client
             .GetBalanceAsync(sessionId, cancellationToken);
-        return Ok(response);
+        return Ok(response.Balance);
     }
 
     [HttpPost]
@@ -41,9 +42,9 @@ public class AccountController : ControllerBase
         [FromBody] DepositMoneyRequest httpRequest,
         CancellationToken cancellationToken)
     {
-        decimal newBalance = await _client
+        Deposit.Response response = await _client
             .DepositAsync(httpRequest.SessionId, httpRequest.Amount, cancellationToken);
-        return Ok(newBalance);
+        return Ok(response.Balance);
     }
 
     [HttpPost("withdraw")]
@@ -51,8 +52,8 @@ public class AccountController : ControllerBase
         [FromBody] WithdrawMoneyRequest httpRequest,
         CancellationToken cancellationToken)
     {
-        decimal newBalance = await _client
+        Withdraw.Response response = await _client
             .WithdrawAsync(httpRequest.SessionId, httpRequest.Amount, cancellationToken);
-        return Ok(newBalance);
+        return Ok(response.Balance);
     }
 }

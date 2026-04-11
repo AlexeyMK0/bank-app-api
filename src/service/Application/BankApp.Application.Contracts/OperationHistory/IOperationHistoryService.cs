@@ -1,4 +1,4 @@
-namespace Contracts.OperationHistory;
+namespace BankApp.Application.Contracts.OperationHistory;
 
 public interface IOperationHistoryService
 {

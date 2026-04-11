@@ -1,5 +1,5 @@
 namespace BankApp.Gateway.Presentation.Http.Operations;
 
-public record CancelInvoiceRequest(
+public sealed record CancelInvoiceRequest(
     Guid SessionId,
     long InvoiceId);

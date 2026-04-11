@@ -1,4 +1,4 @@
-namespace Lab1.Domain.Accounts;
+namespace BankApp.Domain.Accounts;
 
 public readonly record struct AccountId(long Value)
 {

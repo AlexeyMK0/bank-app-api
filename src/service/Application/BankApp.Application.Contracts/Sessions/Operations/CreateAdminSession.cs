@@ -1,4 +1,4 @@
-namespace Contracts.Sessions.Operations;
+namespace BankApp.Application.Contracts.Sessions.Operations;
 
 public static class CreateAdminSession
 {

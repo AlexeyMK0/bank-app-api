@@ -1,9 +1,9 @@
-using Contracts.OperationHistory;
-using Lab1.Application.Mappers.OperationMappers;
-using Lab1.Domain.Operations;
-using Lab1.Domain.Operations.Implementation;
+using BankApp.Application.Contracts.OperationHistory;
+using BankApp.Application.Mappers.OperationMappers;
+using BankApp.Domain.Operations;
+using BankApp.Domain.Operations.Implementation;
 
-namespace Lab1.Application.Mappers;
+namespace BankApp.Application.Mappers;
 
 public static class OperationMappingExtension
 {

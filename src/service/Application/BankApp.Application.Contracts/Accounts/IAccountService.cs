@@ -1,6 +1,6 @@
-using Contracts.Accounts.Operations;
+using BankApp.Application.Contracts.Accounts.Operations;
 
-namespace Contracts.Accounts;
+namespace BankApp.Application.Contracts.Accounts;
 
 public interface IAccountService
 {

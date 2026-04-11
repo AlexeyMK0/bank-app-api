@@ -1,6 +1,6 @@
-using Contracts.Sessions.Operations;
+using BankApp.Application.Contracts.Sessions.Operations;
 
-namespace Contracts.Sessions;
+namespace BankApp.Application.Contracts.Sessions;
 
 public interface ISessionService
 {

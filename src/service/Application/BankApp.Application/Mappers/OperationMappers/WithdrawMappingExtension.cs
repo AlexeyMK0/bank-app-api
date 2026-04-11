@@ -1,7 +1,7 @@
-using Contracts.OperationHistory.Operations;
-using Lab1.Domain.Operations.Implementation;
+using BankApp.Application.Contracts.OperationHistory.Operations;
+using BankApp.Domain.Operations.Implementation;
 
-namespace Lab1.Application.Mappers.OperationMappers;
+namespace BankApp.Application.Mappers.OperationMappers;
 
 public static class WithdrawMappingExtension
 {

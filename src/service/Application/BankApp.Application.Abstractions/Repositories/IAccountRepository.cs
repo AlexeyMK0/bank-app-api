@@ -1,7 +1,7 @@
 using Abstractions.Queries;
-using Lab1.Domain.Accounts;
+using BankApp.Domain.Accounts;
 
-namespace Abstractions.Repositories;
+namespace BankApp.Application.Abstractions.Repositories;
 
 public interface IAccountRepository
 {

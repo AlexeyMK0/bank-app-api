@@ -1,7 +1,7 @@
-﻿using BankApp.Presentation.Grpc;
+﻿using BankApp.Application;
+using BankApp.Infrastructure.Persistence;
+using BankApp.Presentation.Grpc;
 using Itmo.Dev.Platform.Common.Extensions;
-using Lab1.Application;
-using Lab1.Infrastructure.Persistence;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 

@@ -1,7 +1,7 @@
 using Abstractions.Queries;
-using Lab1.Domain.Operations;
+using BankApp.Domain.Operations;
 
-namespace Abstractions.Repositories;
+namespace BankApp.Application.Abstractions.Repositories;
 
 public interface IOperationRepository
 {

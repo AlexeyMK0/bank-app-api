@@ -1,4 +1,5 @@
 using BankApp.Gateway.Application.Abstractions.Clients;
+using BankApp.Gateway.Application.Abstractions.Requests;
 using BankApp.Gateway.Application.Models.Responses;
 using BankApp.Gateway.Presentation.Http.Operations;
 using Microsoft.AspNetCore.Mvc;
@@ -21,12 +22,12 @@ public class InvoiceController : ControllerBase
         [FromBody] CreateInvoiceRequest httpRequest,
         CancellationToken cancellationToken)
     {
-        long createdInvoiceId = await _client.CreateInvoiceAsync(
+        CreateInvoice.Response response = await _client.CreateInvoiceAsync(
             httpRequest.SessionId,
             httpRequest.PayerId,
             httpRequest.Amount,
             cancellationToken);
-        return Ok(createdInvoiceId);
+        return Ok(response.InvoiceId);
     }
 
     [HttpPost("cancel")]
@@ -48,34 +49,36 @@ public class InvoiceController : ControllerBase
     }
 
     [HttpGet("incoming")]
-    public async Task<ActionResult<GetIncomingInvoicesResponseDto>> GetIncomingInvoicesAsync(
+    public async Task<ActionResult<GetIncomingInvoicesResponse>> GetIncomingInvoicesAsync(
         [FromQuery] GetIncomingInvoicesRequest httpRequest,
         CancellationToken cancellationToken)
     {
-        GetIncomingInvoicesResponseDto response = await _client
-            .GetIncomingInvoicesAsync(
-                httpRequest.SessionId,
-                httpRequest.InvoiceStatuses ?? [],
-                httpRequest.RecipientIds ?? [],
-                httpRequest.PageSize,
-                httpRequest.PageToken,
-                cancellationToken);
+        var request = new GetIncomingInvoices.Request(
+            httpRequest.SessionId,
+            httpRequest.InvoiceStatuses ?? [],
+            httpRequest.RecipientIds ?? [],
+            httpRequest.PageSize,
+            httpRequest.PageToken);
+
+        GetIncomingInvoicesResponse response = await _client
+            .GetIncomingInvoicesAsync(request, cancellationToken);
         return Ok(response);
     }
 
     [HttpGet("outgoing")]
-    public async Task<ActionResult<GetOutgoingInvoicesResponseDto>> GetOutgoingInvoicesAsync(
+    public async Task<ActionResult<GetOutgoingInvoicesResponse>> GetOutgoingInvoicesAsync(
         [FromQuery] GetOutgoingInvoicesRequest httpRequest,
         CancellationToken cancellationToken)
     {
-        GetOutgoingInvoicesResponseDto response = await _client
-            .GetOutgoingInvoicesAsync(
-                httpRequest.SessionId,
-                httpRequest.InvoiceStatuses ?? [],
-                httpRequest.PayerIds ?? [],
-                httpRequest.PageSize,
-                httpRequest.PageToken,
-                cancellationToken);
+        var request = new GetOutgoingInvoices.Request(
+            httpRequest.SessionId,
+            httpRequest.InvoiceStatuses ?? [],
+            httpRequest.PayerIds ?? [],
+            httpRequest.PageSize,
+            httpRequest.PageToken);
+
+        GetOutgoingInvoicesResponse response = await _client
+            .GetOutgoingInvoicesAsync(request, cancellationToken);
         return Ok(response);
     }
 }

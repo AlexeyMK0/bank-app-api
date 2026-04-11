@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Lab1.Application.Options;
+namespace BankApp.Application.Options;
 
 public sealed class PasswordOptions
 {

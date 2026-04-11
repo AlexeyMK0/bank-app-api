@@ -1,7 +1,7 @@
 using Abstractions.Queries;
-using Lab1.Domain.Invoices;
+using BankApp.Domain.Invoices;
 
-namespace Abstractions.Repositories;
+namespace BankApp.Application.Abstractions.Repositories;
 
 public interface IInvoiceRepository
 {

@@ -1,8 +1,8 @@
-using Lab1.Domain.Operations;
+using BankApp.Domain.Operations;
 
-namespace Lab1.Infrastructure.Persistence.Model.Links;
+namespace BankApp.Infrastructure.Persistence.Model.Links;
 
-public abstract class OperationLinkBase : IOperationLink
+internal abstract class OperationLinkBase : IOperationLink
 {
     private IOperationLink? _next = null;
 

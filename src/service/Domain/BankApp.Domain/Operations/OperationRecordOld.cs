@@ -1,7 +1,7 @@
-using Lab1.Domain.Accounts;
-using Lab1.Domain.Sessions;
+using BankApp.Domain.Accounts;
+using BankApp.Domain.Sessions;
 
-namespace Lab1.Domain.Operations;
+namespace BankApp.Domain.Operations;
 
 public record OperationRecordOld(
     OperationRecordId Id,

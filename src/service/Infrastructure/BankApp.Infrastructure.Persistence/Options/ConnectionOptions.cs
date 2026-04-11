@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Lab1.Infrastructure.Persistence.Options;
+namespace BankApp.Infrastructure.Persistence.Options;
 
 public class ConnectionOptions
 {

@@ -1,9 +1,10 @@
 using BankApp.Gateway.Application.Abstractions.Clients;
-using BankApp.Gateway.Application.Models;
-using BankApp.Gateway.Application.Models.Responses;
+using BankApp.Gateway.Application.Abstractions.Requests;
 using BankApp.Gateway.Infrastructure.Service.Mappers;
 using BankApp.Grpc;
 using Google.Type;
+using GetIncomingInvoicesResponse = BankApp.Gateway.Application.Models.Responses.GetIncomingInvoicesResponse;
+using GetOutgoingInvoicesResponse = BankApp.Gateway.Application.Models.Responses.GetOutgoingInvoicesResponse;
 
 namespace BankApp.Gateway.Infrastructure.Service.Clients;
 
@@ -16,7 +17,7 @@ public class InvoiceClient : IInvoiceClient
         _client = client;
     }
 
-    public async Task<long> CreateInvoiceAsync(
+    public async Task<CreateInvoice.Response> CreateInvoiceAsync(
         Guid sessionId,
         long payerId,
         decimal amount,
@@ -25,7 +26,7 @@ public class InvoiceClient : IInvoiceClient
         var request = new CreateInvoiceRequest(sessionId.ToString(), payerId, new Money { DecimalValue = amount });
         CreateInvoiceResponse response =
             await _client.CreateInvoiceAsync(request, cancellationToken: cancellationToken);
-        return response.InvoiceId;
+        return new CreateInvoice.Response(response.InvoiceId);
     }
 
     public async Task PayInvoiceAsync(Guid sessionId, long invoiceId, CancellationToken cancellationToken)
@@ -40,37 +41,39 @@ public class InvoiceClient : IInvoiceClient
         await _client.CancelInvoiceAsync(request, cancellationToken: cancellationToken);
     }
 
-    public async Task<GetIncomingInvoicesResponseDto> GetIncomingInvoicesAsync(
-        Guid sessionId,
-        InvoiceStatusDto[] statuses,
-        long[] recipientIds,
-        int? pageSize,
-        string? pageToken,
+    public async Task<GetOutgoingInvoicesResponse> GetOutgoingInvoicesAsync(
+        GetOutgoingInvoices.Request request,
         CancellationToken cancellationToken)
     {
-        IEnumerable<InvoiceStatus> states = statuses.Select(status => status.MapToGrpc());
-        var request = new ProtoGetIncomingInvoicesRequest(sessionId.ToString(), pageToken, pageSize, states, recipientIds);
-        ProtoGetIncomingInvoicesResponse response =
-            await _client.GetIncomingInvoicesAsync(request, cancellationToken: cancellationToken);
-        return new GetIncomingInvoicesResponseDto(
+        IEnumerable<InvoiceStatus> states = request.Statuses.Select(status => status.MapToProto());
+        var protoRequest = new ProtoGetOutgoingInvoicesRequest(
+            request.SessionId.ToString(),
+            request.PageToken,
+            request.PageSize,
+            states,
+            request.PayerIds);
+        ProtoGetOutgoingInvoicesResponse response =
+            await _client.GetOutgoingInvoicesAsync(protoRequest, cancellationToken: cancellationToken);
+        return new GetOutgoingInvoicesResponse(
             response.Invoices.Select(invoice => invoice
                 .MapToDto()),
             response.PageToken);
     }
 
-    public async Task<GetOutgoingInvoicesResponseDto> GetOutgoingInvoicesAsync(
-        Guid sessionId,
-        InvoiceStatusDto[] statuses,
-        long[] payerIds,
-        int? pageSize,
-        string? pageToken,
+    public async Task<GetIncomingInvoicesResponse> GetIncomingInvoicesAsync(
+        GetIncomingInvoices.Request request,
         CancellationToken cancellationToken)
     {
-        IEnumerable<InvoiceStatus> states = statuses.Select(status => status.MapToGrpc());
-        var request = new ProtoGetOutgoingInvoicesRequest(sessionId.ToString(), pageToken, pageSize, states, payerIds);
-        ProtoGetOutgoingInvoicesResponse response =
-            await _client.GetOutgoingInvoicesAsync(request, cancellationToken: cancellationToken);
-        return new GetOutgoingInvoicesResponseDto(
+        IEnumerable<InvoiceStatus> states = request.Statuses.Select(status => status.MapToProto());
+        var protoRequest = new ProtoGetIncomingInvoicesRequest(
+            request.SessionId.ToString(),
+            request.PageToken,
+            request.PageSize,
+            states,
+            request.RecipientIds);
+        ProtoGetIncomingInvoicesResponse response = await _client
+            .GetIncomingInvoicesAsync(protoRequest, cancellationToken: cancellationToken);
+        return new GetIncomingInvoicesResponse(
             response.Invoices.Select(invoice => invoice
                 .MapToDto()),
             response.PageToken);

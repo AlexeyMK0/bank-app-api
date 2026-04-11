@@ -1,6 +1,6 @@
-using Lab1.Domain.Accounts;
+using BankApp.Domain.Accounts;
 
-namespace Lab1.Domain.Operations;
+namespace BankApp.Domain.Operations;
 
 public abstract record OperationRecord(
     OperationRecordId Id,

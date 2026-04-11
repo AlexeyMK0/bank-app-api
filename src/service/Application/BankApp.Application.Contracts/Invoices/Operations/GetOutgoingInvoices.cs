@@ -1,6 +1,6 @@
-using Contracts.Invoices.Model;
+using BankApp.Application.Contracts.Invoices.Model;
 
-namespace Contracts.Invoices.Operations;
+namespace BankApp.Application.Contracts.Invoices.Operations;
 
 public class GetOutgoingInvoices
 {

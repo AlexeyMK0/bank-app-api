@@ -1,17 +1,17 @@
-using Abstractions.Repositories;
-using Contracts.Sessions;
-using Contracts.Sessions.Operations;
+using BankApp.Application.Abstractions.Repositories;
+using BankApp.Application.Contracts.Sessions;
+using BankApp.Application.Contracts.Sessions.Operations;
+using BankApp.Application.Mappers;
+using BankApp.Application.Options;
+using BankApp.Application.RepositoryExtensions;
+using BankApp.Domain.Accounts;
+using BankApp.Domain.Sessions;
+using BankApp.Domain.ValueObjects;
 using Itmo.Dev.Platform.Persistence.Abstractions.Transactions;
-using Lab1.Application.Mappers;
-using Lab1.Application.Options;
-using Lab1.Application.RepositoryExtensions;
-using Lab1.Domain.Accounts;
-using Lab1.Domain.Sessions;
-using Lab1.Domain.ValueObjects;
 using Microsoft.Extensions.Options;
 using System.Data;
 
-namespace Lab1.Application.Services;
+namespace BankApp.Application.Services;
 
 public sealed class SessionService : ISessionService
 {

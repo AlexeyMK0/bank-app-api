@@ -1,5 +1,5 @@
-using Lab1.Domain.Accounts;
+using BankApp.Domain.Accounts;
 
-namespace Lab1.Domain.Sessions;
+namespace BankApp.Domain.Sessions;
 
 public sealed record UserSession(SessionId SessionGuid, AccountId AccountId);

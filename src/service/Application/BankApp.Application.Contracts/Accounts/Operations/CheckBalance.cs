@@ -1,4 +1,4 @@
-namespace Contracts.Accounts.Operations;
+namespace BankApp.Application.Contracts.Accounts.Operations;
 
 public static class CheckBalance
 {

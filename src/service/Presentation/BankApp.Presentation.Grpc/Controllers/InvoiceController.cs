@@ -1,8 +1,8 @@
+using BankApp.Application.Contracts.Invoices;
+using BankApp.Application.Contracts.Invoices.Operations;
 using BankApp.Grpc;
 using BankApp.Presentation.Grpc.Mappers;
 using BankApp.Presentation.Grpc.Options;
-using Contracts.Invoices;
-using Contracts.Invoices.Operations;
 using Grpc.Core;
 using Microsoft.Extensions.Options;
 using System.Diagnostics;
@@ -93,7 +93,7 @@ public class InvoiceController : InvoiceService.InvoiceServiceBase
         {
             GetIncomingInvoices.Response.Success success => new ProtoGetIncomingInvoicesResponse
             {
-                Invoices = { success.Invoices.Select(invoice => invoice.MapToGrpc()) },
+                Invoices = { success.Invoices.Select(invoice => invoice.MapToProto()) },
                 PageToken = success.PageToken is null
                     ? null
                     : JsonSerializer.Serialize<GetIncomingInvoices.PageToken>(success.PageToken),
@@ -125,7 +125,7 @@ public class InvoiceController : InvoiceService.InvoiceServiceBase
         {
             GetOutgoingInvoices.Response.Success success => new ProtoGetOutgoingInvoicesResponse
             {
-                Invoices = { success.Invoices.Select(invoice => invoice.MapToGrpc()) },
+                Invoices = { success.Invoices.Select(invoice => invoice.MapToProto()) },
                 PageToken = success.PageToken is null
                     ? null
                     : JsonSerializer.Serialize<GetOutgoingInvoices.PageToken>(success.PageToken),

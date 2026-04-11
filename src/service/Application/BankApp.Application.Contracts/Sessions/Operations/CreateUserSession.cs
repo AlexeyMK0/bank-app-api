@@ -1,6 +1,6 @@
-using Contracts.Sessions.Model;
+using BankApp.Application.Contracts.Sessions.Model;
 
-namespace Contracts.Sessions.Operations;
+namespace BankApp.Application.Contracts.Sessions.Operations;
 
 public static class CreateUserSession
 {

@@ -1,8 +1,8 @@
 using Abstractions.Queries;
-using Abstractions.Repositories;
-using Lab1.Domain.Invoices;
+using BankApp.Application.Abstractions.Repositories;
+using BankApp.Domain.Invoices;
 
-namespace Lab1.Application.RepositoryExtensions;
+namespace BankApp.Application.RepositoryExtensions;
 
 public static class InvoiceRepositoryExtension
 {

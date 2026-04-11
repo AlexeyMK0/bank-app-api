@@ -1,18 +1,18 @@
 using Abstractions.Queries;
-using Abstractions.Repositories;
+using BankApp.Application.Abstractions.Repositories;
+using BankApp.Domain.Operations;
+using BankApp.Infrastructure.Persistence.Model;
+using BankApp.Infrastructure.Persistence.Model.PayloadModel;
+using BankApp.Infrastructure.Persistence.Options;
 using Itmo.Dev.Platform.Persistence.Abstractions.Commands;
 using Itmo.Dev.Platform.Persistence.Abstractions.Connections;
-using Lab1.Domain.Operations;
-using Lab1.Infrastructure.Persistence.Model;
-using Lab1.Infrastructure.Persistence.Model.PayloadModel;
-using Lab1.Infrastructure.Persistence.Options;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 
-namespace Lab1.Infrastructure.Persistence.Repositories;
+namespace BankApp.Infrastructure.Persistence.Repositories;
 
 public sealed class OperationRepository : IOperationRepository
 {

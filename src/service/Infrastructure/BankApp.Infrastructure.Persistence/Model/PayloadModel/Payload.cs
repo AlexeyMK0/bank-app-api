@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Lab1.Infrastructure.Persistence.Model.PayloadModel;
+namespace BankApp.Infrastructure.Persistence.Model.PayloadModel;
 
 [JsonDerivedType(typeof(WithdrawPayload), typeDiscriminator: "Withdraw")]
 [JsonDerivedType(typeof(DepositPayload), typeDiscriminator: "Deposit")]

@@ -2,7 +2,7 @@ using BankApp.Gateway.Application.Models;
 
 namespace BankApp.Gateway.Presentation.Http.Operations;
 
-public record GetIncomingInvoicesRequest(
+public sealed record GetIncomingInvoicesRequest(
     Guid SessionId,
     string? PageToken,
     int? PageSize,

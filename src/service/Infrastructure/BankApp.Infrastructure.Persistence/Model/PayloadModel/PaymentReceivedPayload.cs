@@ -1,5 +1,5 @@
-namespace Lab1.Infrastructure.Persistence.Model.PayloadModel;
+namespace BankApp.Infrastructure.Persistence.Model.PayloadModel;
 
-public record PaymentReceivedPayload(
+internal sealed record PaymentReceivedPayload(
     long InvoiceId,
     decimal Amount) : Payload;

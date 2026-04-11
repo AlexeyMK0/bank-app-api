@@ -1,6 +1,6 @@
 namespace BankApp.Gateway.Presentation.Http.Operations;
 
-public record CreateInvoiceRequest(
+public sealed record CreateInvoiceRequest(
     Guid SessionId,
     long PayerId,
     decimal Amount);

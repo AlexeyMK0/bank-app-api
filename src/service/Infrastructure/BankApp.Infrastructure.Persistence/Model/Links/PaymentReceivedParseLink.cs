@@ -1,13 +1,13 @@
-using Lab1.Domain.Accounts;
-using Lab1.Domain.Invoices;
-using Lab1.Domain.Operations;
-using Lab1.Domain.Operations.Implementation;
-using Lab1.Domain.ValueObjects;
-using Lab1.Infrastructure.Persistence.Model.PayloadModel;
+using BankApp.Domain.Accounts;
+using BankApp.Domain.Invoices;
+using BankApp.Domain.Operations;
+using BankApp.Domain.Operations.Implementation;
+using BankApp.Domain.ValueObjects;
+using BankApp.Infrastructure.Persistence.Model.PayloadModel;
 
-namespace Lab1.Infrastructure.Persistence.Model.Links;
+namespace BankApp.Infrastructure.Persistence.Model.Links;
 
-public class PaymentReceivedParseLink : OperationLinkBase
+internal class PaymentReceivedParseLink : OperationLinkBase
 {
     public override OperationRecordEntity MapToEntity(OperationRecord operationRecord)
     {

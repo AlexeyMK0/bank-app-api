@@ -4,7 +4,7 @@ namespace BankApp.Gateway.Application.Abstractions.Clients;
 
 public interface IOperationHistoryClient
 {
-    Task<GetOperationHistoryResponseDto> GetOperationHistoryAsync(
+    Task<GetOperationHistoryResponse> GetOperationHistoryAsync(
         Guid sessionId,
         int? pageSize,
         string? pageToken,

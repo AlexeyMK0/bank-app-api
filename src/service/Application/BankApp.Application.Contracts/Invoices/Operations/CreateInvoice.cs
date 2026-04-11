@@ -1,4 +1,4 @@
-namespace Contracts.Invoices.Operations;
+namespace BankApp.Application.Contracts.Invoices.Operations;
 
 public static class CreateInvoice
 {

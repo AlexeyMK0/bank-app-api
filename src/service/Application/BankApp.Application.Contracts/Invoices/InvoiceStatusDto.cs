@@ -1,4 +1,4 @@
-namespace Contracts.Invoices;
+namespace BankApp.Application.Contracts.Invoices;
 
 public enum InvoiceStatusDto
 {

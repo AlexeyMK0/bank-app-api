@@ -1,15 +1,15 @@
 using Abstractions.Queries;
-using Abstractions.Repositories;
+using BankApp.Application.Abstractions.Repositories;
+using BankApp.Domain.Invoices;
+using BankApp.Infrastructure.Persistence.Model;
 using Itmo.Dev.Platform.Persistence.Abstractions.Commands;
 using Itmo.Dev.Platform.Persistence.Abstractions.Connections;
-using Lab1.Domain.Invoices;
-using Lab1.Infrastructure.Persistence.Model;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
-namespace Lab1.Infrastructure.Persistence.Repositories;
+namespace BankApp.Infrastructure.Persistence.Repositories;
 
 public class InvoiceRepository : IInvoiceRepository
 {

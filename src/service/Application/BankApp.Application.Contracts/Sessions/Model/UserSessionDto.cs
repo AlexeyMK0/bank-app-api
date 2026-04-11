@@ -1,3 +1,3 @@
-namespace Contracts.Sessions.Model;
+namespace BankApp.Application.Contracts.Sessions.Model;
 
-public record UserSessionDto(Guid SessionId, long AccountId);
+public sealed record UserSessionDto(Guid SessionId, long AccountId);

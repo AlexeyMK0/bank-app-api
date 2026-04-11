@@ -1,8 +1,8 @@
 using Abstractions.Queries;
-using Abstractions.Repositories;
-using Lab1.Domain.Accounts;
+using BankApp.Application.Abstractions.Repositories;
+using BankApp.Domain.Accounts;
 
-namespace Lab1.Application.RepositoryExtensions;
+namespace BankApp.Application.RepositoryExtensions;
 
 public static class AccountRepositoryExtension
 {

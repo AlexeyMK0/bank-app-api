@@ -17,7 +17,7 @@ public static class InvoiceStatusMappingExtension
         };
     }
 
-    public static ProtoInvoiceStatus MapToGrpc(this InvoiceStatusDto dto)
+    public static ProtoInvoiceStatus MapToProto(this InvoiceStatusDto dto)
     {
         return dto switch
         {

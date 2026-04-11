@@ -1,6 +1,6 @@
-using Lab1.Domain.Operations;
+using BankApp.Domain.Operations;
 
-namespace Lab1.Infrastructure.Persistence.Model;
+namespace BankApp.Infrastructure.Persistence.Model;
 
 public interface IOperationLink
 {

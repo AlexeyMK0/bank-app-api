@@ -1,6 +1,6 @@
-using Contracts.Invoices.Operations;
+using BankApp.Application.Contracts.Invoices.Operations;
 
-namespace Contracts.Invoices;
+namespace BankApp.Application.Contracts.Invoices;
 
 public interface IInvoiceService
 {

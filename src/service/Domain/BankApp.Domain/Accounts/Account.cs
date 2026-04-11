@@ -1,5 +1,5 @@
-using Lab1.Domain.ValueObjects;
+using BankApp.Domain.ValueObjects;
 
-namespace Lab1.Domain.Accounts;
+namespace BankApp.Domain.Accounts;
 
 public sealed record Account(AccountId Id, PinCode PinCode, Money Balance);

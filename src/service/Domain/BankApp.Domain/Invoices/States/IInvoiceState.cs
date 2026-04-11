@@ -1,4 +1,4 @@
-namespace Lab1.Domain.Invoices.States;
+namespace BankApp.Domain.Invoices.States;
 
 public interface IInvoiceState
 {

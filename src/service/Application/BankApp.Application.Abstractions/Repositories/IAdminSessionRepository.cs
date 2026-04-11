@@ -1,7 +1,7 @@
 using Abstractions.Queries;
-using Lab1.Domain.Sessions;
+using BankApp.Domain.Sessions;
 
-namespace Abstractions.Repositories;
+namespace BankApp.Application.Abstractions.Repositories;
 
 public interface IAdminSessionRepository
 {

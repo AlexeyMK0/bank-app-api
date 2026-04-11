@@ -1,8 +1,8 @@
-using Lab1.Infrastructure.Persistence.Model.PayloadModel;
+using BankApp.Infrastructure.Persistence.Model.PayloadModel;
 
-namespace Lab1.Infrastructure.Persistence.Model;
+namespace BankApp.Infrastructure.Persistence.Model;
 
-public record OperationRecordEntity(
+public sealed record OperationRecordEntity(
     long Id,
     DateTimeOffset Time,
     long AccountId,

@@ -3,7 +3,7 @@
 using FluentMigrator;
 using Itmo.Dev.Platform.Persistence.Postgres.Migrations;
 
-namespace Lab1.Infrastructure.Persistence.Migrations;
+namespace BankApp.Infrastructure.Persistence.Migrations;
 
 [Migration(1773333471, "Initial")]
 public class Initial : SqlMigration

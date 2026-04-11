@@ -1,6 +1,6 @@
-using Lab1.Infrastructure.Persistence.Model;
+using BankApp.Infrastructure.Persistence.Model;
 
-namespace Lab1.Infrastructure.Persistence.Options;
+namespace BankApp.Infrastructure.Persistence.Options;
 
 public class OperationParserOptions
 {

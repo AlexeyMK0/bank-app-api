@@ -1,3 +1,3 @@
-namespace Contracts.Accounts.Model;
+namespace BankApp.Application.Contracts.Accounts.Model;
 
-public record AccountDto(long AccountId, decimal Balance);
+public sealed record AccountDto(long AccountId, decimal Balance);

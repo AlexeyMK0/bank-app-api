@@ -1,6 +1,6 @@
 namespace BankApp.Gateway.Application.Models.Operations;
 
-public record PayInvoiceOperationDto(
+public sealed record PayInvoiceOperationDto(
     long Id,
     DateTimeOffset Time,
     long AccountId,

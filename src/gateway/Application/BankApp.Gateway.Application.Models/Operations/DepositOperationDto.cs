@@ -1,6 +1,6 @@
 namespace BankApp.Gateway.Application.Models.Operations;
 
-public record DepositOperationDto(
+public sealed record DepositOperationDto(
     long Id,
     DateTimeOffset Time,
     long AccountId,

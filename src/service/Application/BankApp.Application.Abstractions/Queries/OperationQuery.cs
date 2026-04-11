@@ -1,5 +1,5 @@
-using Lab1.Domain.Accounts;
-using Lab1.Domain.Operations;
+using BankApp.Domain.Accounts;
+using BankApp.Domain.Operations;
 using SourceKit.Generators.Builder.Annotations;
 
 namespace Abstractions.Queries;

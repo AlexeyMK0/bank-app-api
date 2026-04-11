@@ -1,7 +1,7 @@
 using BankApp.Gateway.Application.Abstractions.Clients;
-using BankApp.Gateway.Application.Models.Responses;
 using BankApp.Gateway.Infrastructure.Service.Mappers;
 using BankApp.Grpc;
+using GetOperationHistoryResponse = BankApp.Gateway.Application.Models.Responses.GetOperationHistoryResponse;
 
 namespace BankApp.Gateway.Infrastructure.Service.Clients;
 
@@ -14,7 +14,7 @@ public class OperationHistoryClient : IOperationHistoryClient
         _client = client;
     }
 
-    public async Task<GetOperationHistoryResponseDto> GetOperationHistoryAsync(
+    public async Task<GetOperationHistoryResponse> GetOperationHistoryAsync(
         Guid sessionId,
         int? pageSize,
         string? pageToken,
@@ -23,7 +23,7 @@ public class OperationHistoryClient : IOperationHistoryClient
         var request = new ProtoGetOperationHistoryRequest(pageToken, pageSize, sessionId.ToString());
         ProtoGetOperationHistoryResponse response = await _client
             .GetOperationHistoryAsync(request, cancellationToken: cancellationToken);
-        return new GetOperationHistoryResponseDto(
+        return new GetOperationHistoryResponse(
             response.Records.Select(operation => operation.MapToDto()),
             response.PageToken);
     }

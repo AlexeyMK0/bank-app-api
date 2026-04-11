@@ -1,4 +1,4 @@
-namespace Lab1.Domain.Invoices.Results;
+namespace BankApp.Domain.Invoices.Results;
 
 public abstract record CancelInvoiceResult
 {

@@ -1,12 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <TargetFramework>net10.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
-        <RootNamespace>Lab1.Application</RootNamespace>
-    </PropertyGroup>
-
     <ItemGroup>
       <ProjectReference Include="..\..\Domain\BankApp.Domain\BankApp.Domain.csproj" />
       <ProjectReference Include="..\BankApp.Application.Abstractions\BankApp.Application.Abstractions.csproj" />

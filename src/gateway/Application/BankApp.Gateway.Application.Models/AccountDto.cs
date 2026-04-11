@@ -1,3 +1,3 @@
 namespace BankApp.Gateway.Application.Models;
 
-public record AccountDto(long AccountId, decimal Balance);
+public sealed record AccountDto(long AccountId, decimal Balance);
