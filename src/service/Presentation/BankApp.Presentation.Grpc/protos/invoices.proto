@@ -66,12 +66,33 @@ message GetOutgoingInvoicesResponse {
   google.protobuf.StringValue page_token = 2;
 }
 
+message GetInvoicesRequest {
+  string session_id = 1;
+  google.protobuf.StringValue page_token = 2;
+  google.protobuf.Int32Value page_size = 3;
+  repeated InvoiceStatus invoice_statuses = 4;
+  repeated int64 payer_ids = 5;
+  repeated int64 recipient_ids = 6;
+  InvoiceType invoice_type = 7;
+}
+
+message GetInvoicesResponse {
+  repeated InvoiceModel invoices = 1;
+  google.protobuf.StringValue page_token = 2;
+}
+
 message InvoiceModel {
   int64 Id = 1;
   google.type.Money Amount = 2;
   InvoiceStatus State = 3;
   int64 RecipientId = 4;
   int64 PayerId = 5;
+}
+
+enum InvoiceType {
+  INVOICE_TYPE_UNSPECIFIED = 0;
+  INVOICE_TYPE_INCOMING = 1;
+  INVOICE_TYPE_OUTGOING = 2;
 }
 
 enum InvoiceStatus {

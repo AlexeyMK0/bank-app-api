@@ -36,7 +36,7 @@ public class OperationHistoryController : OperationHistoryService.OperationHisto
         var apiRequest = new GetAccountOperations.Request(sessionId, pageToken, pageSize);
 
         GetAccountOperations.Response result =
-            await _historyService.GetAccountOperationsAsync(apiRequest, context.CancellationToken);
+            await _historyService.GetOperationsAsync(apiRequest, context.CancellationToken);
         return result switch
         {
             GetAccountOperations.Response.Success success => new ProtoGetOperationHistoryResponse

@@ -1,7 +1,7 @@
 using BankApp.Domain.Sessions;
 using SourceKit.Generators.Builder.Annotations;
 
-namespace Abstractions.Queries;
+namespace BankApp.Application.Abstractions.Queries;
 
 [GenerateBuilder]
 public partial record SessionQuery(

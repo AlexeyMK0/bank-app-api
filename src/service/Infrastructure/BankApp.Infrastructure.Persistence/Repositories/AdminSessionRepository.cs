@@ -1,4 +1,3 @@
-using Abstractions.Queries;
 using BankApp.Application.Abstractions.Repositories;
 using BankApp.Domain.Sessions;
 using Itmo.Dev.Platform.Persistence.Abstractions.Commands;
@@ -6,6 +5,7 @@ using Itmo.Dev.Platform.Persistence.Abstractions.Connections;
 using System.Data;
 using System.Data.Common;
 using System.Runtime.CompilerServices;
+using SessionQuery = BankApp.Application.Abstractions.Queries.SessionQuery;
 
 namespace BankApp.Infrastructure.Persistence.Repositories;
 

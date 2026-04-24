@@ -1,4 +1,3 @@
-using Abstractions.Queries;
 using BankApp.Application.Abstractions.Repositories;
 using BankApp.Domain.Invoices;
 using BankApp.Infrastructure.Persistence.Model;
@@ -8,6 +7,7 @@ using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using InvoiceQuery = BankApp.Application.Abstractions.Queries.InvoiceQuery;
 
 namespace BankApp.Infrastructure.Persistence.Repositories;
 

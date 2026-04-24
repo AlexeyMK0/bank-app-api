@@ -2,7 +2,7 @@ namespace BankApp.Application.Contracts.Invoices.Operations;
 
 public class CancelInvoice
 {
-    public sealed record Request(Guid SessionId, long InvoiceId);
+    public sealed record Request(Guid UserId, long InvoiceId);
 
     public abstract record Response
     {

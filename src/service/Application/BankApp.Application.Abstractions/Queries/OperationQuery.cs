@@ -2,7 +2,7 @@ using BankApp.Domain.Accounts;
 using BankApp.Domain.Operations;
 using SourceKit.Generators.Builder.Annotations;
 
-namespace Abstractions.Queries;
+namespace BankApp.Application.Abstractions.Queries;
 
 [GenerateBuilder]
 public partial record struct OperationQuery(

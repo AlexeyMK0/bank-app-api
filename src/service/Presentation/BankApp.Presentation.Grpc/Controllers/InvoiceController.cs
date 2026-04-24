@@ -22,7 +22,9 @@ public class InvoiceController : InvoiceService.InvoiceServiceBase
         _defaultPageSize = options.Value.DefaultPageSize;
     }
 
-    public override async Task<CreateInvoiceResponse> CreateInvoice(CreateInvoiceRequest request, ServerCallContext context)
+    public override async Task<CreateInvoiceResponse> CreateInvoice(
+        CreateInvoiceRequest request,
+        ServerCallContext context)
     {
         var sessionId = Guid.Parse(request.SessionId);
         long payerId = request.PayerId;
@@ -39,7 +41,9 @@ public class InvoiceController : InvoiceService.InvoiceServiceBase
         };
     }
 
-    public override async Task<CancelInvoiceResponse> CancelInvoice(CancelInvoiceRequest request, ServerCallContext context)
+    public override async Task<CancelInvoiceResponse> CancelInvoice(
+        CancelInvoiceRequest request,
+        ServerCallContext context)
     {
         var sessionId = Guid.Parse(request.SessionId);
         long invoiceId = request.InvoiceId;
@@ -71,7 +75,25 @@ public class InvoiceController : InvoiceService.InvoiceServiceBase
         };
     }
 
-    public override async Task<GetIncomingInvoicesResponse> GetIncomingInvoices(GetIncomingInvoicesRequest request, ServerCallContext context)
+    /*public async Task<ProtoGetInvoicesResponse> GetInvoices(ProtoGetInvoicesRequest request, ServerCallContext context)
+    {
+        var sessionId = Guid.Parse(request.SessionId);
+        InvoiceStatusDto[] states = request
+            .InvoiceStatuses.Select(state => state
+                .MapToDto())
+            .ToArray();
+        int pageSize = request.PageSize ?? _defaultPageSize;
+        long[] recipientIds = request.RecipientIds.ToArray();
+        Console.WriteLine($"Page token is null: {request.PageToken is null}");
+        GetIncomingInvoices.PageToken? pageToken
+            = request.PageToken is null
+                ? null
+                : JsonSerializer.Deserialize<GetIncomingInvoices.PageToken>(request.PageToken);
+    }*/
+
+    public override async Task<GetIncomingInvoicesResponse> GetIncomingInvoices(
+        GetIncomingInvoicesRequest request,
+        ServerCallContext context)
     {
         var sessionId = Guid.Parse(request.SessionId);
         InvoiceStatusDto[] states = request
@@ -88,7 +110,8 @@ public class InvoiceController : InvoiceService.InvoiceServiceBase
 
         var apiRequest = new GetIncomingInvoices.Request(sessionId, pageToken, pageSize, states, recipientIds);
 
-        GetIncomingInvoices.Response result = await _invoiceService.GetIncomingInvoicesAsync(apiRequest, context.CancellationToken);
+        GetIncomingInvoices.Response result =
+            await _invoiceService.GetIncomingInvoicesAsync(apiRequest, context.CancellationToken);
         return result switch
         {
             GetIncomingInvoices.Response.Success success => new ProtoGetIncomingInvoicesResponse
@@ -104,7 +127,9 @@ public class InvoiceController : InvoiceService.InvoiceServiceBase
         };
     }
 
-    public override async Task<GetOutgoingInvoicesResponse> GetOutgoingInvoices(GetOutgoingInvoicesRequest request, ServerCallContext context)
+    public override async Task<GetOutgoingInvoicesResponse> GetOutgoingInvoices(
+        GetOutgoingInvoicesRequest request,
+        ServerCallContext context)
     {
         var sessionId = Guid.Parse(request.SessionId);
         InvoiceStatusDto[] states = request
@@ -120,7 +145,8 @@ public class InvoiceController : InvoiceService.InvoiceServiceBase
 
         var apiRequest = new GetOutgoingInvoices.Request(sessionId, pageToken, pageSize, states, payerIds);
 
-        GetOutgoingInvoices.Response result = await _invoiceService.GetOutgoingInvoicesAsync(apiRequest, context.CancellationToken);
+        GetOutgoingInvoices.Response result =
+            await _invoiceService.GetOutgoingInvoicesAsync(apiRequest, context.CancellationToken);
         return result switch
         {
             GetOutgoingInvoices.Response.Success success => new ProtoGetOutgoingInvoicesResponse

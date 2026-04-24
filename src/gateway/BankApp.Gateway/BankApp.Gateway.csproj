@@ -1,9 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
+
     <ItemGroup>
+      <ProjectReference Include="..\..\..\Itmo.Backend.ServiceDefaults\Itmo.Backend.ServiceDefaults.csproj" />
       <ProjectReference Include="..\Infrastructure\BankApp.Gateway.Infrastructure.Service\BankApp.Gateway.Infrastructure.Service.csproj" />
       <ProjectReference Include="..\Presentation\BankApp.Gateway.Presentation.Http\BankApp.Gateway.Presentation.Http.csproj" />
     </ItemGroup>
     <ItemGroup>
+      <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+      <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" />
       <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
       <PackageReference Include="Swashbuckle.AspNetCore" />
     </ItemGroup>

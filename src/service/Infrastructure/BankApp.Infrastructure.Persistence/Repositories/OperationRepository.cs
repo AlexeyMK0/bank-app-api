@@ -1,4 +1,3 @@
-using Abstractions.Queries;
 using BankApp.Application.Abstractions.Repositories;
 using BankApp.Domain.Operations;
 using BankApp.Infrastructure.Persistence.Model;
@@ -11,6 +10,7 @@ using System.Data.Common;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using OperationQuery = BankApp.Application.Abstractions.Queries.OperationQuery;
 
 namespace BankApp.Infrastructure.Persistence.Repositories;
 

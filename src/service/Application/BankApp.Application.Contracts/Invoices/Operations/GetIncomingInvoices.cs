@@ -7,7 +7,8 @@ public class GetIncomingInvoices
     public sealed record PageToken(long InvoiceId);
 
     public sealed record Request(
-        Guid SessionId,
+        Guid UserId,
+        long[] AccountIds,
         PageToken? PageToken,
         int PageSize,
         InvoiceStatusDto[] InvoiceStatuses,

@@ -2,7 +2,12 @@ namespace BankApp.Application.Contracts.Invoices.Operations;
 
 public static class CreateInvoice
 {
-    public sealed record Request(Guid SessionId, long PayerId, decimal Amount);
+    public sealed record Request(
+        Guid UserId,
+        long PayerAccountId,
+        long RecipientAccountId,
+        long PayerId,
+        decimal Amount);
 
     public abstract record Response
     {

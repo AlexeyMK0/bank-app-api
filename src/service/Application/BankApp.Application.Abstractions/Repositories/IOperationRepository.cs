@@ -1,5 +1,5 @@
-using Abstractions.Queries;
 using BankApp.Domain.Operations;
+using OperationQuery = BankApp.Application.Abstractions.Queries.OperationQuery;
 
 namespace BankApp.Application.Abstractions.Repositories;
 

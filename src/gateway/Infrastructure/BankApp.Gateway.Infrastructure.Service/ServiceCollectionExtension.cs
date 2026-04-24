@@ -13,8 +13,32 @@ public static class ServiceCollectionExtension
 {
     public static IServiceCollection AddClients(this IServiceCollection collection)
     {
-        collection.AddOptions<BankServiceOptions>()
-            .BindConfiguration("Infrastructure:Service")
+        const string accountServiceName = "service-account";
+        const string invoiceServiceName = "service-invoice";
+        const string operationHistoryServiceName = "service-operation-history";
+        const string sessionServiceName = "service-session";
+
+        collection
+            .AddOptions<GrpcClientOptions>(accountServiceName)
+            .BindConfiguration($"Infrastructure:Service:{accountServiceName}")
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        collection
+            .AddOptions<GrpcClientOptions>(invoiceServiceName)
+            .BindConfiguration($"Infrastructure:Service:{invoiceServiceName}")
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        collection
+            .AddOptions<GrpcClientOptions>(operationHistoryServiceName)
+            .BindConfiguration($"Infrastructure:Service:{operationHistoryServiceName}")
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        collection
+            .AddOptions<GrpcClientOptions>(sessionServiceName)
+            .BindConfiguration($"Infrastructure:Service:{sessionServiceName}")
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
@@ -22,44 +46,43 @@ public static class ServiceCollectionExtension
             "AccountServiceClient",
             (provider, options) =>
             {
-                IOptions<BankServiceOptions> clientOptions = provider
-                    .GetRequiredService<IOptions<BankServiceOptions>>();
+                IOptionsMonitor<GrpcClientOptions> clientOptions = provider
+                    .GetRequiredService<IOptionsMonitor<GrpcClientOptions>>();
 
-                options.Address = clientOptions.Value.BaseAddress;
+                options.Address = clientOptions.Get(accountServiceName).BaseAddress;
             });
 
         collection.AddGrpcClient<OperationHistoryService.OperationHistoryServiceClient>(
             "OperationHistoryServiceClient",
             (provider, options) =>
             {
-                IOptions<BankServiceOptions> clientOptions = provider
-                    .GetRequiredService<IOptions<BankServiceOptions>>();
+                IOptionsMonitor<GrpcClientOptions> clientOptions = provider
+                    .GetRequiredService<IOptionsMonitor<GrpcClientOptions>>();
 
-                options.Address = clientOptions.Value.BaseAddress;
+                options.Address = clientOptions.Get(operationHistoryServiceName).BaseAddress;
             });
 
         collection.AddGrpcClient<SessionService.SessionServiceClient>(
             "SessionServiceClient",
             (provider, options) =>
             {
-                IOptions<BankServiceOptions> clientOptions = provider
-                    .GetRequiredService<IOptions<BankServiceOptions>>();
+                IOptionsMonitor<GrpcClientOptions> clientOptions = provider
+                    .GetRequiredService<IOptionsMonitor<GrpcClientOptions>>();
 
-                options.Address = clientOptions.Value.BaseAddress;
+                options.Address = clientOptions.Get(sessionServiceName).BaseAddress;
             });
 
         collection.AddGrpcClient<InvoiceService.InvoiceServiceClient>(
             "InvoiceServiceClient",
             (provider, options) =>
             {
-                IOptions<BankServiceOptions> clientOptions = provider
-                    .GetRequiredService<IOptions<BankServiceOptions>>();
+                IOptionsMonitor<GrpcClientOptions> clientOptions = provider
+                    .GetRequiredService<IOptionsMonitor<GrpcClientOptions>>();
 
-                options.Address = clientOptions.Value.BaseAddress;
+                options.Address = clientOptions.Get(invoiceServiceName).BaseAddress;
             });
 
         collection.AddScoped<IAccountClient, AccountClient>();
-        collection.AddScoped<ISessionClient, SessionClient>();
         collection.AddScoped<IInvoiceClient, InvoiceClient>();
         collection.AddScoped<IOperationHistoryClient, OperationHistoryClient>();
 

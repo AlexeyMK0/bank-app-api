@@ -1,0 +1,18 @@
+<Project Sdk="Aspire.AppHost.Sdk/13.2.3">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <UserSecretsId>8ec2aab0-3c45-42fc-bdaf-3df291746706</UserSecretsId>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Aspire.Hosting.PostgreSQL" />
+      <PackageReference Include="Keycloak.AuthServices.Aspire.Hosting" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\gateway\BankApp.Gateway\BankApp.Gateway.csproj" />
+      <ProjectReference Include="..\service\Main\Main.csproj" />
+    </ItemGroup>
+
+</Project>

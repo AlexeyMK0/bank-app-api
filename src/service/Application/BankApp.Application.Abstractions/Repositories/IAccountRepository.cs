@@ -1,5 +1,5 @@
-using Abstractions.Queries;
 using BankApp.Domain.Accounts;
+using AccountQuery = BankApp.Application.Abstractions.Queries.AccountQuery;
 
 namespace BankApp.Application.Abstractions.Repositories;
 
