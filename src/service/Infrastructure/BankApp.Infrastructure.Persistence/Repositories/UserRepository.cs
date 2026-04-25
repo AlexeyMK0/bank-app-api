@@ -21,16 +21,24 @@ public sealed class UserRepository : IUserRepository
 
     public async Task<User> AddAsync(User user, CancellationToken cancellationToken)
     {
+        // language=sql
         const string sql =
         """
-        INSERT INTO users(external_id)
-        VALUES(:external_id)
-        RETURNING user_id;
+        WITH res as (
+            INSERT INTO users(external_id) 
+            VALUES(:external_id)
+            ON CONFLICT(external_id) DO NOTHING
+            RETURNING user_id
+        )
+        SELECT user_id FROM res
+        UNION ALL
+        SELECT user_id FROM users WHERE external_id = :external_id
+        LIMIT 1;
         """;
 
         await using IPersistenceConnection connection = await _connectionProvider.GetConnectionAsync(cancellationToken);
         await using IPersistenceCommand command = connection.CreateCommand(sql)
-            .AddParameter("external_id", user.UserExternalId);
+            .AddParameter("external_id", user.UserExternalId.Value);
 
         await using DbDataReader reader = await command.ExecuteReaderAsync(cancellationToken);
         if (await reader.ReadAsync(cancellationToken) is false)

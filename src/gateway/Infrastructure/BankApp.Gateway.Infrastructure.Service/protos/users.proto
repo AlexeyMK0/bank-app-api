@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package BankApp;
+option csharp_namespace = "BankApp.Grpc";
+
+service UserService {
+  rpc AddUser(AddUserRequest) returns (AddUserResponse);
+}
+
+message AddUserRequest {
+  string user_external_id = 1;
+}
+
+message AddUserResponse {
+  int64 user_id = 2;
+}

@@ -31,6 +31,7 @@ public class InvoiceController : ControllerBase
         CreateInvoice.Response response = await _client.CreateInvoiceAsync(
             userId,
             httpRequest.PayerId,
+            httpRequest.RecepientId,
             httpRequest.Amount,
             cancellationToken);
         return Ok(response.InvoiceId);
@@ -68,6 +69,7 @@ public class InvoiceController : ControllerBase
         var request = new GetIncomingInvoices.Request(
             userId,
             httpRequest.InvoiceStatuses ?? [],
+            httpRequest.UserIds ?? [],
             httpRequest.RecipientIds ?? [],
             httpRequest.PageSize,
             httpRequest.PageToken);
@@ -89,6 +91,7 @@ public class InvoiceController : ControllerBase
         var request = new GetOutgoingInvoices.Request(
             userId,
             httpRequest.InvoiceStatuses ?? [],
+            httpRequest.UserIds ?? [],
             httpRequest.PayerIds ?? [],
             httpRequest.PageSize,
             httpRequest.PageToken);

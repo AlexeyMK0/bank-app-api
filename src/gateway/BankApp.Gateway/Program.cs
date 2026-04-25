@@ -4,12 +4,18 @@
  * more than 41 dependencies
  */
 
+using BankApp.Gateway.Application.Contracts;
+using BankApp.Gateway.Application.Services;
 using BankApp.Gateway.Infrastructure.Service;
 using BankApp.Gateway.Presentation.Http;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using System.Diagnostics;
+using System.Security.Claims;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -19,8 +25,8 @@ builder.Logging.AddConsole();
 
 builder.Services
     .AddClients()
+    .AddServices()
     .AddPresentationHttp()
-    // .AddOpenApi()
     .AddHttpContextAccessor()
     .AddAuthorization();
 
@@ -76,8 +82,28 @@ builder.Services
 
         oidc.TokenValidationParameters = new TokenValidationParameters
         {
+            RoleClaimType = ClaimTypes.Role,
             ValidateLifetime = true,
             ClockSkew = TimeSpan.FromSeconds(10),
+        };
+
+        oidc.Events = new OpenIdConnectEvents
+        {
+            OnTokenValidated = async context =>
+            {
+                Console.WriteLine("1");
+                string token = await context.HttpContext.GetTokenAsync("access_token")
+                    ?? throw new UnreachableException("Token not found");
+                Console.WriteLine(token);
+                IUserService userService = context.HttpContext.RequestServices
+                    .GetRequiredService<IUserService>();
+                Console.WriteLine("3");
+                ILogger<IUserService> logger = context.HttpContext.RequestServices
+                    .GetRequiredService<ILogger<IUserService>>();
+                long userId = await userService.AddUserAsync(Guid.Parse(token), context.HttpContext.RequestAborted);
+                Console.WriteLine($"Token validated for user {userId}");
+                logger.LogInformation($"Token validated for user {userId}");
+            },
         };
     })
     .AddJwtBearer(jwt =>
@@ -90,8 +116,24 @@ builder.Services
 
         jwt.TokenValidationParameters = new TokenValidationParameters
         {
+            RoleClaimType = ClaimTypes.Role,
             ValidateLifetime = true,
             ClockSkew = TimeSpan.FromSeconds(10),
+        };
+
+        jwt.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = async context =>
+            {
+                string token = context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                               ?? throw new UnreachableException("Token not found");
+                IUserService userService = context.HttpContext.RequestServices
+                    .GetRequiredService<IUserService>();
+                ILogger<IUserService> logger = context.HttpContext.RequestServices
+                    .GetRequiredService<ILogger<IUserService>>();
+                long userId = await userService.AddUserAsync(Guid.Parse(token), context.HttpContext.RequestAborted);
+                logger.LogInformation($"Token validated for user {userId}");
+            },
         };
     });
 

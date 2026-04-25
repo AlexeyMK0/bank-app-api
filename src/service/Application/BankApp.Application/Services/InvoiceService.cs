@@ -48,7 +48,6 @@ public class InvoiceService : IInvoiceService
         CancellationToken cancellationToken)
     {
         var invoiceAmount = new Money(request.Amount);
-        var payerId = new UserId(request.PayerId);
         var payerAccountId = new AccountId(request.PayerAccountId);
         var recipientAccountId = new AccountId(request.RecipientAccountId);
         var externalUserId = new UserExternalId(request.UserId);
@@ -61,19 +60,12 @@ public class InvoiceService : IInvoiceService
         if (foundUser is null)
             return new CreateInvoice.Response.Failure("User not found");
 
-        User? foundPayer = foundUser.Id == payerId
-            ? foundUser
-            : await _userRepository
-                .FindUserByIdAsync(payerId, cancellationToken);
-        if (foundPayer is null)
-            return new CreateInvoice.Response.Failure($"Payer with id {payerId.Value} not found");
-
         Account? payerAccount = await _accountRepository.FindAccountByIdAsync(payerAccountId, cancellationToken);
         if (payerAccount is null)
             return new CreateInvoice.Response.Failure("Payer account not found");
         Account? recipientAccount = await _accountRepository.FindAccountByIdAsync(recipientAccountId, cancellationToken);
-        if (recipientAccount is null)
-            return new CreateInvoice.Response.Failure("Recipient account not found");
+        if (recipientAccount is null || recipientAccount.OwnerUserId != foundUser.Id)
+            return new CreateInvoice.Response.Failure($"Account with id {recipientAccountId.Value} not found for user {foundUser.Id.Value}");
 
         var invoice = new Invoice(
             InvoiceId.Default,
@@ -155,7 +147,7 @@ public class InvoiceService : IInvoiceService
         Account? recipientAccount = await _accountRepository
             .FindAccountByIdAsync(invoice.RecipientId, cancellationToken);
         if (recipientAccount is null)
-            return new PayInvoice.Response.Failure("Accounts not found");
+            return new PayInvoice.Response.Failure("Account not found");
 
         if (payerAccount.Balance.CompareTo(invoice.Amount) < 0)
         {

@@ -6,7 +6,6 @@ public static class CreateInvoice
         Guid UserId,
         long PayerAccountId,
         long RecipientAccountId,
-        long PayerId,
         decimal Amount);
 
     public abstract record Response

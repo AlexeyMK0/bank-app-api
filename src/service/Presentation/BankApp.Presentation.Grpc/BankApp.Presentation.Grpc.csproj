@@ -3,6 +3,11 @@
         <OutputType>Library</OutputType>
     </PropertyGroup>
 
+<!--    DEBUG -->
+<!--    <ItemGroup>-->
+<!--        <Compile Remove="Requests/*" />-->
+<!--    </ItemGroup>-->
+    
     <ItemGroup>
       <PackageReference Include="Google.Api.CommonProtos" />
       <PackageReference Include="Grpc.AspNetCore" />

@@ -4,7 +4,7 @@ namespace BankApp.Gateway.Application.Abstractions.Clients;
 
 public interface IInvoiceClient
 {
-    Task<CreateInvoice.Response> CreateInvoiceAsync(Guid userId, long payerId, decimal amount, CancellationToken cancellationToken);
+    Task<CreateInvoice.Response> CreateInvoiceAsync(Guid userId, long payerId, long recipientId, decimal amount, CancellationToken cancellationToken);
 
     Task PayInvoiceAsync(Guid userId, long invoiceId, CancellationToken cancellationToken);
 

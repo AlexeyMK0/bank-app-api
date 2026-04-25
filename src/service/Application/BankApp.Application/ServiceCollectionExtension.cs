@@ -1,6 +1,7 @@
 using BankApp.Application.Contracts.Accounts;
 using BankApp.Application.Contracts.Invoices;
 using BankApp.Application.Contracts.OperationHistory;
+using BankApp.Application.Contracts.Users;
 using BankApp.Application.Options;
 using BankApp.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,6 +15,7 @@ public static class ServiceCollectionExtension
         services.AddScoped<IAccountService, AccountService>();
         services.AddScoped<IOperationHistoryService, OperationHistoryService>();
         services.AddScoped<IInvoiceService, InvoiceService>();
+        services.AddScoped<IUserService, UserService>();
 
         services.AddOptions<PasswordOptions>()
             .BindConfiguration("SystemPasswordSettings")

@@ -1,0 +1,9 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\BankApp.Gateway.Application.Clients\BankApp.Gateway.Application.Clients.csproj" />
+    <ProjectReference Include="..\BankApp.Gateway.Application.Contracts\BankApp.Gateway.Application.Contracts.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+  </ItemGroup>
+</Project>

@@ -12,9 +12,10 @@ service OperationHistoryService {
 }
 
 message GetOperationHistoryRequest {
-  google.protobuf.StringValue page_token = 1;
-  google.protobuf.Int32Value page_size = 2;
-  string session_id = 3;
+  string user_external_id = 1;
+  repeated int64 account_ids = 2;
+  google.protobuf.StringValue page_token = 3;
+  google.protobuf.Int32Value page_size = 4;
 }
 
 message GetOperationHistoryResponse {

@@ -10,6 +10,8 @@
     <Project Path="src\gateway\BankApp.Gateway\BankApp.Gateway.csproj" />
   </Folder>
   <Folder Name="/src/gateway/Application/">
+    <Project Path="src/gateway/Application/BankApp.Gateway.Application.Contracts/BankApp.Gateway.Application.Contracts.csproj" />
+    <Project Path="src/gateway/Application/BankApp.Gateway.Application.Services/BankApp.Gateway.Application.Services.csproj" />
     <Project Path="src\gateway\Application\BankApp.Gateway.Application.Clients\BankApp.Gateway.Application.Clients.csproj" />
     <Project Path="src\gateway\Application\BankApp.Gateway.Application.Models\BankApp.Gateway.Application.Models.csproj" />
   </Folder>

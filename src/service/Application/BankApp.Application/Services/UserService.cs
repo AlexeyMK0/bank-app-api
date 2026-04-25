@@ -14,11 +14,13 @@ public sealed class UserService : IUserService
         _userRepository = userRepository;
     }
 
-    public async Task<UserDto> CreateUserAsync(Guid externalId, CancellationToken cancellationToken)
+    public async Task<CreateUser.Response> CreateUserAsync(
+        CreateUser.Request request,
+        CancellationToken cancellationToken)
     {
-        var userToAdd = new User(UserId.Default, new UserExternalId(externalId));
+        var userToAdd = new User(UserId.Default, new UserExternalId(request.ExternalUserId));
         User newUser = await _userRepository.AddAsync(userToAdd, cancellationToken);
-        return MapToDto(newUser);
+        return new CreateUser.Response.Success(MapToDto(newUser));
     }
 
     private static UserDto MapToDto(User user)

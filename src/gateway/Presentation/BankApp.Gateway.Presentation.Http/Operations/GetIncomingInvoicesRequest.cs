@@ -6,4 +6,5 @@ public sealed record GetIncomingInvoicesRequest(
     string? PageToken,
     int? PageSize,
     InvoiceStatusDto[]? InvoiceStatuses,
+    long[]? UserIds,
     long[]? RecipientIds);

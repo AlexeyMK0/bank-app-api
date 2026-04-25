@@ -6,6 +6,7 @@ public interface IOperationHistoryClient
 {
     Task<GetOperationHistory.Response> GetOperationHistoryAsync(
         Guid userId,
+        long[] accountIds,
         int? pageSize,
         string? pageToken,
         CancellationToken cancellationToken);

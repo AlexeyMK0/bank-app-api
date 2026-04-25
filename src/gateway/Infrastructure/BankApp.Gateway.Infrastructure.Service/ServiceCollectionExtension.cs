@@ -16,7 +16,7 @@ public static class ServiceCollectionExtension
         const string accountServiceName = "service-account";
         const string invoiceServiceName = "service-invoice";
         const string operationHistoryServiceName = "service-operation-history";
-        const string sessionServiceName = "service-session";
+        const string userServiceName = "service-user";
 
         collection
             .AddOptions<GrpcClientOptions>(accountServiceName)
@@ -37,8 +37,8 @@ public static class ServiceCollectionExtension
             .ValidateOnStart();
 
         collection
-            .AddOptions<GrpcClientOptions>(sessionServiceName)
-            .BindConfiguration($"Infrastructure:Service:{sessionServiceName}")
+            .AddOptions<GrpcClientOptions>(userServiceName)
+            .BindConfiguration($"Infrastructure:Service:{userServiceName}")
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
@@ -62,16 +62,6 @@ public static class ServiceCollectionExtension
                 options.Address = clientOptions.Get(operationHistoryServiceName).BaseAddress;
             });
 
-        collection.AddGrpcClient<SessionService.SessionServiceClient>(
-            "SessionServiceClient",
-            (provider, options) =>
-            {
-                IOptionsMonitor<GrpcClientOptions> clientOptions = provider
-                    .GetRequiredService<IOptionsMonitor<GrpcClientOptions>>();
-
-                options.Address = clientOptions.Get(sessionServiceName).BaseAddress;
-            });
-
         collection.AddGrpcClient<InvoiceService.InvoiceServiceClient>(
             "InvoiceServiceClient",
             (provider, options) =>
@@ -82,9 +72,20 @@ public static class ServiceCollectionExtension
                 options.Address = clientOptions.Get(invoiceServiceName).BaseAddress;
             });
 
+        collection.AddGrpcClient<UserService.UserServiceClient>(
+            "UserServiceClient",
+            (provider, options) =>
+            {
+                IOptionsMonitor<GrpcClientOptions> clientOptions = provider
+                    .GetRequiredService<IOptionsMonitor<GrpcClientOptions>>();
+
+                options.Address = clientOptions.Get(userServiceName).BaseAddress;
+            });
+
         collection.AddScoped<IAccountClient, AccountClient>();
         collection.AddScoped<IInvoiceClient, InvoiceClient>();
         collection.AddScoped<IOperationHistoryClient, OperationHistoryClient>();
+        collection.AddScoped<IUserClient, UserClient>();
 
         collection.AddSingleton<RpcExceptionMiddleware>();
         return collection;

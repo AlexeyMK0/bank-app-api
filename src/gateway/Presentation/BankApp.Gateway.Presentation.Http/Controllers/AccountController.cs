@@ -32,7 +32,7 @@ public class AccountController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles="admin")]
     public async Task<ActionResult<AccountDto>> CreateNewAccount(
         [FromBody] CreateAccountRequest httpRequest,
         CancellationToken cancellationToken)

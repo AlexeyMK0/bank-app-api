@@ -29,6 +29,7 @@ public class OperationHistoryController : ControllerBase
         GetOperationHistory.Response response = await _client
             .GetOperationHistoryAsync(
                 userId,
+                httpRequest.AccountIds ?? [],
                 httpRequest.PageSize,
                 httpRequest.PageToken,
                 cancellationToken);

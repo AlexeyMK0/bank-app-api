@@ -57,7 +57,7 @@ IResourceBuilder<ProjectResource> gateway = builder.AddProject<BankApp_Gateway>(
         "Infrastructure:Service:service-operation-history:BaseAddress",
         service.GetEndpoint("gRPC"))
     .WithEnvironment(
-        "Infrastructure:Service:service-session:BaseAddress",
+        "Infrastructure:Service:service-user:BaseAddress",
         service.GetEndpoint("gRPC"))
     .WithEnvironment(
         "Authentication__IdentityProviderUri",

@@ -11,4 +11,6 @@ public interface IAccountClient
     Task<Withdraw.Response> WithdrawAsync(Guid userId, long accountId, decimal amount, CancellationToken cancellationToken);
 
     Task<CreateAccount.Response> CreateAccountAsync(Guid userId, long accountOwnerId, CancellationToken cancellationToken);
+
+    Task<GetUserAccounts.Response> GetUserAccountsAsync(GetUserAccounts.Request request, CancellationToken cancellationToken);
 }
