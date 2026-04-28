@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package BankApp;
+option csharp_namespace = "BankApp.Grpc";
+
+import "google/type/money.proto";
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/timestamp.proto";
+
+service OperationHistoryService {
+  rpc GetOperationHistory(GetOperationHistoryRequest) returns (GetOperationHistoryResponse);
+}
+
+message GetOperationHistoryRequest {
+  google.protobuf.StringValue page_token = 1;
+  google.protobuf.Int32Value page_size = 2;
+  string session_id = 3;
+}
+
+message GetOperationHistoryResponse {
+  repeated OperationRecord records = 1;
+  google.protobuf.StringValue page_token = 2;
+}
+
+message OperationRecord {
+  int64 id = 1;
+  google.protobuf.Timestamp time = 2;
+  int64 account_id = 3; 
+
+  oneof Record {
+    DepositOperationRecord deposit_operation_record = 4;
+    PayInvoiceOperationRecord pay_invoice_operation_record = 5;
+    PaymentReceivedOperationRecord payment_received_operation_record = 6;
+    WithdrawOperationRecord withdraw_operation_record = 7;
+  }
+}
+
+message DepositOperationRecord {
+  google.type.Money amount = 1;
+}
+
+message PayInvoiceOperationRecord {
+  int64 invoice_id = 1;
+  google.type.Money amount = 2;
+}
+
+message PaymentReceivedOperationRecord {
+  int64 invoice_id = 1;
+  google.type.Money amount = 2;
+}
+
+message WithdrawOperationRecord {
+  google.type.Money amount = 1;
+}

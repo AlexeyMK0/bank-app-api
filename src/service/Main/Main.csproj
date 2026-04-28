@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <UserSecretsId>9f923572-7250-4e74-8cef-e801ad678524</UserSecretsId>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Application\BankApp.Application\BankApp.Application.csproj" />
+      <ProjectReference Include="..\Infrastructure\BankApp.Infrastructure.Persistence\BankApp.Infrastructure.Persistence.csproj" />
+      <ProjectReference Include="..\Presentation\BankApp.Presentation.Grpc\BankApp.Presentation.Grpc.csproj" />
+    </ItemGroup>
+
+</Project>

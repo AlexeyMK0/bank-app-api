@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <ItemGroup>
+        <Protobuf Include="protos/**/*.proto" ProtoRoot="protos" GrpcServices="Client"/>
+        <Protobuf Remove="protos/google/**/*.proto" ProtoRoot="protos" ProtoCompile="false" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Google.Api.CommonProtos" />
+        <PackageReference Include="Grpc.AspNetCore" />
+        <PackageReference Include="Grpc.Tools">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="SourceKit.Generators.Grpc" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\Application\BankApp.Gateway.Application.Clients\BankApp.Gateway.Application.Clients.csproj" />
+      <ProjectReference Include="..\..\Application\BankApp.Gateway.Application.Models\BankApp.Gateway.Application.Models.csproj" />
+    </ItemGroup>
+</Project>

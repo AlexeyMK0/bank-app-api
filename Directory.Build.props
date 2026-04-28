@@ -6,6 +6,7 @@
     </PropertyGroup>
 
     <PropertyGroup>
+        <NoWarn>$(NoWarn);CA1873</NoWarn>
         <AnalysisLevel>latest</AnalysisLevel>
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>

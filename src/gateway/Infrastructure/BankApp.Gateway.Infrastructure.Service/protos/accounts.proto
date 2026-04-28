@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package BankApp;
+option csharp_namespace = "BankApp.Grpc";
+
+import "google/type/money.proto";
+
+service AccountService {
+  rpc CheckBalance(CheckBalanceRequest) returns (CheckBalanceResponse);
+  rpc DepositMoney(DepositMoneyRequest) returns (DepositMoneyResponse);
+  rpc WithdrawMoney(WithdrawMoneyRequest) returns (WithdrawMoneyResponse);
+  rpc CreateAccount(CreateAccountRequest) returns (CreateAccountResponse);
+}
+
+message CheckBalanceRequest {
+  string session_id = 1;
+}
+
+message CheckBalanceResponse {
+  google.type.Money balance = 1;
+}
+
+message DepositMoneyRequest {
+  google.type.Money amount = 1;
+  string session_id = 2; 
+}
+
+message DepositMoneyResponse {
+  google.type.Money balance = 1;
+}
+
+message WithdrawMoneyRequest {
+  google.type.Money amount = 1;
+  string session_id = 2;
+}
+
+message WithdrawMoneyResponse {
+  google.type.Money balance = 1;
+}
+
+message CreateAccountRequest {
+  string pin_code = 1;
+  string session_id = 2;
+}
+
+message CreateAccountResponse {
+  int64 account_id = 1;
+  google.type.Money balance = 2;
+}
