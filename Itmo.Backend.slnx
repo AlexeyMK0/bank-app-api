@@ -3,36 +3,41 @@
     <File Path="Directory.Build.props" />
     <File Path="Directory.Packages.props" />
   </Folder>
-  <Folder Name="/src/" />
+  <Folder Name="/src/">
+    <Project Path="src/BankApp/BankApp.csproj" />
+  </Folder>
   <Folder Name="/src/gateway/">
-    <Project Path="src\gateway\BankApp.Gateway\BankApp.Gateway.csproj" Type="Classic C#" />
+    <Project Path="src\gateway\BankApp.Gateway\BankApp.Gateway.csproj" />
   </Folder>
   <Folder Name="/src/gateway/Application/">
-    <Project Path="src\gateway\Application\BankApp.Gateway.Application.Clients\BankApp.Gateway.Application.Clients.csproj" Type="Classic C#" />
-    <Project Path="src\gateway\Application\BankApp.Gateway.Application.Models\BankApp.Gateway.Application.Models.csproj" Type="Classic C#" />
+    <Project Path="src/gateway/Application/BankApp.Gateway.Application.Contracts/BankApp.Gateway.Application.Contracts.csproj" />
+    <Project Path="src/gateway/Application/BankApp.Gateway.Application.Services/BankApp.Gateway.Application.Services.csproj" />
+    <Project Path="src\gateway\Application\BankApp.Gateway.Application.Clients\BankApp.Gateway.Application.Clients.csproj" />
+    <Project Path="src\gateway\Application\BankApp.Gateway.Application.Models\BankApp.Gateway.Application.Models.csproj" />
   </Folder>
   <Folder Name="/src/gateway/Infrastructure/">
-    <Project Path="src\gateway\Infrastructure\BankApp.Gateway.Infrastructure.Service\BankApp.Gateway.Infrastructure.Service.csproj" Type="Classic C#" />
+    <Project Path="src\gateway\Infrastructure\BankApp.Gateway.Infrastructure.Service\BankApp.Gateway.Infrastructure.Service.csproj" />
   </Folder>
   <Folder Name="/src/gateway/Presentation/">
-    <Project Path="src\gateway\Presentation\BankApp.Gateway.Presentation.Http\BankApp.Gateway.Presentation.Http.csproj" Type="Classic C#" />
+    <Project Path="src\gateway\Presentation\BankApp.Gateway.Presentation.Http\BankApp.Gateway.Presentation.Http.csproj" />
   </Folder>
   <Folder Name="/src/service/">
-    <Project Path="src\service\Main\Main.csproj" Type="Classic C#" />
+    <Project Path="src\service\Main\Main.csproj" />
   </Folder>
   <Folder Name="/src/service/Application/">
-    <Project Path="src\service\Application\BankApp.Application.Abstractions\BankApp.Application.Abstractions.csproj" Type="Classic C#" />
-    <Project Path="src\service\Application\BankApp.Application.Contracts\BankApp.Application.Contracts.csproj" Type="Classic C#" />
-    <Project Path="src\service\Application\BankApp.Application\BankApp.Application.csproj" Type="Classic C#" />
+    <Project Path="src\service\Application\BankApp.Application.Abstractions\BankApp.Application.Abstractions.csproj" />
+    <Project Path="src\service\Application\BankApp.Application.Contracts\BankApp.Application.Contracts.csproj" />
+    <Project Path="src\service\Application\BankApp.Application\BankApp.Application.csproj" />
   </Folder>
   <Folder Name="/src/service/Domain/">
-    <Project Path="src\service\Domain\BankApp.Domain\BankApp.Domain.csproj" Type="Classic C#" />
+    <Project Path="src\service\Domain\BankApp.Domain\BankApp.Domain.csproj" />
   </Folder>
   <Folder Name="/src/service/Infrastructure/">
-    <Project Path="src\service\Infrastructure\BankApp.Infrastructure.Persistence\BankApp.Infrastructure.Persistence.csproj" Type="Classic C#" />
+    <Project Path="src\service\Infrastructure\BankApp.Infrastructure.Persistence\BankApp.Infrastructure.Persistence.csproj" />
   </Folder>
   <Folder Name="/src/service/Presentation/">
-    <Project Path="src\service\Presentation\BankApp.Presentation.Grpc\BankApp.Presentation.Grpc.csproj" Type="Classic C#" />
+    <Project Path="src\service\Presentation\BankApp.Presentation.Grpc\BankApp.Presentation.Grpc.csproj" />
   </Folder>
   <Folder Name="/tests/" />
+  <Project Path="Itmo.Backend.ServiceDefaults/Itmo.Backend.ServiceDefaults.csproj" />
 </Solution>

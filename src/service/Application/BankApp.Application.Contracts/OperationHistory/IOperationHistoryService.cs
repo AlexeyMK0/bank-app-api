@@ -2,5 +2,5 @@ namespace BankApp.Application.Contracts.OperationHistory;
 
 public interface IOperationHistoryService
 {
-    Task<GetAccountOperations.Response> GetAccountOperationsAsync(GetAccountOperations.Request request, CancellationToken cancellationToken);
+    Task<GetAccountOperations.Response> GetOperationsAsync(GetAccountOperations.Request request, CancellationToken cancellationToken);
 }

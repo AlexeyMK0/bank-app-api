@@ -1,6 +1,6 @@
 namespace BankApp.Gateway.Application.Abstractions.Requests;
 
-public class Withdraw
+public static class Withdraw
 {
     public sealed record Response(decimal Balance);
 }

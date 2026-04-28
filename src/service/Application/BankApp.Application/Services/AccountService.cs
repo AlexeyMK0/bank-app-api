@@ -1,14 +1,16 @@
 using BankApp.Application.Abstractions.Repositories;
 using BankApp.Application.Contracts.Accounts;
 using BankApp.Application.Contracts.Accounts.Operations;
+using BankApp.Application.Extensions.RepositoryExtensions;
 using BankApp.Application.Mappers;
-using BankApp.Application.RepositoryExtensions;
+using BankApp.Application.Options;
 using BankApp.Domain.Accounts;
 using BankApp.Domain.Operations;
 using BankApp.Domain.Operations.Implementation;
 using BankApp.Domain.Sessions;
 using BankApp.Domain.ValueObjects;
 using Itmo.Dev.Platform.Persistence.Abstractions.Transactions;
+using Microsoft.Extensions.Options;
 using System.Data;
 
 namespace BankApp.Application.Services;
@@ -17,72 +19,76 @@ public sealed class AccountService : IAccountService
 {
     private const IsolationLevel IsolationLevel = System.Data.IsolationLevel.ReadCommitted;
 
+    private readonly int _maxUserAccounts;
+
+    // TODO: PersistenceContext
     private readonly IAccountRepository _accountRepository;
-    private readonly IAdminSessionRepository _adminSessionRepository;
-    private readonly IUserSessionRepository _userSessionRepository;
     private readonly IPersistenceTransactionProvider _transactionProvider;
     private readonly IOperationRepository _operationRepository;
+    private readonly IUserRepository _userRepository;
 
     public AccountService(
         IAccountRepository accountRepository,
-        IAdminSessionRepository adminSessionRepository,
-        IUserSessionRepository userSessionRepository,
         IPersistenceTransactionProvider transactionProvider,
-        IOperationRepository operationRepository)
+        IOperationRepository operationRepository,
+        IUserRepository userRepository,
+        IOptions<AccountServiceOptions> options)
     {
         _accountRepository = accountRepository;
-        _adminSessionRepository = adminSessionRepository;
-        _userSessionRepository = userSessionRepository;
         _transactionProvider = transactionProvider;
         _operationRepository = operationRepository;
+        _userRepository = userRepository;
+        _maxUserAccounts = options.Value.MaxAccountsPerUser;
     }
 
     public async Task<CreateAccount.Response> CreateAccountAsync(
         CreateAccount.Request request,
         CancellationToken cancellationToken)
     {
-        var requestSession = new SessionId(request.SessionId);
-        var pinCode = new PinCode(request.PinCode);
+        var userCreatorId = new UserExternalId(request.UserId);
+        var userOwnerId = new UserId(request.OwnerId);
 
-        AdminSession? adminSession = await _adminSessionRepository
-            .FindAdminSessionById(requestSession, cancellationToken);
-        if (adminSession is null)
+        User? user = await _userRepository
+            .FindUserByExternalIdAsync(userCreatorId, cancellationToken);
+        if (user is null)
+            return new CreateAccount.Response.Failure("User not found");
+
+        Account[] userAccounts = await _accountRepository
+            .FindAllUserAccountsAsync(user, _maxUserAccounts, cancellationToken)
+            .ToArrayAsync(cancellationToken);
+        if (userAccounts.Length >= _maxUserAccounts)
         {
-            return new CreateAccount.Response.Failure("Session not found");
+            return new CreateAccount.Response.Failure(
+                $"User already has {_maxUserAccounts} accounts, cannot create more");
         }
 
         await using IPersistenceTransaction transaction = await _transactionProvider
             .BeginTransactionAsync(IsolationLevel, cancellationToken);
 
-        Account account = await _accountRepository.AddAsync(
-            new Account(AccountId.Default, pinCode, Money.Zero),
+        Account newAccount = await _accountRepository.AddAsync(
+            new Account(AccountId.Default, Money.Zero, userOwnerId),
             cancellationToken);
 
         await transaction.CommitAsync(cancellationToken);
 
-        return new CreateAccount.Response.Success(account.MapToDto());
+        return new CreateAccount.Response.Success(newAccount.MapToDto());
     }
 
     public async Task<CheckBalance.Response> CheckBalanceAsync(
         CheckBalance.Request request,
         CancellationToken cancellationToken)
     {
-        var requestSession = new SessionId(request.SessionId);
+        var userId = new UserExternalId(request.UserId);
+        User? user = await _userRepository
+            .FindUserByExternalIdAsync(userId, cancellationToken);
+        if (user is null)
+            return new CheckBalance.Response.Failure("User not found");
 
-        UserSession? foundSession = await _userSessionRepository
-            .FindBySessionIdAsync(requestSession, cancellationToken);
-
-        if (foundSession is null)
-        {
-            return new CheckBalance.Response.Failure("Session not found");
-        }
-
+        var accountId = new AccountId(request.AccountId);
         Account? account = await _accountRepository
-            .FindAccountByIdAsync(foundSession.AccountId, cancellationToken);
-        if (account is null)
-        {
-            return new CheckBalance.Response.Failure($"Session {foundSession} not bound to account");
-        }
+            .FindAccountByIdAsync(accountId, cancellationToken);
+        if (account is null || account.OwnerUserId != user.Id)
+            return new CheckBalance.Response.Failure($"Account {accountId.Value} not found for user: {user.Id.Value}");
 
         return new CheckBalance.Response.Success(account.Balance.Value);
     }
@@ -91,26 +97,22 @@ public sealed class AccountService : IAccountService
         WithdrawMoney.Request request,
         CancellationToken cancellationToken)
     {
-        var requestSession = new SessionId(request.SessionId);
         var requestMoney = new Money(request.Amount);
-        UserSession? foundSession = await _userSessionRepository
-            .FindBySessionIdAsync(requestSession, cancellationToken);
-        if (foundSession is null)
-        {
-            return new WithdrawMoney.Response.Failure("Session not found");
-        }
 
+        var userId = new UserExternalId(request.UserId);
+        User? user = await _userRepository
+            .FindUserByExternalIdAsync(userId, cancellationToken);
+        if (user is null)
+            return new WithdrawMoney.Response.Failure("User not found");
+
+        var accountId = new AccountId(request.AccountId);
         Account? account = await _accountRepository
-            .FindAccountByIdAsync(foundSession.AccountId, cancellationToken);
-        if (account is null)
-        {
-            return new WithdrawMoney.Response.Failure($"Session {foundSession} not bound to account");
-        }
+            .FindAccountByIdAsync(accountId, cancellationToken);
+        if (account is null || account.OwnerUserId != user.Id)
+            return new WithdrawMoney.Response.Failure($"Account {accountId.Value} not found for user: {user.Id.Value}");
 
         if (account.Balance.CompareTo(requestMoney) < 0)
-        {
             return new WithdrawMoney.Response.Failure("Not enough money for withdrawal");
-        }
 
         Account newAccount = account with
             { Balance = account.Balance.DecreaseBy(requestMoney) };
@@ -122,10 +124,7 @@ public sealed class AccountService : IAccountService
             .UpdateAsync(newAccount, cancellationToken);
 
         var operationRecord = new WithdrawOperationRecord(
-            OperationRecordId.Default,
-            DateTimeOffset.Now,
-            account.Id,
-            requestMoney);
+            OperationRecordId.Default, DateTimeOffset.Now, account.Id, requestMoney);
         await _operationRepository.AddAsync(operationRecord, cancellationToken);
 
         await transaction.CommitAsync(cancellationToken);
@@ -137,21 +136,19 @@ public sealed class AccountService : IAccountService
         DepositMoney.Request request,
         CancellationToken cancellationToken)
     {
-        var requestSession = new SessionId(request.SessionId);
         var requestMoney = new Money(request.Amount);
-        UserSession? foundSession = await _userSessionRepository
-            .FindBySessionIdAsync(requestSession, cancellationToken);
-        if (foundSession is null)
-        {
-            return new DepositMoney.Response.Failure("Session not found");
-        }
 
+        var userId = new UserExternalId(request.UserId);
+        User? user = await _userRepository
+            .FindUserByExternalIdAsync(userId, cancellationToken);
+        if (user is null)
+            return new DepositMoney.Response.Failure("User not found");
+
+        var accountId = new AccountId(request.AccountId);
         Account? account = await _accountRepository
-            .FindAccountByIdAsync(foundSession.AccountId, cancellationToken);
-        if (account is null)
-        {
-            return new DepositMoney.Response.Failure($"Session {foundSession} not bound to account");
-        }
+            .FindAccountByIdAsync(accountId, cancellationToken);
+        if (account is null || account.OwnerUserId != user.Id)
+            return new DepositMoney.Response.Failure($"Account {accountId.Value} not found for user: {user.Id.Value}");
 
         Account newAccount = account with
             { Balance = account.Balance.IncreaseBy(requestMoney) };
@@ -162,14 +159,31 @@ public sealed class AccountService : IAccountService
         newAccount = await _accountRepository
             .UpdateAsync(newAccount, cancellationToken);
         var operationRecord = new DepositOperationRecord(
-            OperationRecordId.Default,
-            DateTimeOffset.Now,
-            account.Id,
-            requestMoney);
+            OperationRecordId.Default, DateTimeOffset.Now, account.Id, requestMoney);
         await _operationRepository.AddAsync(operationRecord, cancellationToken);
 
         await transaction.CommitAsync(cancellationToken);
 
         return new DepositMoney.Response.Success(newAccount.MapToDto());
+    }
+
+    public async Task<GetUserAccounts.Response> GetUserAccountsAsync(GetUserAccounts.Request request, CancellationToken cancellationToken)
+    {
+        var userId = new UserExternalId(request.UserId);
+        User? user = await _userRepository
+            .FindUserByExternalIdAsync(userId, cancellationToken);
+        if (user is null)
+            return new GetUserAccounts.Response.Failure("User not found");
+
+        int pageSize = request.PageSize;
+        Account[] accounts = await _accountRepository
+            .FindAllUserAccountsAsync(user, pageSize, cancellationToken)
+            .ToArrayAsync(cancellationToken);
+
+        GetUserAccounts.PageToken? outputPageToken = accounts.Length == 0
+            ? null
+            : new GetUserAccounts.PageToken(accounts[^1].Id.Value);
+        return new GetUserAccounts.Response.Success(
+            accounts.Select(acc => acc.MapToDto()), outputPageToken);
     }
 }

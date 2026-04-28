@@ -4,25 +4,29 @@ package BankApp;
 option csharp_namespace = "BankApp.Grpc";
 
 import "google/type/money.proto";
+import "google/protobuf/wrappers.proto";
 
 service AccountService {
   rpc CheckBalance(CheckBalanceRequest) returns (CheckBalanceResponse);
   rpc DepositMoney(DepositMoneyRequest) returns (DepositMoneyResponse);
   rpc WithdrawMoney(WithdrawMoneyRequest) returns (WithdrawMoneyResponse);
   rpc CreateAccount(CreateAccountRequest) returns (CreateAccountResponse);
+  rpc GetUserAccounts(GetUserAccountsRequest) returns (GetUserAccountsResponse);
 }
 
 message CheckBalanceRequest {
-  string session_id = 1;
+  string user_external_id = 1;
+  int64 account_id = 2;
 }
 
 message CheckBalanceResponse {
-    google.type.Money balance = 1;
+  google.type.Money balance = 1;
 }
 
 message DepositMoneyRequest {
-    google.type.Money amount = 1;
-    string session_id = 2; 
+  string user_external_id = 1;
+  int64 account_id = 2;
+  google.type.Money amount = 3;
 }
 
 message DepositMoneyResponse {
@@ -30,20 +34,37 @@ message DepositMoneyResponse {
 }
 
 message WithdrawMoneyRequest {
-  google.type.Money amount = 1;
-  string session_id = 2;
+  string user_external_id = 1;
+  int64 account_id = 2;
+  google.type.Money amount = 3;
 }
 
 message WithdrawMoneyResponse {
-    google.type.Money balance = 1;
+  google.type.Money balance = 1;
 }
 
 message CreateAccountRequest {
-  string pin_code = 1;
-  string session_id = 2;
+  string user_external_id = 1;
+  int64 account_owner_id = 2;
 }
 
 message CreateAccountResponse {
+  Account account = 1;
+}
+
+message GetUserAccountsRequest {
+  string user_external_id = 1;
+  google.protobuf.Int32Value page_size = 2;
+  google.protobuf.StringValue page_token = 3;
+}
+
+message GetUserAccountsResponse {
+  repeated Account accounts = 1;
+  google.protobuf.StringValue page_token = 2;
+}
+
+message Account {
   int64 account_id = 1;
   google.type.Money balance = 2;
+  int64 user_id = 3;
 }

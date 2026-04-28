@@ -4,7 +4,7 @@ public class GetAccountOperations
 {
     public record PageToken(long OperationId);
 
-    public sealed record Request(Guid SenderSessionId, PageToken? PageToken, int PageSize);
+    public sealed record Request(Guid UserId, long[] AccountIds, PageToken? PageToken, int PageSize);
 
     public abstract record Response
     {

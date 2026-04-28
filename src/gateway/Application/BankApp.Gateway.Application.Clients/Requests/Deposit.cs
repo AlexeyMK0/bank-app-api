@@ -1,6 +1,6 @@
 namespace BankApp.Gateway.Application.Abstractions.Requests;
 
-public class Deposit
+public static class Deposit
 {
     public sealed record Response(decimal Balance);
 }

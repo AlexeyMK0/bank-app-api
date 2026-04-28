@@ -23,20 +23,21 @@ public class OperationHistoryController : OperationHistoryService.OperationHisto
     }
 
     public override async Task<GetOperationHistoryResponse> GetOperationHistory(
-        GetOperationHistoryRequest request,
+        ProtoGetOperationHistoryRequest request,
         ServerCallContext context)
     {
-        var sessionId = Guid.Parse(request.SessionId);
+        var externalId = Guid.Parse(request.UserExternalId);
         int pageSize = request.PageSize ?? _defaultPageSize;
+        long[] accountIds = request.AccountIds.ToArray();
         GetAccountOperations.PageToken? pageToken
             = request.PageToken is null
                 ? null
                 : JsonSerializer.Deserialize<GetAccountOperations.PageToken>(request.PageToken);
 
-        var apiRequest = new GetAccountOperations.Request(sessionId, pageToken, pageSize);
+        var apiRequest = new GetAccountOperations.Request(externalId, accountIds, pageToken, pageSize);
 
         GetAccountOperations.Response result =
-            await _historyService.GetAccountOperationsAsync(apiRequest, context.CancellationToken);
+            await _historyService.GetOperationsAsync(apiRequest, context.CancellationToken);
         return result switch
         {
             GetAccountOperations.Response.Success success => new ProtoGetOperationHistoryResponse

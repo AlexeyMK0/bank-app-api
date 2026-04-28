@@ -2,7 +2,7 @@ namespace BankApp.Application.Contracts.Accounts.Operations;
 
 public static class CheckBalance
 {
-    public sealed record Request(Guid SessionId);
+    public sealed record Request(Guid UserId, long AccountId);
 
     public abstract record Response
     {

@@ -12,6 +12,6 @@ public class CheckHistoryRequest
     [Range(1, int.MaxValue)]
     public int? PageSize { get; set; }
 
-    [FromQuery(Name = "sessionId")]
-    public required Guid SessionId { get; set; }
+    [FromQuery(Name = "accountId")]
+    public long[]? AccountIds { get; set; }
 }

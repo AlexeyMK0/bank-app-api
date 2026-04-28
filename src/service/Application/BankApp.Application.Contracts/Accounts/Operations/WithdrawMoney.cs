@@ -4,7 +4,7 @@ namespace BankApp.Application.Contracts.Accounts.Operations;
 
 public static class WithdrawMoney
 {
-    public sealed record Request(decimal Amount, Guid SessionId);
+    public sealed record Request(Guid UserId, long AccountId, decimal Amount);
 
     public abstract record Response
     {

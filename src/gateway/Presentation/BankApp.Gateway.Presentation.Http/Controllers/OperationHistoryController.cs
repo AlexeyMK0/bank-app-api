@@ -1,6 +1,9 @@
 using BankApp.Gateway.Application.Abstractions.Clients;
-using BankApp.Gateway.Application.Models.Responses;
+using BankApp.Gateway.Application.Abstractions.Requests;
+using BankApp.Gateway.Presentation.Http.Extensions;
 using BankApp.Gateway.Presentation.Http.Operations;
+using BankApp.Gateway.Presentation.Http.Responses;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BankApp.Gateway.Presentation.Http.Controllers;
@@ -17,16 +20,21 @@ public class OperationHistoryController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize]
     public async Task<ActionResult<GetOperationHistoryResponse>> CheckHistory(
         [FromQuery] CheckHistoryRequest httpRequest,
         CancellationToken cancellationToken)
     {
-        GetOperationHistoryResponse response = await _client
+        Guid userId = HttpContext.GetCurrentUserId();
+        GetOperationHistory.Response response = await _client
             .GetOperationHistoryAsync(
-                httpRequest.SessionId,
+                userId,
+                httpRequest.AccountIds ?? [],
                 httpRequest.PageSize,
                 httpRequest.PageToken,
                 cancellationToken);
-        return Ok(response);
+        var httpResponse = new GetOperationHistoryResponse(
+            response.Operations, response.PageToken);
+        return Ok(httpResponse);
     }
 }

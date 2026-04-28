@@ -23,4 +23,7 @@ public interface IInvoiceService
     Task<GetOutgoingInvoices.Response> GetOutgoingInvoicesAsync(
         GetOutgoingInvoices.Request request,
         CancellationToken cancellationToken);
+    /*Task<GetInvoices.Response> GetInvoicesAsync(
+        GetInvoices.Request request,
+        CancellationToken cancellationToken);*/
 }

@@ -1,5 +1,5 @@
-using Abstractions.Queries;
 using BankApp.Domain.Invoices;
+using InvoiceQuery = BankApp.Application.Abstractions.Queries.InvoiceQuery;
 
 namespace BankApp.Application.Abstractions.Repositories;
 

@@ -1,4 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+    
     <ItemGroup>
         <Protobuf Include="protos/**/*.proto" ProtoRoot="protos" GrpcServices="Client"/>
         <Protobuf Remove="protos/google/**/*.proto" ProtoRoot="protos" ProtoCompile="false" />

@@ -2,7 +2,7 @@ using BankApp.Domain.Accounts;
 using BankApp.Domain.Invoices;
 using SourceKit.Generators.Builder.Annotations;
 
-namespace Abstractions.Queries;
+namespace BankApp.Application.Abstractions.Queries;
 
 [GenerateBuilder]
 public partial record InvoiceQuery(

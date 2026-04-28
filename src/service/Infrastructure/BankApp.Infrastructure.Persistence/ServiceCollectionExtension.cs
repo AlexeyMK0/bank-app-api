@@ -35,11 +35,10 @@ public static class ServiceCollectionExtension
         });
 
         services.AddScoped<IAccountRepository, AccountRepository>();
-        services.AddScoped<IAdminSessionRepository, AdminSessionRepository>();
         services.AddScoped<IOperationRepository, OperationRepository>();
-        services.AddScoped<IUserSessionRepository, UserSessionRepository>();
         services.AddScoped<IInvoiceRepository, InvoiceRepository>();
-        services.AddScoped<IInvoiceFactory, InvoiceFactory>();
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddSingleton<IInvoiceFactory, InvoiceFactory>();
 
         return services;
     }

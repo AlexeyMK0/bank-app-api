@@ -23,11 +23,11 @@ public sealed partial class GetOutgoingInvoicesRequest : IValidatableObject
                 [nameof(PageSize)]);
         }
 
-        if (Guid.TryParse(SessionId, out Guid guid) is false)
+        if (Guid.TryParse(UserExternalId, out Guid guid) is false)
         {
             yield return new ValidationResult(
-                $"SessionId is incorrect",
-                [nameof(SessionId)]);
+                $"UserId is incorrect",
+                [nameof(UserExternalId)]);
         }
     }
 }
