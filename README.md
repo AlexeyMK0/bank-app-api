@@ -54,16 +54,11 @@
 
 ### Запуск системы
 ```bash
-# Клонирование репозитория
-git clone https://github.com/your-username/bank-core.git
-
-# Переход в проект хоста
-cd src/BankCore.AppHost
-
-# Запуск оркестратора
+git clone https://github.com/AlexeyMK0/bank-app-api.git
+cd src/BankApp
 dotnet run
 ```
 
-После запуска перейдите в дашборд Aspire (ссылка появится в консоли) для управления сервисами и просмотра документации API (Swagger/Scalar).
+После запуска перейдите в дашборд Aspire (ссылка появится в консоли) для управления сервисами и просмотра документации API (Swagger).
 
 ---
