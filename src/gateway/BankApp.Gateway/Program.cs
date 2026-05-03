@@ -82,7 +82,7 @@ builder.Services
 
         oidc.TokenValidationParameters = new TokenValidationParameters
         {
-            RoleClaimType = ClaimTypes.Role,
+            // RoleClaimType = ClaimTypes.Role,
             ValidateLifetime = true,
             ClockSkew = TimeSpan.FromSeconds(10),
         };
@@ -91,17 +91,13 @@ builder.Services
         {
             OnTokenValidated = async context =>
             {
-                Console.WriteLine("1");
                 string token = await context.HttpContext.GetTokenAsync("access_token")
                     ?? throw new UnreachableException("Token not found");
-                Console.WriteLine(token);
                 IUserService userService = context.HttpContext.RequestServices
                     .GetRequiredService<IUserService>();
-                Console.WriteLine("3");
                 ILogger<IUserService> logger = context.HttpContext.RequestServices
                     .GetRequiredService<ILogger<IUserService>>();
                 long userId = await userService.AddUserAsync(Guid.Parse(token), context.HttpContext.RequestAborted);
-                Console.WriteLine($"Token validated for user {userId}");
                 logger.LogInformation($"Token validated for user {userId}");
             },
         };
@@ -184,8 +180,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(swagger =>
     {
-        swagger.SwaggerEndpoint("/swagger/v1/swagger.json", "BankApp Gateway v1"); // specifies path to JSON
         swagger.RoutePrefix = "aboba"; // specifies path to ui
+        swagger.SwaggerEndpoint("/swagger/v1/swagger.json", "BankApp Gateway v1"); // specifies path to JSON
         swagger.OAuthClientId(builder.Configuration["Authentication:ClientId"] + "-swagger");
         /* так клиент это браузер, то не можем передать туда пользовательские секреты
          proof key for code exchange */
