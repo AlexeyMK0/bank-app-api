@@ -39,5 +39,5 @@
     <Project Path="src\service\Presentation\BankApp.Presentation.Grpc\BankApp.Presentation.Grpc.csproj" />
   </Folder>
   <Folder Name="/tests/" />
-  <Project Path="Itmo.Backend.ServiceDefaults/Itmo.Backend.ServiceDefaults.csproj" />
+  <Project Path="BankApp.ServiceDefaults\BankApp.ServiceDefaults.csproj" />
 </Solution>

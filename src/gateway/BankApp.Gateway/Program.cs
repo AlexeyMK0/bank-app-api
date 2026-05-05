@@ -82,7 +82,7 @@ builder.Services
 
         oidc.TokenValidationParameters = new TokenValidationParameters
         {
-            // RoleClaimType = ClaimTypes.Role,
+            RoleClaimType = ClaimTypes.Role,
             ValidateLifetime = true,
             ClockSkew = TimeSpan.FromSeconds(10),
         };

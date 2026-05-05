@@ -12,5 +12,5 @@ public interface IAccountService
 
     Task<DepositMoney.Response> DepositMoneyAsync(DepositMoney.Request request, CancellationToken cancellationToken);
 
-    Task<GetUserAccounts.Response> GetUserAccountsAsync(GetUserAccounts.Request request, CancellationToken cancellationToken);
+    Task<GetAccounts.Response> GetUserAccountsAsync(GetAccounts.Request request, CancellationToken cancellationToken);
 }

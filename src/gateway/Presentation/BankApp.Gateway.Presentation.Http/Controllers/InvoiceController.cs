@@ -5,6 +5,7 @@ using BankApp.Gateway.Presentation.Http.Operations;
 using BankApp.Gateway.Presentation.Http.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
 using GetOutgoingInvoicesResponse = BankApp.Gateway.Presentation.Http.Responses.GetOutgoingInvoicesResponse;
 
 namespace BankApp.Gateway.Presentation.Http.Controllers;
@@ -20,7 +21,6 @@ public class InvoiceController : ControllerBase
         _client = client;
     }
 
-    // TODO: is it ok to create invoice without recipientId
     [HttpPost("create")]
     [Authorize]
     public async Task<ActionResult<long>> CreateInvoiceAsync(
@@ -28,6 +28,10 @@ public class InvoiceController : ControllerBase
         CancellationToken cancellationToken)
     {
         Guid userId = HttpContext.GetCurrentUserId();
+
+        Activity.Current?.AddUserIdBaggage(userId);
+        Activity.Current?.AddAccountIdBaggage(httpRequest.RecepientId);
+
         CreateInvoice.Response response = await _client.CreateInvoiceAsync(
             userId,
             httpRequest.PayerId,
@@ -44,6 +48,9 @@ public class InvoiceController : ControllerBase
         CancellationToken cancellationToken)
     {
         Guid userId = HttpContext.GetCurrentUserId();
+
+        Activity.Current?.AddUserIdBaggage(userId);
+
         await _client.CancelInvoiceAsync(userId, httpRequest.InvoiceId, cancellationToken);
         return Ok();
     }
@@ -66,6 +73,9 @@ public class InvoiceController : ControllerBase
         CancellationToken cancellationToken)
     {
         Guid userId = HttpContext.GetCurrentUserId();
+
+        Activity.Current?.AddUserIdBaggage(userId);
+
         var request = new GetIncomingInvoices.Request(
             userId,
             httpRequest.InvoiceStatuses ?? [],
@@ -88,6 +98,9 @@ public class InvoiceController : ControllerBase
         CancellationToken cancellationToken)
     {
         Guid userId = HttpContext.GetCurrentUserId();
+
+        Activity.Current?.AddUserIdBaggage(userId);
+
         var request = new GetOutgoingInvoices.Request(
             userId,
             httpRequest.InvoiceStatuses ?? [],
