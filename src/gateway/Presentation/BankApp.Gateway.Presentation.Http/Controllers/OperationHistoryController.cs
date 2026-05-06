@@ -5,6 +5,7 @@ using BankApp.Gateway.Presentation.Http.Operations;
 using BankApp.Gateway.Presentation.Http.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
 
 namespace BankApp.Gateway.Presentation.Http.Controllers;
 
@@ -26,6 +27,9 @@ public class OperationHistoryController : ControllerBase
         CancellationToken cancellationToken)
     {
         Guid userId = HttpContext.GetCurrentUserId();
+
+        Activity.Current?.AddUserIdBaggage(userId);
+
         GetOperationHistory.Response response = await _client
             .GetOperationHistoryAsync(
                 userId,

@@ -5,11 +5,13 @@ using BankApp.Grpc;
 using Google.Type;
 using Grpc.Core;
 using System.Diagnostics;
+using System.Text.Json;
 
 namespace BankApp.Presentation.Grpc.Controllers;
 
 public class AccountController : AccountService.AccountServiceBase
 {
+    private readonly int _defaultPageSize = 10;
     private readonly IAccountService _accountService;
 
     public AccountController(IAccountService accountService)
@@ -36,7 +38,7 @@ public class AccountController : AccountService.AccountServiceBase
         };
     }
 
-    public override async Task<DepositMoneyResponse> DepositMoney(
+    public override async Task<ProtoDepositMoneyResponse> DepositMoney(
         ProtoDepositMoneyRequest request,
         ServerCallContext context)
     {
@@ -56,7 +58,7 @@ public class AccountController : AccountService.AccountServiceBase
         };
     }
 
-    public override async Task<WithdrawMoneyResponse> WithdrawMoney(
+    public override async Task<ProtoWithdrawMoneyResponse> WithdrawMoney(
         ProtoWithdrawMoneyRequest request,
         ServerCallContext context)
     {
@@ -76,7 +78,7 @@ public class AccountController : AccountService.AccountServiceBase
         };
     }
 
-    public override async Task<CreateAccountResponse> CreateAccount(
+    public override async Task<ProtoCreateAccountResponse> CreateAccount(
         ProtoCreateAccountRequest request,
         ServerCallContext context)
     {
@@ -90,6 +92,34 @@ public class AccountController : AccountService.AccountServiceBase
             CreateAccount.Response.Success success => new ProtoCreateAccountResponse(
                 MapToGrpc(success.AccountDto)),
             CreateAccount.Response.Failure failure =>
+                throw new RpcException(new Status(StatusCode.InvalidArgument, failure.Message)),
+            _ => throw new UnreachableException(),
+        };
+    }
+
+    public override async Task<ProtoGetUserAccountsResponse> GetUserAccounts(
+        ProtoGetUserAccountsRequest request,
+        ServerCallContext context)
+    {
+        var externalId = Guid.Parse(request.UserExternalId);
+        int pageSize = request.PageSize ?? _defaultPageSize;
+        GetAccounts.PageToken? pageToken = request.PageToken is null
+            ? null
+            : new GetAccounts.PageToken(long.Parse(request.PageToken));
+        var apiRequest = new GetAccounts.Request(externalId, pageSize, pageToken);
+
+        GetAccounts.Response result = await _accountService.GetUserAccountsAsync(apiRequest, context.CancellationToken);
+        return result switch
+        {
+            GetAccounts.Response.Success success =>
+            new ProtoGetUserAccountsResponse
+            {
+                PageToken = success.PageToken is null
+                    ? null
+                    : JsonSerializer.Serialize(success.PageToken),
+                Accounts = { success.Accounts.Select(MapToGrpc) },
+            },
+            GetAccounts.Response.Failure failure =>
                 throw new RpcException(new Status(StatusCode.InvalidArgument, failure.Message)),
             _ => throw new UnreachableException(),
         };

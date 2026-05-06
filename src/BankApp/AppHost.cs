@@ -43,10 +43,12 @@ IResourceBuilder<ProjectResource> service = builder.AddProject<Main>("main")
 
 Console.WriteLine($"gRpcEndpoint {service.GetEndpoint("gRpcEndpoint")}");
 
-IResourceBuilder<ProjectResource> gateway = builder.AddProject<BankApp_Gateway>("bankapp-gateway")
+IResourceBuilder<ProjectResource> gateway = builder
+    .AddProject<BankApp_Gateway>("bankapp-gateway")
     .WaitFor(service)
     .WaitFor(keycloak)
     .WithReference(service)
+    .WithReference(realm)
     .WithEnvironment(
         "Infrastructure:Service:service-account:BaseAddress",
         service.GetEndpoint("gRPC"))

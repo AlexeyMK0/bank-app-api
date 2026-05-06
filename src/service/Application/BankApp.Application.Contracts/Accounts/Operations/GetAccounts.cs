@@ -2,7 +2,7 @@ using BankApp.Application.Contracts.Accounts.Model;
 
 namespace BankApp.Application.Contracts.Accounts.Operations;
 
-public class GetUserAccounts
+public class GetAccounts
 {
     public sealed record PageToken(long UserId);
 
