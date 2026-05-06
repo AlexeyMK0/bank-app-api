@@ -23,12 +23,7 @@ public class AccountController : AccountService.AccountServiceBase
         ProtoCheckBalanceRequest request,
         ServerCallContext context)
     {
-        /*using Activity? activity = ServiceActivity.ActivitySource.StartActivity(name: nameof(CheckBalance));*/
-
         var externalId = Guid.Parse(request.UserExternalId);
-
-        /*activity?.AddTag("user.externalId", externalId);
-        activity?.AddTag("account.Id", request.AccountId);*/
 
         var apiRequest = new CheckBalance.Request(externalId, request.AccountId);
 
@@ -47,13 +42,7 @@ public class AccountController : AccountService.AccountServiceBase
         ProtoDepositMoneyRequest request,
         ServerCallContext context)
     {
-        /*using Activity? activity = ServiceActivity.ActivitySource.StartActivity(name: nameof(DepositMoney));*/
-
         var externalId = Guid.Parse(request.UserExternalId);
-
-        /*activity?.AddTag("user.externalId", externalId);
-        activity?.AddTag("account.Id", request.AccountId);*/
-
         decimal requestAmount = request.Amount.DecimalValue;
 
         var apiRequest = new DepositMoney.Request(externalId, request.AccountId, requestAmount);

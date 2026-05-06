@@ -8,9 +8,17 @@ public static class ServiceCollectionExtension
     public static IServiceCollection AddPresentationGrpc(this IServiceCollection collection)
     {
         collection.AddOptions<InvoiceControllerOptions>()
-            .BindConfiguration("Controllers:Invoices");
+            .BindConfiguration("Controllers:Invoices")
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
         collection.AddOptions<OperationsControllerOptions>()
-            .BindConfiguration("Controllers:Operations");
+            .BindConfiguration("Controllers:Operations")
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+        collection.AddOptions<AccountControllerOptions>()
+            .BindConfiguration("Controllers:Accounts")
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
 
         collection.AddGrpc(options =>
         {
