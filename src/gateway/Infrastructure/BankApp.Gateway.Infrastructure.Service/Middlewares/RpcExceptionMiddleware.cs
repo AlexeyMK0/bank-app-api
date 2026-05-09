@@ -21,6 +21,7 @@ public class RpcExceptionMiddleware : IMiddleware
 
     private async Task HandleRpcExceptionAsync(RpcException exception, HttpContext context, CancellationToken cancellationToken)
     {
+        // если убрать некоторые, то компилятор будет ругаться
         HttpStatusCode status = exception.StatusCode switch
         {
             StatusCode.OK => HttpStatusCode.OK,

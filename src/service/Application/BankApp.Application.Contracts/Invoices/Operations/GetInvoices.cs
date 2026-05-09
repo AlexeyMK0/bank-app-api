@@ -1,19 +1,18 @@
-/*using BankApp.Application.Contracts.Invoices.Model;
+using BankApp.Application.Contracts.Invoices.Model;
 
 namespace BankApp.Application.Contracts.Invoices.Operations;
 
-public class GetInvoices
+public static class GetInvoices
 {
     public record PageToken(long InvoiceId);
 
     public sealed record Request(
-        Guid SessionId,
+        Guid UserId,
         PageToken? PageToken,
         int PageSize,
         InvoiceStatusDto[] InvoiceStatuses,
-        long[] OtherSideIds,
-        long[] RecipientIds,
-        InvoiceType InvoiceType);
+        long[] PayerIds,
+        long[] RecipientIds);
 
     public abstract record Response
     {
@@ -21,4 +20,4 @@ public class GetInvoices
 
         public sealed record Failure(string Message) : Response;
     }
-}*/
+}

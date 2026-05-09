@@ -1,6 +1,6 @@
 namespace BankApp.Application.Contracts.Invoices.Operations;
 
-public class CancelInvoice
+public static class CancelInvoice
 {
     public sealed record Request(Guid UserId, long InvoiceId);
 

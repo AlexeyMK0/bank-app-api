@@ -2,7 +2,7 @@ using BankApp.Application.Abstractions.Repositories;
 using BankApp.Application.Contracts.OperationHistory;
 using BankApp.Application.Extensions;
 using BankApp.Application.Extensions.LoggerExtensions;
-using BankApp.Application.Extensions.RepositoryExtensions;
+using BankApp.Application.Extensions.RepositorySpecifications;
 using BankApp.Application.Mappers;
 using BankApp.Domain.Accounts;
 using BankApp.Domain.Operations;

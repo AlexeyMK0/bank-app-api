@@ -3,7 +3,7 @@ using BankApp.Application.Abstractions.Repositories;
 using BankApp.Application.Contracts.Accounts;
 using BankApp.Application.Contracts.Accounts.Operations;
 using BankApp.Application.Extensions.LoggerExtensions;
-using BankApp.Application.Extensions.RepositoryExtensions;
+using BankApp.Application.Extensions.RepositorySpecifications;
 using BankApp.Application.Mappers;
 using BankApp.Application.Options;
 using BankApp.Domain.Accounts;

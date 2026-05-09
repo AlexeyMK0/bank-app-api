@@ -2,9 +2,9 @@ using BankApp.Application.Abstractions.Queries;
 using BankApp.Application.Abstractions.Repositories;
 using BankApp.Domain.Sessions;
 
-namespace BankApp.Application.Extensions.RepositoryExtensions;
+namespace BankApp.Application.Extensions.RepositorySpecifications;
 
-public static class UserRepositoryExtensions
+public static class UserRepositorySpecification
 {
     public static async Task<User?> FindUserByExternalIdAsync(
         this IUserRepository repository,

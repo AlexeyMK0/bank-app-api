@@ -1,5 +1,6 @@
 using BankApp.Gateway.Application.Abstractions.Clients;
 using BankApp.Gateway.Application.Abstractions.Requests;
+using BankApp.Gateway.Presentation.Http.AuthorizationModels;
 using BankApp.Gateway.Presentation.Http.Extensions;
 using BankApp.Gateway.Presentation.Http.Operations;
 using BankApp.Gateway.Presentation.Http.Responses;
@@ -22,7 +23,7 @@ public class InvoiceController : ControllerBase
     }
 
     [HttpPost("create")]
-    [Authorize]
+    [Authorize(Policy = AppFeatures.CreateInvoice)]
     public async Task<ActionResult<long>> CreateInvoiceAsync(
         [FromBody] CreateInvoiceRequest httpRequest,
         CancellationToken cancellationToken)
@@ -42,7 +43,7 @@ public class InvoiceController : ControllerBase
     }
 
     [HttpPost("cancel")]
-    [Authorize]
+    [Authorize(Policy = AppFeatures.CancelInvoice)]
     public async Task<ActionResult> CancelInvoiceAsync(
         [FromBody] CancelInvoiceRequest httpRequest,
         CancellationToken cancellationToken)
@@ -56,7 +57,7 @@ public class InvoiceController : ControllerBase
     }
 
     [HttpPost("pay")]
-    [Authorize]
+    [Authorize(Policy = AppFeatures.PayInvoice)]
     public async Task<ActionResult> PayInvoiceAsync(
         [FromBody] PayInvoiceRequest httpRequest,
         CancellationToken cancellationToken)
@@ -67,7 +68,7 @@ public class InvoiceController : ControllerBase
     }
 
     [HttpGet("incoming")]
-    [Authorize]
+    [Authorize(Policy = AppFeatures.ReadInvoice)]
     public async Task<ActionResult<GetIncomingInvoicesResponse>> GetIncomingInvoicesAsync(
         [FromQuery] GetIncomingInvoicesRequest httpRequest,
         CancellationToken cancellationToken)
@@ -76,7 +77,7 @@ public class InvoiceController : ControllerBase
 
         Activity.Current?.AddUserIdBaggage(userId);
 
-        var request = new GetIncomingInvoices.Request(
+        var request = new GetInvoices.Request(
             userId,
             httpRequest.InvoiceStatuses ?? [],
             httpRequest.UserIds ?? [],
@@ -84,15 +85,15 @@ public class InvoiceController : ControllerBase
             httpRequest.PageSize,
             httpRequest.PageToken);
 
-        GetIncomingInvoices.Response response = await _client
-            .GetIncomingInvoicesAsync(request, cancellationToken);
+        GetInvoices.Response response = await _client
+            .GetInvoicesAsync(request, cancellationToken);
         var httpResponse = new GetIncomingInvoicesResponse(
             response.Invoices, response.PageToken);
         return Ok(httpResponse);
     }
 
     [HttpGet("outgoing")]
-    [Authorize]
+    [Authorize(Policy = AppFeatures.ReadInvoice)]
     public async Task<ActionResult<GetOutgoingInvoicesResponse>> GetOutgoingInvoicesAsync(
         [FromQuery] GetOutgoingInvoicesRequest httpRequest,
         CancellationToken cancellationToken)
@@ -101,16 +102,16 @@ public class InvoiceController : ControllerBase
 
         Activity.Current?.AddUserIdBaggage(userId);
 
-        var request = new GetOutgoingInvoices.Request(
+        var request = new GetInvoices.Request(
             userId,
             httpRequest.InvoiceStatuses ?? [],
-            httpRequest.UserIds ?? [],
             httpRequest.PayerIds ?? [],
+            httpRequest.UserIds ?? [],
             httpRequest.PageSize,
             httpRequest.PageToken);
 
-        GetOutgoingInvoices.Response response = await _client
-            .GetOutgoingInvoicesAsync(request, cancellationToken);
+        GetInvoices.Response response = await _client
+            .GetInvoicesAsync(request, cancellationToken);
         var httpResponse = new GetOutgoingInvoicesResponse(
             response.Invoices, response.PageToken);
         return Ok(httpResponse);

@@ -2,13 +2,13 @@ using BankApp.Gateway.Application.Models;
 
 namespace BankApp.Gateway.Application.Abstractions.Requests;
 
-public static class GetOutgoingInvoices
+public static class GetInvoices
 {
     public sealed record Request(
         Guid UserId,
         InvoiceStatusDto[] Statuses,
-        long[] UserIds,
         long[] PayerIds,
+        long[] RecipientIds,
         int? PageSize,
         string? PageToken);
 

@@ -2,7 +2,7 @@ using BankApp.Application.Contracts.Invoices.Model;
 
 namespace BankApp.Application.Contracts.Invoices.Operations;
 
-public class GetIncomingInvoices
+public static class GetIncomingInvoices
 {
     public sealed record PageToken(long InvoiceId);
 

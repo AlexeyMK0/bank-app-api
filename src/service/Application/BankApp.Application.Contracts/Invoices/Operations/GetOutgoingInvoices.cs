@@ -2,7 +2,7 @@ using BankApp.Application.Contracts.Invoices.Model;
 
 namespace BankApp.Application.Contracts.Invoices.Operations;
 
-public class GetOutgoingInvoices
+public static class GetOutgoingInvoices
 {
     public record PageToken(long InvoiceId);
 

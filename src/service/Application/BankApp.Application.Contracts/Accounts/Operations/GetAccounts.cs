@@ -2,9 +2,9 @@ using BankApp.Application.Contracts.Accounts.Model;
 
 namespace BankApp.Application.Contracts.Accounts.Operations;
 
-public class GetAccounts
+public static class GetAccounts
 {
-    public sealed record PageToken(long UserId);
+    public sealed record PageToken(long AccountId);
 
     public sealed record Request(Guid UserId, int PageSize, PageToken? PageToken = null);
 

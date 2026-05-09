@@ -5,9 +5,8 @@ using BankApp.Application.Abstractions.Queries;
 using BankApp.Application.Abstractions.Repositories;
 using BankApp.Application.Contracts.Invoices;
 using BankApp.Application.Contracts.Invoices.Operations;
-using BankApp.Application.Extensions;
 using BankApp.Application.Extensions.LoggerExtensions;
-using BankApp.Application.Extensions.RepositoryExtensions;
+using BankApp.Application.Extensions.RepositorySpecifications;
 using BankApp.Application.Mappers;
 using BankApp.Domain.Accounts;
 using BankApp.Domain.Invoices;
@@ -20,7 +19,6 @@ using BankApp.Domain.ValueObjects;
 using Itmo.Dev.Platform.Persistence.Abstractions.Transactions;
 using Microsoft.Extensions.Logging;
 using System.Data;
-using InvoiceQuery = BankApp.Application.Abstractions.Queries.InvoiceQuery;
 
 namespace BankApp.Application.Services;
 
@@ -32,8 +30,7 @@ public partial class InvoiceService : IInvoiceService
     private const string CreateInvoiceOperationName = "CreateInvoice";
     private const string CancelInvoiceOperationName = "CancelInvoice";
     private const string PayInvoiceOperationName = "PayInvoice";
-    private const string GetIncomingInvoicesOperationName = "GetIncomingInvoices";
-    private const string GetOutgoingInvoicesOperationName = "GetOutgoingInvoices";
+    private const string GetInvoicesOperationName = "GetInvoices";
 
     private const IsolationLevel DefaultIsolationLevel = IsolationLevel.ReadCommitted;
 
@@ -281,14 +278,14 @@ public partial class InvoiceService : IInvoiceService
         return new PayInvoice.Response.Success();
     }
 
-    public async Task<GetIncomingInvoices.Response> GetIncomingInvoicesAsync(
-        GetIncomingInvoices.Request request,
+    public async Task<GetInvoices.Response> GetInvoicesAsync(
+        GetInvoices.Request request,
         CancellationToken cancellationToken)
     {
         var userId = new UserExternalId(request.UserId);
-        AccountId[] accountIds = request.AccountIds.Select(id => new AccountId(id)).ToArray();
+        AccountId[] recipientIds = request.RecipientIds.Select(id => new AccountId(id)).ToArray();
         int requestPageSize = request.PageSize;
-        AccountId[] requestRecipients = request.RecipientIds.Select(id => new AccountId(id)).ToArray();
+        AccountId[] payerIds = request.PayerIds.Select(id => new AccountId(id)).ToArray();
         InvoiceId? inputKeyCursor = request.PageToken is null
             ? null
             : new InvoiceId(request.PageToken.InvoiceId);
@@ -302,93 +299,47 @@ public partial class InvoiceService : IInvoiceService
         if (user is null)
         {
             _logger.LogUserWithExternalIdNotFound(userId.Value);
-            return new GetIncomingInvoices.Response.Failure("User not found");
+            return new GetInvoices.Response.Failure("User not found");
         }
 
-        Account[] accounts = await _accountRepository
-            .FilterUserAccountsAsync(user, accountIds, cancellationToken);
-        if (accounts.Length != accountIds.Length)
+        (AccountId[] otherUsersRecipients, AccountId[] nonExistingRecipients)
+            = await FilterAccountsOfOtherUsers(recipientIds, user, cancellationToken);
+        (AccountId[] otherUsersPayers, AccountId[] nonExistingPayers)
+            = await FilterAccountsOfOtherUsers(payerIds, user, cancellationToken);
+
+        if ((otherUsersRecipients is not [] && otherUsersPayers is not [])
+            || nonExistingPayers is not []
+            || nonExistingRecipients is not [])
         {
-            HashSet<AccountId> othersIds = accountIds
-                .SearchAccountsOfOtherUsers(user, accounts);
-            string errorIds = string.Join(',', othersIds.Select(id => id.Value));
+            AccountId[] badAccounts = otherUsersPayers
+                    .Union(otherUsersRecipients)
+                    .Union(nonExistingPayers)
+                    .Union(nonExistingRecipients)
+                    .ToArray();
+            AccountId[] allAccounts = payerIds.Union(recipientIds).ToArray();
+            string errorIds = string.Join(',', badAccounts.Select(id => id.Value));
             _logger.LogUnauthorizedAccountBatchAccess(
-                user.Id.Value, accountIds.Length, othersIds.Count, errorIds);
-            return new GetIncomingInvoices.Response.Failure(
-                $"Accounts not found for user {user.Id.Value}");
+                user.Id.Value, allAccounts.Length, badAccounts.Length, errorIds);
+
+            return new GetInvoices.Response.Failure($"Accounts not found for user {user.Id.Value}");
         }
 
         Invoice[] invoices = await _invoiceRepository.QueryAsync(
                 InvoiceQuery.Build(builder => builder
                     .WithPageSize(requestPageSize)
                     .WithKeyCursor(inputKeyCursor)
-                    .WithPayers(accountIds)
-                    .WithRecipients(requestRecipients)
+                    .WithRecipients(recipientIds)
+                    .WithPayers(payerIds)
                     .WithStatuses(requestStatuses)),
                 cancellationToken)
             .ToArrayAsync(cancellationToken);
 
-        _logger.LogUserCompletedOperation(user.Id.Value, GetIncomingInvoicesOperationName);
+        _logger.LogUserCompletedOperation(user.Id.Value, GetInvoicesOperationName);
 
-        GetIncomingInvoices.PageToken? outputPageToken = invoices.Length > 0
-            ? new GetIncomingInvoices.PageToken(invoices[^1].Id.Value)
+        GetInvoices.PageToken? outputPageToken = invoices.Length > 0
+            ? new GetInvoices.PageToken(invoices[^1].Id.Value)
             : null;
-        return new GetIncomingInvoices.Response.Success(
-            invoices.Select(invoice => invoice.MapToDto()).ToArray(),
-            outputPageToken);
-    }
-
-    public async Task<GetOutgoingInvoices.Response> GetOutgoingInvoicesAsync(
-        GetOutgoingInvoices.Request request,
-        CancellationToken cancellationToken)
-    {
-        var userId = new UserExternalId(request.UserId);
-        AccountId[] accountIds = request.AccountIds.Select(id => new AccountId(id)).ToArray();
-        int requestPageSize = request.PageSize;
-        AccountId[] requestPayers = request.PayersIds.Select(id => new AccountId(id)).ToArray();
-        InvoiceId? inputKeyCursor = request.PageToken is null
-            ? null
-            : new InvoiceId(request.PageToken.InvoiceId);
-        InvoiceStatus[] requestStatuses = request
-            .InvoiceStatuses.Select(status => status
-                .MapToDomain())
-            .ToArray();
-
-        User? user = await _userRepository
-            .FindUserByExternalIdAsync(userId, cancellationToken);
-        if (user is null)
-        {
-            return new GetOutgoingInvoices.Response.Failure("User not found");
-        }
-
-        Account[] accounts = await _accountRepository
-            .FilterUserAccountsAsync(user, accountIds, cancellationToken);
-        if (accounts.Length != accountIds.Length)
-        {
-            HashSet<AccountId> othersIds = accountIds
-                .SearchAccountsOfOtherUsers(user, accounts);
-            string errorIds = string.Join(',', othersIds.Select(id => id.Value));
-            _logger.LogUnauthorizedAccountBatchAccess(user.Id.Value, accountIds.Length, othersIds.Count, errorIds);
-            return new GetOutgoingInvoices.Response.Failure(
-                $"Accounts not found for user {user.Id.Value}");
-        }
-
-        Invoice[] invoices = await _invoiceRepository.QueryAsync(
-                InvoiceQuery.Build(builder => builder
-                    .WithPageSize(requestPageSize)
-                    .WithKeyCursor(inputKeyCursor)
-                    .WithRecipients(accountIds)
-                    .WithPayers(requestPayers)
-                    .WithStatuses(requestStatuses)),
-                cancellationToken)
-            .ToArrayAsync(cancellationToken);
-
-        _logger.LogUserCompletedOperation(user.Id.Value, GetOutgoingInvoicesOperationName);
-
-        GetOutgoingInvoices.PageToken? outputPageToken = invoices.Length > 0
-            ? new GetOutgoingInvoices.PageToken(invoices[^1].Id.Value)
-            : null;
-        return new GetOutgoingInvoices.Response.Success(
+        return new GetInvoices.Response.Success(
             invoices.Select(invoice => invoice.MapToDto()).ToArray(),
             outputPageToken);
     }
@@ -495,5 +446,24 @@ public partial class InvoiceService : IInvoiceService
             .Select(acc => acc.OwnerUserId)
             .ToArrayAsync(cancellationToken);
         return involvedUsers.Contains(user.Id);
+    }
+
+    private async Task<(AccountId[] OtherUsersAccounts, AccountId[] NonExistingAccounts)> FilterAccountsOfOtherUsers(
+        AccountId[] accountIds,
+        User user,
+        CancellationToken cancellationToken)
+    {
+        Account[] accounts = await _accountRepository
+            .FindAccountsByIdsAsync(accountIds, accountIds.Length, cancellationToken)
+            .ToArrayAsync(cancellationToken);
+
+        var accountIdSet = accounts.Select(acc => acc.Id).ToHashSet();
+        IEnumerable<AccountId> nonExistingAccounts = accountIds
+            .Where(id => !accountIdSet.Contains(id));
+        IEnumerable<AccountId> otherUsersAccounts = accounts
+            .Where(acc => acc.OwnerUserId != user.Id)
+            .Select(acc => acc.Id);
+
+        return (otherUsersAccounts.ToArray(), nonExistingAccounts.ToArray());
     }
 }

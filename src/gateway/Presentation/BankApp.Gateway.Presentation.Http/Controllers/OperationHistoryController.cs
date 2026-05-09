@@ -1,5 +1,6 @@
 using BankApp.Gateway.Application.Abstractions.Clients;
 using BankApp.Gateway.Application.Abstractions.Requests;
+using BankApp.Gateway.Presentation.Http.AuthorizationModels;
 using BankApp.Gateway.Presentation.Http.Extensions;
 using BankApp.Gateway.Presentation.Http.Operations;
 using BankApp.Gateway.Presentation.Http.Responses;
@@ -21,7 +22,7 @@ public class OperationHistoryController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize]
+    [Authorize(Policy = AppFeatures.ReadOperation)]
     public async Task<ActionResult<GetOperationHistoryResponse>> CheckHistory(
         [FromQuery] CheckHistoryRequest httpRequest,
         CancellationToken cancellationToken)

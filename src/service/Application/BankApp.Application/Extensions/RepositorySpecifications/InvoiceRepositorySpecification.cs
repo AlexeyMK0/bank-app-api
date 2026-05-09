@@ -2,9 +2,9 @@ using BankApp.Application.Abstractions.Repositories;
 using BankApp.Domain.Invoices;
 using InvoiceQuery = BankApp.Application.Abstractions.Queries.InvoiceQuery;
 
-namespace BankApp.Application.Extensions.RepositoryExtensions;
+namespace BankApp.Application.Extensions.RepositorySpecifications;
 
-public static class InvoiceRepositoryExtension
+public static class InvoiceRepositorySpecification
 {
     public static ValueTask<Invoice?> FindInvoiceByIdAsync(this IInvoiceRepository repository, InvoiceId invoiceId, CancellationToken cancellationToken)
     {

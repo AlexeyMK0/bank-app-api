@@ -39,7 +39,6 @@ IResourceBuilder<ProjectResource> service = builder.AddProject<Main>("main")
         "Infrastructure:Persistence:Postgres:Password",
         postgres.Resource.PasswordParameter)
     .WithHttpHealthCheck("/health");
-/*.WithEnvironment("USE_PROMETHEUS_METRICS", "false")*/
 
 Console.WriteLine($"gRpcEndpoint {service.GetEndpoint("gRpcEndpoint")}");
 
@@ -67,9 +66,6 @@ IResourceBuilder<ProjectResource> gateway = builder
     .WithEnvironment(
         "Authentication__ClientId",
         "bank-app-gateway")
-    /*.WithEnvironment(
-        "Authentication__ClientSecret",
-        "9eZuGWJJW11PjO49SVlJvdg4EbiaXok7")*/
     ;
 
 builder.Build().Run();

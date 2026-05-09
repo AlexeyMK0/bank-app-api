@@ -1,6 +1,6 @@
 namespace BankApp.Application.Contracts.Invoices.Operations;
 
-public class PayInvoice
+public static class PayInvoice
 {
     public sealed record Request(Guid UserId, long InvoiceId);
 

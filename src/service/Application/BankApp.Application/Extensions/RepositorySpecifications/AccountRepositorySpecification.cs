@@ -3,9 +3,9 @@ using BankApp.Domain.Accounts;
 using BankApp.Domain.Sessions;
 using AccountQuery = BankApp.Application.Abstractions.Queries.AccountQuery;
 
-namespace BankApp.Application.Extensions.RepositoryExtensions;
+namespace BankApp.Application.Extensions.RepositorySpecifications;
 
-public static class AccountRepositoryExtension
+public static class AccountRepositorySpecification
 {
     public static async Task<Account?> FindAccountByIdAsync(
         this IAccountRepository accountRepository, AccountId accountId, CancellationToken cancellationToken)
@@ -45,6 +45,25 @@ public static class AccountRepositoryExtension
             .WithUserId(user.Id)
             .WithKeyCursor(pageToken));
 
+        return accountRepository.QueryAsync(query, cancellationToken);
+    }
+
+    public static IAsyncEnumerable<Account> FindAccountsByIdsAsync(
+        this IAccountRepository accountRepository,
+        AccountId[] accountIds,
+        int pageSize,
+        CancellationToken cancellationToken,
+        long? keyCursor = null)
+    {
+        if (accountIds.Length == 0)
+        {
+            return AsyncEnumerable.Empty<Account>();
+        }
+
+        var query = AccountQuery.Build(builder => builder
+            .WithAccountIds(accountIds)
+            .WithPageSize(pageSize)
+            .WithKeyCursor(keyCursor));
         return accountRepository.QueryAsync(query, cancellationToken);
     }
 }

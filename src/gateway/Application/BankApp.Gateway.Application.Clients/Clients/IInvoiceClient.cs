@@ -10,11 +10,7 @@ public interface IInvoiceClient
 
     Task CancelInvoiceAsync(Guid userId, long invoiceId, CancellationToken cancellationToken);
 
-    Task<GetIncomingInvoices.Response> GetIncomingInvoicesAsync(
-        GetIncomingInvoices.Request request,
-        CancellationToken cancellationToken);
-
-    Task<GetOutgoingInvoices.Response> GetOutgoingInvoicesAsync(
-        GetOutgoingInvoices.Request request,
+    Task<GetInvoices.Response> GetInvoicesAsync(
+        GetInvoices.Request request,
         CancellationToken cancellationToken);
 }
