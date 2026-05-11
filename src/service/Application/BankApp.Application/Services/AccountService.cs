@@ -1,5 +1,5 @@
+using BankApp.Application.Abstractions;
 using BankApp.Application.Abstractions.Metrics;
-using BankApp.Application.Abstractions.Repositories;
 using BankApp.Application.Contracts.Accounts;
 using BankApp.Application.Contracts.Accounts.Operations;
 using BankApp.Application.Extensions.LoggerExtensions;
@@ -18,35 +18,29 @@ using System.Data;
 
 namespace BankApp.Application.Services;
 
-public sealed partial class AccountService : IAccountService
+internal sealed partial class AccountService : IAccountService
 {
     private const IsolationLevel IsolationLevel = System.Data.IsolationLevel.ReadCommitted;
     private const string GetUserAccountsOperationName = "GetUserAccounts";
 
     private readonly int _maxUserAccounts;
 
-    private readonly IAccountRepository _accountRepository;
     private readonly IPersistenceTransactionProvider _transactionProvider;
-    private readonly IOperationRepository _operationRepository;
-    private readonly IUserRepository _userRepository;
+    private readonly IPersistenceContext _context;
     private readonly ILogger<AccountService> _logger;
     private readonly IServiceMetrics _metrics;
 
     public AccountService(
-        IAccountRepository accountRepository,
-        IPersistenceTransactionProvider transactionProvider,
-        IOperationRepository operationRepository,
-        IUserRepository userRepository,
         IOptions<AccountServiceOptions> options,
         ILogger<AccountService> logger,
-        IServiceMetrics metrics)
+        IServiceMetrics metrics,
+        IPersistenceContext context,
+        IPersistenceTransactionProvider transactionProvider)
     {
-        _accountRepository = accountRepository;
-        _transactionProvider = transactionProvider;
-        _operationRepository = operationRepository;
-        _userRepository = userRepository;
         _logger = logger;
         _metrics = metrics;
+        _context = context;
+        _transactionProvider = transactionProvider;
         _maxUserAccounts = options.Value.MaxAccountsPerUser;
     }
 
@@ -57,7 +51,7 @@ public sealed partial class AccountService : IAccountService
         var userCreatorId = new UserExternalId(request.UserId);
         var userOwnerId = new UserId(request.OwnerId);
 
-        User? user = await _userRepository
+        User? user = await _context.UserRepository
             .FindUserByExternalIdAsync(userCreatorId, cancellationToken);
         if (user is null)
         {
@@ -65,7 +59,7 @@ public sealed partial class AccountService : IAccountService
             return new CreateAccount.Response.Failure("User not found");
         }
 
-        Account[] userAccounts = await _accountRepository
+        Account[] userAccounts = await _context.AccountRepository
             .FindAllUserAccountsAsync(user, _maxUserAccounts, cancellationToken)
             .ToArrayAsync(cancellationToken);
         if (userAccounts.Length >= _maxUserAccounts)
@@ -75,7 +69,7 @@ public sealed partial class AccountService : IAccountService
                 $"User already has {_maxUserAccounts} accounts, cannot create more");
         }
 
-        Account newAccount = await _accountRepository.AddAsync(
+        Account newAccount = await _context.AccountRepository.AddAsync(
             new Account(AccountId.Default, Money.Zero, userOwnerId),
             cancellationToken);
 
@@ -91,7 +85,7 @@ public sealed partial class AccountService : IAccountService
         CancellationToken cancellationToken)
     {
         var userId = new UserExternalId(request.UserId);
-        User? user = await _userRepository
+        User? user = await _context.UserRepository
             .FindUserByExternalIdAsync(userId, cancellationToken);
         if (user is null)
         {
@@ -100,7 +94,7 @@ public sealed partial class AccountService : IAccountService
         }
 
         var accountId = new AccountId(request.AccountId);
-        Account? account = await _accountRepository
+        Account? account = await _context.AccountRepository
             .FindAccountByIdAsync(accountId, cancellationToken);
         if (account is null)
         {
@@ -124,7 +118,7 @@ public sealed partial class AccountService : IAccountService
         var requestMoney = new Money(request.Amount);
 
         var userId = new UserExternalId(request.UserId);
-        User? user = await _userRepository
+        User? user = await _context.UserRepository
             .FindUserByExternalIdAsync(userId, cancellationToken);
         if (user is null)
         {
@@ -133,7 +127,7 @@ public sealed partial class AccountService : IAccountService
         }
 
         var accountId = new AccountId(request.AccountId);
-        Account? account = await _accountRepository
+        Account? account = await _context.AccountRepository
             .FindAccountByIdAsync(accountId, cancellationToken);
         if (account is null)
         {
@@ -147,24 +141,23 @@ public sealed partial class AccountService : IAccountService
             return new WithdrawMoney.Response.Failure(CreateAccountNotFoundForUserMessage(accountId, user));
         }
 
-        if (account.Balance.CompareTo(requestMoney) < 0)
+        if (account.CanWithdraw(requestMoney) is false)
         {
             LogNotEnoughMoneyForWithdrawal(_logger, user.Id.Value, accountId.Value, requestMoney.Value, account.Balance.Value);
             return new WithdrawMoney.Response.Failure("Not enough money for withdrawal");
         }
 
-        Account newAccount = account with
-            { Balance = account.Balance.DecreaseBy(requestMoney) };
+        account.Withdraw(requestMoney);
 
         await using IPersistenceTransaction transaction = await _transactionProvider
             .BeginTransactionAsync(IsolationLevel, cancellationToken);
 
-        newAccount = await _accountRepository
-            .UpdateAsync(newAccount, cancellationToken);
+        account = await _context.AccountRepository
+            .UpdateAsync(account, cancellationToken);
 
         var operationRecord = new WithdrawOperationRecord(
             OperationRecordId.Default, DateTimeOffset.Now, account.Id, requestMoney);
-        await _operationRepository.AddAsync(operationRecord, cancellationToken);
+        await _context.OperationRepository.AddAsync(operationRecord, cancellationToken);
 
         await transaction.CommitAsync(cancellationToken);
 
@@ -172,7 +165,7 @@ public sealed partial class AccountService : IAccountService
 
         _metrics.IncWithdrawalAmount(requestMoney.Value);
 
-        return new WithdrawMoney.Response.Success(newAccount.MapToDto());
+        return new WithdrawMoney.Response.Success(account.MapToDto());
     }
 
     public async Task<DepositMoney.Response> DepositMoneyAsync(
@@ -182,7 +175,7 @@ public sealed partial class AccountService : IAccountService
         var requestMoney = new Money(request.Amount);
 
         var userId = new UserExternalId(request.UserId);
-        User? user = await _userRepository
+        User? user = await _context.UserRepository
             .FindUserByExternalIdAsync(userId, cancellationToken);
         if (user is null)
         {
@@ -191,7 +184,7 @@ public sealed partial class AccountService : IAccountService
         }
 
         var accountId = new AccountId(request.AccountId);
-        Account? account = await _accountRepository
+        Account? account = await _context.AccountRepository
             .FindAccountByIdAsync(accountId, cancellationToken);
         if (account is null)
         {
@@ -205,17 +198,16 @@ public sealed partial class AccountService : IAccountService
             return new DepositMoney.Response.Failure(CreateAccountNotFoundForUserMessage(accountId, user));
         }
 
-        Account newAccount = account with
-            { Balance = account.Balance.IncreaseBy(requestMoney) };
+        account.Deposit(requestMoney);
 
         await using IPersistenceTransaction transaction = await _transactionProvider
             .BeginTransactionAsync(IsolationLevel, cancellationToken);
 
-        newAccount = await _accountRepository
-            .UpdateAsync(newAccount, cancellationToken);
+        account = await _context.AccountRepository
+            .UpdateAsync(account, cancellationToken);
         var operationRecord = new DepositOperationRecord(
             OperationRecordId.Default, DateTimeOffset.Now, account.Id, requestMoney);
-        await _operationRepository.AddAsync(operationRecord, cancellationToken);
+        await _context.OperationRepository.AddAsync(operationRecord, cancellationToken);
 
         await transaction.CommitAsync(cancellationToken);
 
@@ -223,13 +215,13 @@ public sealed partial class AccountService : IAccountService
 
         _metrics.IncDepositAmount(requestMoney.Value);
 
-        return new DepositMoney.Response.Success(newAccount.MapToDto());
+        return new DepositMoney.Response.Success(account.MapToDto());
     }
 
     public async Task<GetAccounts.Response> GetUserAccountsAsync(GetAccounts.Request request, CancellationToken cancellationToken)
     {
         var userId = new UserExternalId(request.UserId);
-        User? user = await _userRepository
+        User? user = await _context.UserRepository
             .FindUserByExternalIdAsync(userId, cancellationToken);
         if (user is null)
         {
@@ -238,7 +230,7 @@ public sealed partial class AccountService : IAccountService
         }
 
         int pageSize = request.PageSize;
-        Account[] accounts = await _accountRepository
+        Account[] accounts = await _context.AccountRepository
             .FindAllUserAccountsAsync(user, pageSize, cancellationToken)
             .ToArrayAsync(cancellationToken);
 

@@ -1,4 +1,4 @@
-using BankApp.Application.Abstractions.Repositories;
+using BankApp.Application.Abstractions;
 using BankApp.Application.Contracts.OperationHistory;
 using BankApp.Application.Extensions;
 using BankApp.Application.Extensions.LoggerExtensions;
@@ -12,25 +12,19 @@ using OperationQuery = BankApp.Application.Abstractions.Queries.OperationQuery;
 
 namespace BankApp.Application.Services;
 
-public class OperationHistoryService : IOperationHistoryService
+internal class OperationHistoryService : IOperationHistoryService
 {
     private const string GetOperationsOperationName = "GetOperations";
 
-    private readonly IOperationRepository _operationRepository;
-    private readonly IUserRepository _userRepository;
-    private readonly IAccountRepository _accountRepository;
+    private readonly IPersistenceContext _context;
     private readonly ILogger<OperationHistoryService> _logger;
 
     public OperationHistoryService(
-        IOperationRepository operationRepository,
-        IUserRepository userRepository,
-        IAccountRepository accountRepository,
-        ILogger<OperationHistoryService> logger)
+        ILogger<OperationHistoryService> logger,
+        IPersistenceContext context)
     {
-        _operationRepository = operationRepository;
-        _userRepository = userRepository;
-        _accountRepository = accountRepository;
         _logger = logger;
+        _context = context;
     }
 
     public async Task<GetAccountOperations.Response> GetOperationsAsync(
@@ -39,7 +33,7 @@ public class OperationHistoryService : IOperationHistoryService
     {
         var externalId = new UserExternalId(request.UserId);
 
-        User? foundUser = await _userRepository
+        User? foundUser = await _context.UserRepository
             .FindUserByExternalIdAsync(externalId, cancellationToken);
         if (foundUser is null)
         {
@@ -48,7 +42,7 @@ public class OperationHistoryService : IOperationHistoryService
         }
 
         AccountId[] accountIds = request.AccountIds.Select(id => new AccountId(id)).ToArray();
-        Account[] accounts = await _accountRepository
+        Account[] accounts = await _context.AccountRepository
             .FilterUserAccountsAsync(foundUser, accountIds, cancellationToken);
         if (accounts.Length != accountIds.Length)
         {
@@ -65,7 +59,7 @@ public class OperationHistoryService : IOperationHistoryService
             ? null
             : new OperationRecordId(request.PageToken.OperationId);
 
-        OperationRecord[] operations = await _operationRepository.QueryAsync(
+        OperationRecord[] operations = await _context.OperationRepository.QueryAsync(
                 OperationQuery.Build(builder => builder
                     .WithAccountIds(accountIds)
                     .WithKeyCursor(inputPageToken)

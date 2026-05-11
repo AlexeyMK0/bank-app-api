@@ -1,8 +1,8 @@
 #pragma warning disable CA1506
 
+using BankApp.Application.Abstractions;
 using BankApp.Application.Abstractions.Metrics;
 using BankApp.Application.Abstractions.Queries;
-using BankApp.Application.Abstractions.Repositories;
 using BankApp.Application.Contracts.Invoices;
 using BankApp.Application.Contracts.Invoices.Operations;
 using BankApp.Application.Extensions.LoggerExtensions;
@@ -22,7 +22,7 @@ using System.Data;
 
 namespace BankApp.Application.Services;
 
-public partial class InvoiceService : IInvoiceService
+internal partial class InvoiceService : IInvoiceService
 {
     private const string PayerRole = "Payer";
     private const string RecipientRole = "Recipient";
@@ -34,30 +34,21 @@ public partial class InvoiceService : IInvoiceService
 
     private const IsolationLevel DefaultIsolationLevel = IsolationLevel.ReadCommitted;
 
-    private readonly IInvoiceRepository _invoiceRepository;
-    private readonly IAccountRepository _accountRepository;
-    private readonly IOperationRepository _operationRepository;
-    private readonly IUserRepository _userRepository;
+    private readonly IPersistenceContext _context;
     private readonly IPersistenceTransactionProvider _transactionProvider;
     private readonly ILogger<InvoiceService> _logger;
     private readonly IServiceMetrics _metrics;
 
     public InvoiceService(
-        IInvoiceRepository invoiceRepository,
-        IAccountRepository accountRepository,
         IPersistenceTransactionProvider transactionProvider,
-        IOperationRepository operationRepository,
-        IUserRepository userRepository,
         ILogger<InvoiceService> logger,
-        IServiceMetrics metrics)
+        IServiceMetrics metrics,
+        IPersistenceContext context)
     {
-        _invoiceRepository = invoiceRepository;
-        _accountRepository = accountRepository;
         _transactionProvider = transactionProvider;
-        _operationRepository = operationRepository;
-        _userRepository = userRepository;
         _logger = logger;
         _metrics = metrics;
+        _context = context;
     }
 
     public async Task<CreateInvoice.Response> CreateInvoiceAsync(
@@ -72,7 +63,7 @@ public partial class InvoiceService : IInvoiceService
         if (payerAccountId == recipientAccountId)
             return new CreateInvoice.Response.Failure("Cannot create invoice on same accounts");
 
-        User? foundUser = await _userRepository
+        User? foundUser = await _context.UserRepository
             .FindUserByExternalIdAsync(externalUserId, cancellationToken);
         if (foundUser is null)
         {
@@ -80,7 +71,7 @@ public partial class InvoiceService : IInvoiceService
             return new CreateInvoice.Response.Failure("User not found");
         }
 
-        Account? payerAccount = await _accountRepository.FindAccountByIdAsync(payerAccountId, cancellationToken);
+        Account? payerAccount = await _context.AccountRepository.FindAccountByIdAsync(payerAccountId, cancellationToken);
         if (payerAccount is null)
         {
             LogInvoiceAccountNotFound(_logger, foundUser.Id.Value, PayerRole, payerAccountId.Value);
@@ -88,7 +79,7 @@ public partial class InvoiceService : IInvoiceService
         }
 
         Account? recipientAccount =
-            await _accountRepository.FindAccountByIdAsync(recipientAccountId, cancellationToken);
+            await _context.AccountRepository.FindAccountByIdAsync(recipientAccountId, cancellationToken);
         if (recipientAccount is null)
         {
             LogInvoiceAccountNotFound(_logger, foundUser.Id.Value, RecipientRole, payerAccountId.Value);
@@ -113,7 +104,7 @@ public partial class InvoiceService : IInvoiceService
             payerAccount.Id,
             new CreatedInvoiceState());
 
-        invoice = await _invoiceRepository.AddAsync(invoice, cancellationToken);
+        invoice = await _context.InvoiceRepository.AddAsync(invoice, cancellationToken);
 
         LogInvoiceCreated(
             _logger,
@@ -135,7 +126,7 @@ public partial class InvoiceService : IInvoiceService
         var invoiceId = new InvoiceId(request.InvoiceId);
         var userId = new UserExternalId(request.UserId);
 
-        User? foundUser = await _userRepository
+        User? foundUser = await _context.UserRepository
             .FindUserByExternalIdAsync(userId, cancellationToken);
         if (foundUser is null)
         {
@@ -143,7 +134,7 @@ public partial class InvoiceService : IInvoiceService
             return new CancelInvoice.Response.Failure("User not found");
         }
 
-        Invoice? invoice = await _invoiceRepository.FindInvoiceByIdAsync(invoiceId, cancellationToken);
+        Invoice? invoice = await _context.InvoiceRepository.FindInvoiceByIdAsync(invoiceId, cancellationToken);
         if (invoice is null)
         {
             LogInvoiceNotFound(_logger, foundUser.Id.Value, invoiceId.Value);
@@ -169,7 +160,7 @@ public partial class InvoiceService : IInvoiceService
             return new CancelInvoice.Response.Failure(failure.Reason);
         }
 
-        await _invoiceRepository.UpdateAsync(invoice, cancellationToken);
+        await _context.InvoiceRepository.UpdateAsync(invoice, cancellationToken);
 
         _metrics.IncCancelledInvoices();
 
@@ -183,7 +174,7 @@ public partial class InvoiceService : IInvoiceService
         var invoiceId = new InvoiceId(request.InvoiceId);
         var userId = new UserExternalId(request.UserId);
 
-        User? user = await _userRepository
+        User? user = await _context.UserRepository
             .FindUserByExternalIdAsync(userId, cancellationToken);
         if (user is null)
         {
@@ -191,7 +182,7 @@ public partial class InvoiceService : IInvoiceService
             return new PayInvoice.Response.Failure("User not found");
         }
 
-        Invoice? invoice = await _invoiceRepository
+        Invoice? invoice = await _context.InvoiceRepository
             .FindInvoiceByIdAsync(invoiceId, cancellationToken);
         if (invoice is null)
         {
@@ -199,7 +190,7 @@ public partial class InvoiceService : IInvoiceService
             return new PayInvoice.Response.Failure(CreateInvoiceNotFoundForUserMessage(invoiceId, user));
         }
 
-        Account? payerAccount = await _accountRepository
+        Account? payerAccount = await _context.AccountRepository
             .FindAccountByIdAsync(invoice.PayerId, cancellationToken);
         if (payerAccount is null)
         {
@@ -219,7 +210,7 @@ public partial class InvoiceService : IInvoiceService
                 $"Cannot pay invoice with id: {invoiceId.Value} - not found or account {user.Id} is not its payer");
         }
 
-        Account? recipientAccount = await _accountRepository
+        Account? recipientAccount = await _context.AccountRepository
             .FindAccountByIdAsync(invoice.RecipientId, cancellationToken);
         if (recipientAccount is null)
         {
@@ -227,7 +218,7 @@ public partial class InvoiceService : IInvoiceService
             return new PayInvoice.Response.Failure("Recipient Account not found. It is probably deleted");
         }
 
-        if (payerAccount.Balance.CompareTo(invoice.Amount) < 0)
+        if (payerAccount.CanWithdraw(invoice.Amount) is false)
         {
             LogNotEnoughMoneyToPayInvoice(
                 _logger,
@@ -247,14 +238,9 @@ public partial class InvoiceService : IInvoiceService
             return new PayInvoice.Response.Failure(failure.Reason);
         }
 
-        payerAccount = payerAccount with
-        {
-            Balance = payerAccount.Balance.DecreaseBy(invoice.Amount),
-        };
-        recipientAccount = recipientAccount with
-        {
-            Balance = recipientAccount.Balance.IncreaseBy(invoice.Amount),
-        };
+        payerAccount.Withdraw(invoice.Amount);
+        recipientAccount.Deposit(invoice.Amount);
+
         PayInvoiceOperationRecord payerOperationRecord =
             CreatePayInvoiceOperationRecord(invoice);
         PaymentReceivedOperationRecord recipientOperationRecord =
@@ -263,11 +249,11 @@ public partial class InvoiceService : IInvoiceService
         await using IPersistenceTransaction transaction = await _transactionProvider
             .BeginTransactionAsync(DefaultIsolationLevel, cancellationToken);
 
-        await _accountRepository.UpdateAsync(payerAccount, cancellationToken);
-        await _accountRepository.UpdateAsync(recipientAccount, cancellationToken);
-        await _invoiceRepository.UpdateAsync(invoice, cancellationToken);
-        await _operationRepository.AddAsync(payerOperationRecord, cancellationToken);
-        await _operationRepository.AddAsync(recipientOperationRecord, cancellationToken);
+        await _context.AccountRepository.UpdateAsync(payerAccount, cancellationToken);
+        await _context.AccountRepository.UpdateAsync(recipientAccount, cancellationToken);
+        await _context.InvoiceRepository.UpdateAsync(invoice, cancellationToken);
+        await _context.OperationRepository.AddAsync(payerOperationRecord, cancellationToken);
+        await _context.OperationRepository.AddAsync(recipientOperationRecord, cancellationToken);
 
         await transaction.CommitAsync(cancellationToken);
 
@@ -294,7 +280,7 @@ public partial class InvoiceService : IInvoiceService
                 .MapToDomain())
             .ToArray();
 
-        User? user = await _userRepository
+        User? user = await _context.UserRepository
             .FindUserByExternalIdAsync(userId, cancellationToken);
         if (user is null)
         {
@@ -324,7 +310,7 @@ public partial class InvoiceService : IInvoiceService
             return new GetInvoices.Response.Failure($"Accounts not found for user {user.Id.Value}");
         }
 
-        Invoice[] invoices = await _invoiceRepository.QueryAsync(
+        Invoice[] invoices = await _context.InvoiceRepository.QueryAsync(
                 InvoiceQuery.Build(builder => builder
                     .WithPageSize(requestPageSize)
                     .WithKeyCursor(inputKeyCursor)
@@ -442,7 +428,7 @@ public partial class InvoiceService : IInvoiceService
         var accountQuery = AccountQuery.Build(builder => builder
             .WithAccountIds([invoice.PayerId, invoice.RecipientId])
             .WithPageSize(2));
-        UserId[] involvedUsers = await _accountRepository.QueryAsync(accountQuery, cancellationToken)
+        UserId[] involvedUsers = await _context.AccountRepository.QueryAsync(accountQuery, cancellationToken)
             .Select(acc => acc.OwnerUserId)
             .ToArrayAsync(cancellationToken);
         return involvedUsers.Contains(user.Id);
@@ -453,7 +439,7 @@ public partial class InvoiceService : IInvoiceService
         User user,
         CancellationToken cancellationToken)
     {
-        Account[] accounts = await _accountRepository
+        Account[] accounts = await _context.AccountRepository
             .FindAccountsByIdsAsync(accountIds, accountIds.Length, cancellationToken)
             .ToArrayAsync(cancellationToken);
 

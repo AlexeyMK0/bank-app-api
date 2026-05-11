@@ -5,7 +5,7 @@ using BankApp.Domain.Sessions;
 
 namespace BankApp.Application.Services;
 
-public sealed class UserService : IUserService
+internal sealed class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
 
