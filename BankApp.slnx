@@ -3,6 +3,9 @@
     <File Path="Directory.Build.props" />
     <File Path="Directory.Packages.props" />
   </Folder>
+  <Folder Name="/orchestration/">
+    <Project Path="BankApp.ServiceDefaults\BankApp.ServiceDefaults.csproj" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/BankApp/BankApp.csproj" />
   </Folder>
@@ -38,6 +41,7 @@
   <Folder Name="/src/service/Presentation/">
     <Project Path="src\service\Presentation\BankApp.Presentation.Grpc\BankApp.Presentation.Grpc.csproj" />
   </Folder>
-  <Folder Name="/tests/" />
-  <Project Path="BankApp.ServiceDefaults\BankApp.ServiceDefaults.csproj" />
+  <Folder Name="/tests/">
+    <Project Path="tests/UnitTests/UnitTests.csproj" />
+  </Folder>
 </Solution>

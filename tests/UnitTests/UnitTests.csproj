@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <ItemGroup>
+        <PackageReference Include="AutoBogus" />
+        <PackageReference Include="coverlet.collector"/>
+        <PackageReference Include="FluentAssertions" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk"/>
+        <PackageReference Include="Moq" />
+        <PackageReference Include="xunit"/>
+        <PackageReference Include="xunit.runner.visualstudio"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Using Include="Xunit"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\src\service\Application\BankApp.Application.Abstractions\BankApp.Application.Abstractions.csproj" />
+      <ProjectReference Include="..\..\src\service\Application\BankApp.Application.Contracts\BankApp.Application.Contracts.csproj" />
+      <ProjectReference Include="..\..\src\service\Application\BankApp.Application\BankApp.Application.csproj" />
+    </ItemGroup>
+
+</Project>

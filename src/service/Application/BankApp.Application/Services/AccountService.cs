@@ -59,8 +59,16 @@ internal sealed partial class AccountService : IAccountService
             return new CreateAccount.Response.Failure("User not found");
         }
 
+        User? userOwner = await _context.UserRepository
+            .FindUserByIdAsync(userOwnerId, cancellationToken);
+        if (userOwner is null)
+        {
+            LogUserWithIdNotFound(_logger, userOwnerId.Value);
+            return new CreateAccount.Response.Failure("User not found");
+        }
+
         Account[] userAccounts = await _context.AccountRepository
-            .FindAllUserAccountsAsync(user, _maxUserAccounts, cancellationToken)
+            .FindAllUserAccountsAsync(userOwner, _maxUserAccounts, cancellationToken)
             .ToArrayAsync(cancellationToken);
         if (userAccounts.Length >= _maxUserAccounts)
         {
@@ -220,6 +228,7 @@ internal sealed partial class AccountService : IAccountService
 
     public async Task<GetAccounts.Response> GetUserAccountsAsync(GetAccounts.Request request, CancellationToken cancellationToken)
     {
+        long? pageToken = request.PageToken?.AccountId;
         var userId = new UserExternalId(request.UserId);
         User? user = await _context.UserRepository
             .FindUserByExternalIdAsync(userId, cancellationToken);
@@ -231,7 +240,7 @@ internal sealed partial class AccountService : IAccountService
 
         int pageSize = request.PageSize;
         Account[] accounts = await _context.AccountRepository
-            .FindAllUserAccountsAsync(user, pageSize, cancellationToken)
+            .FindAllUserAccountsAsync(user, pageSize, cancellationToken, pageToken)
             .ToArrayAsync(cancellationToken);
 
         _logger.LogUserCompletedOperation(user.Id.Value, GetUserAccountsOperationName);
@@ -252,6 +261,11 @@ internal sealed partial class AccountService : IAccountService
         LogLevel.Warning,
         "User with external id {ExternalId} not found")]
     private static partial void LogUserWithExternalIdNotFound(ILogger logger, Guid externalId);
+
+    [LoggerMessage(
+        LogLevel.Warning,
+        "User with id {UserId} not found")]
+    private static partial void LogUserWithIdNotFound(ILogger logger, long userId);
 
     [LoggerMessage(
         LogLevel.Information,
