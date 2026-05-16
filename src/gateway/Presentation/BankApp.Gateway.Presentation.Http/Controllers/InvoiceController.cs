@@ -31,12 +31,12 @@ public class InvoiceController : ControllerBase
         Guid userId = HttpContext.GetCurrentUserId();
 
         Activity.Current?.AddUserIdBaggage(userId);
-        Activity.Current?.AddAccountIdBaggage(httpRequest.RecepientId);
+        Activity.Current?.AddAccountIdBaggage(httpRequest.RecipientId);
 
         CreateInvoice.Response response = await _client.CreateInvoiceAsync(
             userId,
             httpRequest.PayerId,
-            httpRequest.RecepientId,
+            httpRequest.RecipientId,
             httpRequest.Amount,
             cancellationToken);
         return Ok(response.InvoiceId);

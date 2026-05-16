@@ -2,6 +2,7 @@ using BankApp.Application.Abstractions.Queries;
 using BankApp.Application.Abstractions.Repositories;
 using BankApp.Domain.Accounts;
 using BankApp.Domain.Sessions;
+using BankApp.Domain.ValueObjects;
 using Moq;
 
 namespace UnitTests.Specifications;
@@ -38,6 +39,23 @@ public static class AccountRepositoryMockSpecification
         return mock;
     }
 
+    public static Mock<IAccountRepository> SetupQueryByAccountIds(
+        this Mock<IAccountRepository> mock,
+        IEnumerable<Account> accounts)
+    {
+        mock.Setup(repo => repo
+                .QueryAsync(
+                    It.IsAny<AccountQuery>(),
+                    It.IsAny<CancellationToken>()))
+            .Returns((AccountQuery query, CancellationToken cancellationToken) =>
+            {
+                HashSet<AccountId> idsSet = query.AccountIds.ToHashSet();
+
+                return accounts.Where(acc => idsSet.Contains(acc.Id)).ToAsyncEnumerable();
+            });
+        return mock;
+    }
+
     public static Mock<IAccountRepository> SetupQueryByUserIdAndPageToken(
         this Mock<IAccountRepository> mock,
         UserId userId,
@@ -52,5 +70,21 @@ public static class AccountRepositoryMockSpecification
                     It.IsAny<CancellationToken>()))
             .Returns(accounts.ToAsyncEnumerable());
         return mock;
+    }
+
+    public static void SetupUpdateWithNewBalance(
+        this Mock<IAccountRepository> mock,
+        Account accountToUpdate,
+        Money newBalance)
+    {
+        var newAccount = new Account(accountToUpdate.Id, newBalance, accountToUpdate.OwnerUserId);
+
+        mock.Setup(repo => repo.UpdateAsync(
+                It.Is<Account>(acc =>
+                    acc.Id == newAccount.Id
+                    && acc.Balance == newAccount.Balance
+                    && acc.OwnerUserId == newAccount.OwnerUserId),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Account acc, CancellationToken cancellationToken) => acc);
     }
 }

@@ -61,7 +61,9 @@ internal partial class InvoiceService : IInvoiceService
         var externalUserId = new UserExternalId(request.UserId);
 
         if (payerAccountId == recipientAccountId)
+        {
             return new CreateInvoice.Response.Failure("Cannot create invoice on same accounts");
+        }
 
         User? foundUser = await _context.UserRepository
             .FindUserByExternalIdAsync(externalUserId, cancellationToken);

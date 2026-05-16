@@ -32,4 +32,19 @@ public static class UserRepositoryMockSpecification
             .Returns(users.ToAsyncEnumerable());
         return mock;
     }
+
+    public static void SetupQueryByUserIds(
+        this Mock<IUserRepository> mock,
+        IEnumerable<User> users)
+    {
+        mock.Setup(repo => repo
+                .QueryAsync(
+                    It.IsAny<UserQuery>(),
+                    It.IsAny<CancellationToken>()))
+            .Returns((UserQuery q, CancellationToken ct) =>
+            {
+                HashSet<UserId> userIds = q.UserIds.ToHashSet();
+                return users.Where(u => userIds.Contains(u.Id)).ToAsyncEnumerable();
+            });
+    }
 }

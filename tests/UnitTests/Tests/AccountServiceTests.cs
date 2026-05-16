@@ -536,7 +536,7 @@ public sealed class AccountServiceTests
     public async Task GetUserAccounts_ShouldFail_WhenUserNotFound()
     {
         // Arrange
-        int requestPageSize = 10;
+        const int requestPageSize = 10;
         var user = new User(new UserId(1), new AutoFaker<UserExternalId>().Generate());
         var request = new GetAccounts.Request(user.UserExternalId.Value, requestPageSize);
 
