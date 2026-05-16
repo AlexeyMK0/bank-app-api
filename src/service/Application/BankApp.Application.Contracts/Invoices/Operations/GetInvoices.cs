@@ -6,13 +6,20 @@ public static class GetInvoices
 {
     public record PageToken(long InvoiceId);
 
+    public enum RequestType
+    {
+        Incoming = 0,
+        Outgouing = 1,
+    }
+
     public sealed record Request(
         Guid UserId,
         PageToken? PageToken,
         int PageSize,
         InvoiceStatusDto[] InvoiceStatuses,
-        long[] PayerIds,
-        long[] RecipientIds);
+        long[] UserAccountIds,
+        long[] TargetAccountIds,
+        RequestType Type);
 
     public abstract record Response
     {

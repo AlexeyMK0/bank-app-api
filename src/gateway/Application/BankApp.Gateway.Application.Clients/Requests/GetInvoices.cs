@@ -7,8 +7,9 @@ public static class GetInvoices
     public sealed record Request(
         Guid UserId,
         InvoiceStatusDto[] Statuses,
-        long[] PayerIds,
-        long[] RecipientIds,
+        long[] UserAccountIds,
+        long[] TargetAccountIds,
+        GetInvoicesRequestTypeDto Type,
         int? PageSize,
         string? PageToken);
 

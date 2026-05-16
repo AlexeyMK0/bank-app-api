@@ -13,7 +13,7 @@ public class UserClient : IUserClient
         _userClient = userClient;
     }
 
-    public async Task<AddUser.Response> AddUserRequestAsync(Guid externalUserId, CancellationToken cancellationToken)
+    public async Task<AddUser.Response> AddUserAsync(Guid externalUserId, CancellationToken cancellationToken)
     {
         var request = new ProtoAddUserRequest(externalUserId.ToString());
         ProtoAddUserResponse response = await _userClient.AddUserAsync(request, cancellationToken: cancellationToken);

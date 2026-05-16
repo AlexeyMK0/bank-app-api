@@ -2,6 +2,7 @@ using BankApp.Application.Contracts.Accounts;
 using BankApp.Application.Contracts.Accounts.Model;
 using BankApp.Application.Contracts.Accounts.Operations;
 using BankApp.Grpc;
+using BankApp.Presentation.Grpc.Extensions.RequestExtensions;
 using Google.Type;
 using Grpc.Core;
 using System.Diagnostics;
@@ -101,12 +102,7 @@ public class AccountController : AccountService.AccountServiceBase
         ProtoGetUserAccountsRequest request,
         ServerCallContext context)
     {
-        var externalId = Guid.Parse(request.UserExternalId);
-        int pageSize = request.PageSize ?? _defaultPageSize;
-        GetAccounts.PageToken? pageToken = request.PageToken is null
-            ? null
-            : new GetAccounts.PageToken(long.Parse(request.PageToken));
-        var apiRequest = new GetAccounts.Request(externalId, pageSize, pageToken);
+        GetAccounts.Request apiRequest = request.MapToDomain(_defaultPageSize);
 
         GetAccounts.Response result = await _accountService.GetUserAccountsAsync(apiRequest, context.CancellationToken);
         return result switch

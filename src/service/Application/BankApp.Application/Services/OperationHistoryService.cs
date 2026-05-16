@@ -1,7 +1,6 @@
 using BankApp.Application.Abstractions.Repositories;
 using BankApp.Application.Contracts.OperationHistory;
 using BankApp.Application.Extensions;
-using BankApp.Application.Extensions.LoggerExtensions;
 using BankApp.Application.Extensions.RepositorySpecifications;
 using BankApp.Application.Mappers;
 using BankApp.Domain.Accounts;
@@ -14,8 +13,6 @@ namespace BankApp.Application.Services;
 
 public class OperationHistoryService : IOperationHistoryService
 {
-    private const string GetOperationsOperationName = "GetOperations";
-
     private readonly IOperationRepository _operationRepository;
     private readonly IUserRepository _userRepository;
     private readonly IAccountRepository _accountRepository;
@@ -43,7 +40,7 @@ public class OperationHistoryService : IOperationHistoryService
             .FindUserByExternalIdAsync(externalId, cancellationToken);
         if (foundUser is null)
         {
-            _logger.LogUserWithExternalIdNotFound(externalId.Value);
+            _logger.LogWarning("User with external id {ExternalId} not found", externalId.Value);
             return new GetAccountOperations.Response.Failure("User not found");
         }
 
@@ -55,8 +52,12 @@ public class OperationHistoryService : IOperationHistoryService
             HashSet<AccountId> othersIds = accountIds
                 .SearchAccountsOfOtherUsers(foundUser, accounts);
             string errorIds = string.Join(',', othersIds.Select(id => id.Value));
-            _logger.LogUnauthorizedAccountBatchAccess(
-                foundUser.Id.Value, accounts.Length, othersIds.Count, errorIds);
+            _logger.LogWarning(
+                "User {UserId} attempted to access accounts they do not own. Requested: {RequestCount}, Unauthorized: {UnauthorizedCount}. UnauthorizedIds: {AccountIds}",
+                foundUser.Id.Value,
+                accounts.Length,
+                othersIds.Count,
+                errorIds);
             return new GetAccountOperations.Response.Failure(
                 $"Accounts not found for user {foundUser.Id}");
         }
@@ -73,7 +74,7 @@ public class OperationHistoryService : IOperationHistoryService
                 cancellationToken)
             .ToArrayAsync(cancellationToken);
 
-        _logger.LogUserCompletedOperation(foundUser.Id.Value, GetOperationsOperationName);
+        _logger.LogInformation("User {UserId} successfully completed operation GetOperations", foundUser.Id.Value);
 
         GetAccountOperations.PageToken? pageToken = operations.Length > 0
             ? new GetAccountOperations.PageToken(operations[^1].Id.Value)

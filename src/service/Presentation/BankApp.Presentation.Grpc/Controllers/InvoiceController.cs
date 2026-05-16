@@ -1,6 +1,7 @@
 using BankApp.Application.Contracts.Invoices;
 using BankApp.Application.Contracts.Invoices.Operations;
 using BankApp.Grpc;
+using BankApp.Presentation.Grpc.Extensions.RequestExtensions;
 using BankApp.Presentation.Grpc.Mappers;
 using BankApp.Presentation.Grpc.Options;
 using Grpc.Core;
@@ -78,20 +79,7 @@ public class InvoiceController : InvoiceService.InvoiceServiceBase
 
     public override async Task<ProtoGetInvoicesResponse> GetInvoices(ProtoGetInvoicesRequest request, ServerCallContext context)
     {
-        var externalId = Guid.Parse(request.UserExternalId);
-        InvoiceStatusDto[] states = request
-            .InvoiceStatuses.Select(state => state
-                .MapToDto())
-            .ToArray();
-        int pageSize = request.PageSize ?? _defaultPageSize;
-        long[] recipientIds = request.RecipientIds.ToArray();
-        long[] payerIds = request.PayerIds.ToArray();
-        GetInvoices.PageToken? pageToken
-            = request.PageToken is null
-                ? null
-                : JsonSerializer.Deserialize<GetInvoices.PageToken>(request.PageToken);
-
-        var apiRequest = new GetInvoices.Request(externalId, pageToken, pageSize, states, payerIds, recipientIds);
+        GetInvoices.Request apiRequest = request.MapToDomain(_defaultPageSize);
         GetInvoices.Response response = await _invoiceService.GetInvoicesAsync(apiRequest, context.CancellationToken);
         return response switch
         {

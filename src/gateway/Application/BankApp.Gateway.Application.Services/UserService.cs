@@ -15,7 +15,7 @@ public class UserService : IUserService
 
     public async Task<long> AddUserAsync(Guid userId, CancellationToken cancellationToken)
     {
-        AddUser.Response response = await _userClient.AddUserRequestAsync(userId, cancellationToken);
+        AddUser.Response response = await _userClient.AddUserAsync(userId, cancellationToken);
         return response.CreatedUserId;
     }
 }

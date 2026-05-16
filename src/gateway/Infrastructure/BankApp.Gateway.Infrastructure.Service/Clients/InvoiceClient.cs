@@ -44,14 +44,16 @@ public class InvoiceClient : IInvoiceClient
 
     public async Task<GetInvoices.Response> GetInvoicesAsync(GetInvoices.Request request, CancellationToken cancellationToken)
     {
-        IEnumerable<ProtoInvoiceStatus> states = request.Statuses.Select(status => status.MapToProto());
+        IEnumerable<ProtoInvoiceStatus> statuses = request.Statuses.Select(status => status.MapToProto());
+        ProtoGetInvoicesRequestType requestType = request.Type.MapToProto();
         var protoRequest = new ProtoGetInvoicesRequest(
             request.UserId.ToString(),
             request.PageToken,
             request.PageSize,
-            states,
-            request.PayerIds,
-            request.RecipientIds);
+            statuses,
+            request.UserAccountIds,
+            request.TargetAccountIds,
+            requestType);
         ProtoGetInvoicesResponse response = await _client
             .GetInvoicesAsync(protoRequest, cancellationToken: cancellationToken);
         return new GetInvoices.Response(
