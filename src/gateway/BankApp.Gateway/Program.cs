@@ -8,7 +8,7 @@ using BankApp.Gateway.Application.Contracts;
 using BankApp.Gateway.Application.Services;
 using BankApp.Gateway.Infrastructure.Service;
 using BankApp.Gateway.Presentation.Http;
-using BankApp.Gateway.Presentation.Http.AuthorizationModels;
+using BankApp.Gateway.Presentation.Http.Extensions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -31,68 +31,7 @@ builder.Services
     .AddHttpContextAccessor();
 
 builder.Services
-    .AddAuthorization(auth =>
-    {
-        auth.AddPolicy(
-            AppFeatures.ReadAccount,
-            policy => policy
-            .RequireAuthenticatedUser()
-            .RequireClaim("permissions", AppFeatures.ReadAccount));
-
-        auth.AddPolicy(
-            AppFeatures.AccountDeposit,
-            policy => policy
-            .RequireAuthenticatedUser()
-            .RequireClaim("permissions", AppFeatures.AccountDeposit));
-
-        auth.AddPolicy(
-            AppFeatures.AccountWithdraw,
-            policy => policy
-            .RequireAuthenticatedUser()
-            .RequireClaim("permissions", AppFeatures.AccountWithdraw));
-
-        auth.AddPolicy(
-            AppFeatures.ReadAccountBalance,
-            policy => policy
-            .RequireAuthenticatedUser()
-            .RequireClaim("permissions", AppFeatures.ReadAccountBalance));
-
-        auth.AddPolicy(
-            AppFeatures.CreateAccount,
-            policy => policy
-            .RequireAuthenticatedUser()
-            .RequireClaim("permissions", AppFeatures.CreateAccount));
-
-        auth.AddPolicy(
-            AppFeatures.CancelInvoice,
-            policy => policy
-            .RequireAuthenticatedUser()
-            .RequireClaim("permissions", AppFeatures.CancelInvoice));
-
-        auth.AddPolicy(
-            AppFeatures.PayInvoice,
-            policy => policy
-            .RequireAuthenticatedUser()
-            .RequireClaim("permissions", AppFeatures.PayInvoice));
-
-        auth.AddPolicy(
-            AppFeatures.ReadInvoice,
-            policy => policy
-            .RequireAuthenticatedUser()
-            .RequireClaim("permissions", AppFeatures.ReadInvoice));
-
-        auth.AddPolicy(
-            AppFeatures.CreateInvoice,
-            policy => policy
-            .RequireAuthenticatedUser()
-            .RequireClaim("permissions", AppFeatures.CreateInvoice));
-
-        auth.AddPolicy(
-            AppFeatures.ReadOperation,
-            policy => policy
-            .RequireAuthenticatedUser()
-            .RequireClaim("permissions", AppFeatures.ReadOperation));
-    });
+    .AddAuthorization(auth => auth.AddFeaturePolicies());
 
 builder.Services
     .AddAuthentication(auth =>
@@ -147,9 +86,9 @@ builder.Services
                     ?? throw new UnreachableException("Token not found");
                 IUserService userService = context.HttpContext.RequestServices
                     .GetRequiredService<IUserService>();
+                long userId = await userService.AddUserAsync(Guid.Parse(token), context.HttpContext.RequestAborted);
                 ILogger<IUserService> logger = context.HttpContext.RequestServices
                     .GetRequiredService<ILogger<IUserService>>();
-                long userId = await userService.AddUserAsync(Guid.Parse(token), context.HttpContext.RequestAborted);
                 logger.LogInformation($"Token validated for user {userId}");
             },
         };
@@ -177,9 +116,9 @@ builder.Services
                                ?? throw new UnreachableException("Token not found");
                 IUserService userService = context.HttpContext.RequestServices
                     .GetRequiredService<IUserService>();
+                long userId = await userService.AddUserAsync(Guid.Parse(token), context.HttpContext.RequestAborted);
                 ILogger<IUserService> logger = context.HttpContext.RequestServices
                     .GetRequiredService<ILogger<IUserService>>();
-                long userId = await userService.AddUserAsync(Guid.Parse(token), context.HttpContext.RequestAborted);
                 logger.LogInformation($"Token validated for user {userId}");
             },
         };

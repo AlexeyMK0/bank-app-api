@@ -1,5 +1,6 @@
 using BankApp.Gateway.Application.Abstractions.Clients;
 using BankApp.Gateway.Application.Abstractions.Requests;
+using BankApp.Gateway.Application.Models;
 using BankApp.Gateway.Presentation.Http.AuthorizationModels;
 using BankApp.Gateway.Presentation.Http.Extensions;
 using BankApp.Gateway.Presentation.Http.Operations;
@@ -82,6 +83,7 @@ public class InvoiceController : ControllerBase
             httpRequest.InvoiceStatuses ?? [],
             httpRequest.UserIds ?? [],
             httpRequest.RecipientIds ?? [],
+            GetInvoicesRequestTypeDto.Incoming,
             httpRequest.PageSize,
             httpRequest.PageToken);
 
@@ -105,8 +107,9 @@ public class InvoiceController : ControllerBase
         var request = new GetInvoices.Request(
             userId,
             httpRequest.InvoiceStatuses ?? [],
-            httpRequest.PayerIds ?? [],
             httpRequest.UserIds ?? [],
+            httpRequest.PayerIds ?? [],
+            GetInvoicesRequestTypeDto.Outgoing,
             httpRequest.PageSize,
             httpRequest.PageToken);
 

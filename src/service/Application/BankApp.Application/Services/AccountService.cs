@@ -2,7 +2,6 @@ using BankApp.Application.Abstractions;
 using BankApp.Application.Abstractions.Metrics;
 using BankApp.Application.Contracts.Accounts;
 using BankApp.Application.Contracts.Accounts.Operations;
-using BankApp.Application.Extensions.LoggerExtensions;
 using BankApp.Application.Extensions.RepositorySpecifications;
 using BankApp.Application.Mappers;
 using BankApp.Application.Options;
@@ -21,7 +20,6 @@ namespace BankApp.Application.Services;
 internal sealed partial class AccountService : IAccountService
 {
     private const IsolationLevel IsolationLevel = System.Data.IsolationLevel.ReadCommitted;
-    private const string GetUserAccountsOperationName = "GetUserAccounts";
 
     private readonly int _maxUserAccounts;
 
@@ -55,7 +53,7 @@ internal sealed partial class AccountService : IAccountService
             .FindUserByExternalIdAsync(userCreatorId, cancellationToken);
         if (user is null)
         {
-            LogUserWithExternalIdNotFound(_logger, userCreatorId.Value);
+            _logger.LogWarning("User with external id {ExternalId} not found", userCreatorId.Value);
             return new CreateAccount.Response.Failure("User not found");
         }
 
@@ -63,7 +61,7 @@ internal sealed partial class AccountService : IAccountService
             .FindUserByIdAsync(userOwnerId, cancellationToken);
         if (userOwner is null)
         {
-            LogUserWithIdNotFound(_logger, userOwnerId.Value);
+            _logger.LogWarning("User with id {UserId} not found", userOwnerId.Value);
             return new CreateAccount.Response.Failure("User not found");
         }
 
@@ -72,7 +70,10 @@ internal sealed partial class AccountService : IAccountService
             .ToArrayAsync(cancellationToken);
         if (userAccounts.Length >= _maxUserAccounts)
         {
-            LogAccountLimitReached(_logger, userAccounts.Length, _maxUserAccounts, user.Id.Value);
+            _logger.LogInformation(
+                "User {UserId} reached account limit (Max: {MaxAccountCount})",
+                _maxUserAccounts,
+                user.Id.Value);
             return new CreateAccount.Response.Failure(
                 $"User already has {_maxUserAccounts} accounts, cannot create more");
         }
@@ -81,7 +82,7 @@ internal sealed partial class AccountService : IAccountService
             new Account(AccountId.Default, Money.Zero, userOwnerId),
             cancellationToken);
 
-        LogAccountCreated(_logger, newAccount.Id.Value, user.Id.Value);
+        _logger.LogInformation("Account {AccountId} created for user {UserId}", newAccount.Id.Value, user.Id.Value);
 
         _metrics.IncCreatedAccounts();
 
@@ -97,7 +98,7 @@ internal sealed partial class AccountService : IAccountService
             .FindUserByExternalIdAsync(userId, cancellationToken);
         if (user is null)
         {
-            LogUserWithExternalIdNotFound(_logger, userId.Value);
+            _logger.LogWarning("User with external id {ExternalId} not found", userId.Value);
             return new CheckBalance.Response.Failure("User not found");
         }
 
@@ -106,13 +107,20 @@ internal sealed partial class AccountService : IAccountService
             .FindAccountByIdAsync(accountId, cancellationToken);
         if (account is null)
         {
-            LogAccountNotFound(_logger, user.Id.Value, accountId.Value);
+            _logger.LogInformation(
+                "User {UserId} attempted to find non-existing account {accountId}",
+                user.Id.Value,
+                accountId.Value);
             return new CheckBalance.Response.Failure(CreateAccountNotFoundForUserMessage(accountId, user));
         }
 
         if (account.OwnerUserId != user.Id)
         {
-            LogUnauthorizedAccess(_logger, user.Id.Value, account.Id.Value, account.OwnerUserId.Value);
+            _logger.LogWarning(
+                "User {UserId} attempted to access account {accountId} owned by {AccountOwnerId}",
+                user.Id.Value,
+                account.Id.Value,
+                account.OwnerUserId.Value);
             return new CheckBalance.Response.Failure(CreateAccountNotFoundForUserMessage(accountId, user));
         }
 
@@ -130,7 +138,7 @@ internal sealed partial class AccountService : IAccountService
             .FindUserByExternalIdAsync(userId, cancellationToken);
         if (user is null)
         {
-            LogUserWithExternalIdNotFound(_logger, userId.Value);
+            _logger.LogWarning("User with external id {ExternalId} not found", userId.Value);
             return new WithdrawMoney.Response.Failure("User not found");
         }
 
@@ -139,19 +147,31 @@ internal sealed partial class AccountService : IAccountService
             .FindAccountByIdAsync(accountId, cancellationToken);
         if (account is null)
         {
-            LogAccountNotFound(_logger, user.Id.Value, accountId.Value);
+            _logger.LogInformation(
+                "User {UserId} attempted to find non-existing account {accountId}",
+                user.Id.Value,
+                accountId.Value);
             return new WithdrawMoney.Response.Failure(CreateAccountNotFoundForUserMessage(accountId, user));
         }
 
         if (account.OwnerUserId != user.Id)
         {
-            LogUnauthorizedAccess(_logger, user.Id.Value, accountId.Value, account.OwnerUserId.Value);
+            _logger.LogWarning(
+                "User {UserId} attempted to access account {accountId} owned by {AccountOwnerId}",
+                user.Id.Value,
+                accountId.Value,
+                account.OwnerUserId.Value);
             return new WithdrawMoney.Response.Failure(CreateAccountNotFoundForUserMessage(accountId, user));
         }
 
         if (account.CanWithdraw(requestMoney) is false)
         {
-            LogNotEnoughMoneyForWithdrawal(_logger, user.Id.Value, accountId.Value, requestMoney.Value, account.Balance.Value);
+            _logger.LogInformation(
+                "Not enough money on user's {UserId} account {AccountId} for withdrawal (Required: {RequiredMoney}, Actual: {ActualMoney})",
+                user.Id.Value,
+                accountId.Value,
+                requestMoney.Value,
+                account.Balance.Value);
             return new WithdrawMoney.Response.Failure("Not enough money for withdrawal");
         }
 
@@ -169,7 +189,11 @@ internal sealed partial class AccountService : IAccountService
 
         await transaction.CommitAsync(cancellationToken);
 
-        LogSuccessfulWithdrawal(_logger, user.Id.Value, requestMoney.Value, accountId.Value);
+        _logger.LogInformation(
+            "User {userId} successfully withdrew {Money} money from account {AccountId}",
+            user.Id.Value,
+            requestMoney.Value,
+            accountId.Value);
 
         _metrics.IncWithdrawalAmount(requestMoney.Value);
 
@@ -187,7 +211,7 @@ internal sealed partial class AccountService : IAccountService
             .FindUserByExternalIdAsync(userId, cancellationToken);
         if (user is null)
         {
-            LogUserWithExternalIdNotFound(_logger, userId.Value);
+            _logger.LogWarning("User with external id {ExternalId} not found", userId.Value);
             return new DepositMoney.Response.Failure("User not found");
         }
 
@@ -196,13 +220,20 @@ internal sealed partial class AccountService : IAccountService
             .FindAccountByIdAsync(accountId, cancellationToken);
         if (account is null)
         {
-            LogAccountNotFound(_logger, user.Id.Value, accountId.Value);
+            _logger.LogInformation(
+                "User {UserId} attempted to find non-existing account {accountId}",
+                user.Id.Value,
+                accountId.Value);
             return new DepositMoney.Response.Failure(CreateAccountNotFoundForUserMessage(accountId, user));
         }
 
         if (account.OwnerUserId != user.Id)
         {
-            LogUnauthorizedAccess(_logger, user.Id.Value, account.Id.Value, account.OwnerUserId.Value);
+            _logger.LogWarning(
+                "User {UserId} attempted to access account {accountId} owned by {AccountOwnerId}",
+                user.Id.Value,
+                account.Id.Value,
+                account.OwnerUserId.Value);
             return new DepositMoney.Response.Failure(CreateAccountNotFoundForUserMessage(accountId, user));
         }
 
@@ -219,7 +250,11 @@ internal sealed partial class AccountService : IAccountService
 
         await transaction.CommitAsync(cancellationToken);
 
-        LogSuccessfulDeposit(_logger, user.Id.Value, requestMoney.Value, accountId.Value);
+        _logger.LogInformation(
+            "User {userId} successfully deposited {Money} money to account {AccountId}",
+            user.Id.Value,
+            requestMoney.Value,
+            accountId.Value);
 
         _metrics.IncDepositAmount(requestMoney.Value);
 
@@ -234,7 +269,7 @@ internal sealed partial class AccountService : IAccountService
             .FindUserByExternalIdAsync(userId, cancellationToken);
         if (user is null)
         {
-            _logger.LogUserWithExternalIdNotFound(userId.Value);
+            _logger.LogWarning("User with external id {ExternalId} not found", userId.Value);
             return new GetAccounts.Response.Failure("User not found");
         }
 
@@ -243,7 +278,7 @@ internal sealed partial class AccountService : IAccountService
             .FindAllUserAccountsAsync(user, pageSize, cancellationToken, pageToken)
             .ToArrayAsync(cancellationToken);
 
-        _logger.LogUserCompletedOperation(user.Id.Value, GetUserAccountsOperationName);
+        _logger.LogInformation("User {UserId} successfully completed operation GetUserAccounts", user.Id.Value);
 
         GetAccounts.PageToken? outputPageToken = accounts.Length == 0
             ? null
@@ -256,49 +291,4 @@ internal sealed partial class AccountService : IAccountService
     {
         return $"Account {accountId.Value} not found for user: {user.Id.Value}";
     }
-
-    [LoggerMessage(
-        LogLevel.Warning,
-        "User with external id {ExternalId} not found")]
-    private static partial void LogUserWithExternalIdNotFound(ILogger logger, Guid externalId);
-
-    [LoggerMessage(
-        LogLevel.Warning,
-        "User with id {UserId} not found")]
-    private static partial void LogUserWithIdNotFound(ILogger logger, long userId);
-
-    [LoggerMessage(
-        LogLevel.Information,
-        "User {UserId} reached account limit (Current: {CurrentAccountCount}, Max: {MaxAccountCount})")]
-    private static partial void LogAccountLimitReached(ILogger logger, long currentAccountCount, long maxAccountCount, long userId);
-
-    [LoggerMessage(
-        LogLevel.Information,
-        "Account {AccountId} created for user {UserId}")]
-    private static partial void LogAccountCreated(ILogger logger, long accountId, long userId);
-
-    [LoggerMessage(
-        LogLevel.Information,
-        "User {UserId} attempted to find non-existing account {accountId}")]
-    private static partial void LogAccountNotFound(ILogger logger, long userId, long accountId);
-
-    [LoggerMessage(
-        LogLevel.Warning,
-        "User {UserId} attempted to access account {accountId} owned by {AccountOwnerId}")]
-    private static partial void LogUnauthorizedAccess(ILogger logger, long userId, long accountId, long accountOwnerId);
-
-    [LoggerMessage(
-        LogLevel.Information,
-        "Not enough money on user's {UserId} account {AccountId} for withdrawal (Required: {RequiredMoney}, Actual: {ActualMoney})")]
-    private static partial void LogNotEnoughMoneyForWithdrawal(ILogger logger, long userId, long accountId, decimal requiredMoney, decimal actualMoney);
-
-    [LoggerMessage(
-        LogLevel.Information,
-        "User {userId} successfully withdrew {Money} money from account {AccountId}")]
-    private static partial void LogSuccessfulWithdrawal(ILogger logger, long userId, decimal money, long accountId);
-
-    [LoggerMessage(
-        LogLevel.Information,
-        "User {userId} successfully deposited {Money} money to account {AccountId}")]
-    private static partial void LogSuccessfulDeposit(ILogger logger, long userId, decimal money, long accountId);
 }

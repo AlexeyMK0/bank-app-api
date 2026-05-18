@@ -45,8 +45,9 @@ message GetInvoicesRequest {
   google.protobuf.StringValue page_token = 2;
   google.protobuf.Int32Value page_size = 3;
   repeated InvoiceStatus invoice_statuses = 4;
-  repeated int64 payer_ids = 5;
-  repeated int64 recipient_ids = 6;
+  repeated int64 user_account_ids = 5;
+  repeated int64 target_account_ids = 6;
+  GetInvoicesRequestType request_type = 7;
 }
 
 message GetInvoicesResponse {
@@ -60,6 +61,12 @@ message InvoiceModel {
   InvoiceStatus State = 3;
   int64 RecipientId = 4;
   int64 PayerId = 5;
+}
+
+enum GetInvoicesRequestType {
+  GET_INVOICES_REQUEST_TYPE_UNSPECIFIED = 0;
+  GET_INVOICES_REQUEST_TYPE_INCOMING = 1;
+  GET_INVOICES_REQUEST_TYPE_OUTGOING = 2;
 }
 
 enum InvoiceStatus {
