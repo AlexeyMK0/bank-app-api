@@ -20,6 +20,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using System.Data;
 using System.Security.Cryptography;
+using UnitTests.Helpers;
 using UnitTests.Mocks;
 using UnitTests.Specifications;
 
@@ -27,6 +28,11 @@ namespace UnitTests.Tests;
 
 public sealed class InvoiceServiceTests
 {
+    /*private static readonly InvoiceStatus[] AllInvoiceStatuses =
+        [InvoiceStatus.Cancelled, InvoiceStatus.Created, InvoiceStatus.Paid];
+
+    private static readonly InvoiceStatus[] EmptyInvoiceStatuses = [];*/
+
     private readonly MockPersistenceContext _persistenceContext = new();
     private readonly Mock<IServiceMetrics> _metricsMock = new(MockBehavior.Strict);
     private readonly Mock<IPersistenceTransactionProvider> _transactionMock = new(MockBehavior.Strict);
@@ -778,13 +784,20 @@ public sealed class InvoiceServiceTests
        ---------- GetInvoices ---------
        ---------------------------------- */
     [Theory]
-    [InlineData(null, 10, 10, false)]
-    [InlineData(null, 10, 0, true)]
-    public async Task GetInvoices_ShouldSucceed(long? inputKeyCursor, int pageSize, int totalInvoices, bool pageTokenReturned)
+    [InlineData(null, 10, 10, true, GetInvoices.RequestType.Incoming)]
+    [InlineData(null, 10, 0, false, GetInvoices.RequestType.Incoming)]
+    [InlineData(null, 10, 10, true, GetInvoices.RequestType.Outgoing)]
+    [InlineData(null, 10, 0, false, GetInvoices.RequestType.Outgoing)]
+    public async Task GetInvoices_ShouldSucceed(
+        long? inputKeyCursor,
+        int pageSize,
+        int totalInvoices,
+        bool pageTokenReturned,
+        GetInvoices.RequestType requestType)
     {
         // Arrange
-        const int userAccounts = 5;
-        const int otherUserAccounts = 15;
+        const int userAccountsCount = 5;
+        const int otherUserAccountsCount = 15;
         GetInvoices.PageToken? pageToken = inputKeyCursor is null
             ? null
             : new GetInvoices.PageToken(inputKeyCursor.Value);
@@ -793,9 +806,6 @@ public sealed class InvoiceServiceTests
             : new InvoiceId(inputKeyCursor.Value);
         InvoiceStatus[] statuses = [InvoiceStatus.Paid, InvoiceStatus.Cancelled, InvoiceStatus.Created];
         InvoiceStatusDto[] statusDto = statuses.Select(st => st.MapToDto()).ToArray();
-
-        long[] invoiceIds = [1, 2, 3, 5, 9];
-        InvoiceId[] domainInvoiceIds = invoiceIds.Select(id => new InvoiceId(id)).ToArray();
 
         List<UserId> otherUserIds = [new(2), new(3), new(4), new(5)];
 
@@ -806,25 +816,17 @@ public sealed class InvoiceServiceTests
 
         _persistenceContext.UserRepository.SetupQueryByUserIds(allUsers);
         _persistenceContext.UserRepository.SetupQueryByUserExternalId(requestUser.UserExternalId, [requestUser]);
-        Faker<Account> accountFaker =
-            new AutoFaker<Account>()
-                .RuleFor(acc => acc.Balance, faker => new Money(faker.Random.Number(1, 1000000)))
-                .RuleFor(acc => acc.OwnerUserId, faker => faker.PickRandom(otherUserIds))
-                .RuleFor(acc => acc.Id, faker => new AccountId(faker.IndexFaker + 1));
 
-        Faker<Account> userAccountFaker =
-            new AutoFaker<Account>()
-                .RuleFor(acc => acc.Balance, faker => new Money(faker.Random.Number(1, 1000000)))
-                .RuleFor(acc => acc.OwnerUserId, requestUser.Id)
-                .RuleFor(acc => acc.Id, faker => new AccountId(faker.IndexFaker + otherUserAccounts));
+        Faker<Account> accountFaker = FakerCreators.CreateAccountFaker(otherUserIds);
+        Faker<Account> userAccountFaker = FakerCreators.CreateAccountFaker([requestUser.Id], otherUserAccountsCount + 1);
 
-        List<Account> accounts = accountFaker.Generate(otherUserAccounts);
-        accounts.AddRange(userAccountFaker.Generate(userAccounts));
+        List<Account> accounts = accountFaker.Generate(otherUserAccountsCount);
+        accounts.AddRange(userAccountFaker.Generate(userAccountsCount));
 
-        AccountId[] domainPayerIds = accounts
+        AccountId[] userAccountIds = accounts
             .Where(acc => acc.OwnerUserId == requestUser.Id)
             .Select(acc => acc.Id).ToArray();
-        AccountId[] domainRecipientIds = accounts
+        AccountId[] otherUserAccountIds = accounts
             .Where(acc => acc.OwnerUserId != requestUser.Id)
             .Select(acc => acc.Id).ToArray();
 
@@ -832,19 +834,20 @@ public sealed class InvoiceServiceTests
 
         List<Invoice> invoices = GenerateInvoices(totalInvoices, accounts);
         InvoiceDto[] invoiceDtos = invoices.Select(i => i.MapToDto()).ToArray();
-        var query = new InvoiceQuery(
+
+        InvoiceQuery query = BuildInvoiceQuery(
             keyCursor,
             pageSize,
-            domainInvoiceIds,
-            domainPayerIds,
-            domainRecipientIds,
-            statuses);
+            userAccountIds,
+            otherUserAccountIds,
+            statuses,
+            requestType);
 
         _persistenceContext.InvoiceRepository.SetupQueryByQuery(query, invoices);
 
-        long[] payerIds = domainPayerIds.Select(accId => accId.Value).ToArray();
-        long[] recipientIds = domainRecipientIds.Select(accId => accId.Value).ToArray();
-        var request = new GetInvoices.Request(requestUser.UserExternalId.Value, pageToken, pageSize, statusDto, payerIds, recipientIds);
+        long[] userIds = userAccountIds.Select(accId => accId.Value).ToArray();
+        long[] otherIds = otherUserAccountIds.Select(accId => accId.Value).ToArray();
+        var request = new GetInvoices.Request(requestUser.UserExternalId.Value, pageToken, pageSize, statusDto, userIds, otherIds, requestType);
 
         // Act
         GetInvoices.Response response = await _invoiceService.GetInvoicesAsync(request, CancellationToken.None);
@@ -861,6 +864,204 @@ public sealed class InvoiceServiceTests
         {
             success.PageToken.Should().BeNull();
         }
+    }
+
+    [Theory]
+    [InlineData(GetInvoices.RequestType.Incoming)]
+    [InlineData(GetInvoices.RequestType.Outgoing)]
+    public async Task GetInvoices_ShouldFail_WhenUserNotFound(GetInvoices.RequestType requestType)
+    {
+        // Arrange
+        const int pageSize = 10;
+        GetInvoices.PageToken? pageToken = null;
+        InvoiceStatus[] statuses = [InvoiceStatus.Paid, InvoiceStatus.Cancelled, InvoiceStatus.Created];
+        InvoiceStatusDto[] statusDto = statuses.Select(st => st.MapToDto()).ToArray();
+
+        var requestUser = new User(new UserId(1), new AutoFaker<UserExternalId>().Generate());
+
+        _persistenceContext.UserRepository.SetupQueryByUserExternalId(requestUser.UserExternalId, []);
+
+        var request = new GetInvoices.Request(
+            requestUser.UserExternalId.Value,
+            pageToken,
+            pageSize,
+            statusDto,
+            [],
+            [],
+            requestType);
+
+        // Act
+        GetInvoices.Response response = await _invoiceService.GetInvoicesAsync(request, CancellationToken.None);
+
+        // Assert
+        response.Should().BeOfType<GetInvoices.Response.Failure>();
+    }
+
+    [Theory]
+    [InlineData(5, 5, GetInvoices.RequestType.Incoming)]
+    [InlineData(5, 5, GetInvoices.RequestType.Outgoing)]
+    [InlineData(0, 5, GetInvoices.RequestType.Incoming)]
+    [InlineData(0, 5, GetInvoices.RequestType.Outgoing)]
+    public async Task GetInvoices_ShouldFail_WhenAccountNotBelongToUser(
+        int goodUserAccounts,
+        int badUserAccounts,
+        GetInvoices.RequestType requestType)
+    {
+        // Arrange
+        const int otherUserAccountsCount = 5;
+        const int pageSize = 10;
+        GetInvoices.PageToken? pageToken = null;
+        InvoiceStatus[] statuses = [InvoiceStatus.Paid, InvoiceStatus.Cancelled, InvoiceStatus.Created];
+        InvoiceStatusDto[] statusDto = statuses.Select(st => st.MapToDto()).ToArray();
+
+        List<UserId> otherUserIds = [new(2), new(3), new(4), new(5)];
+
+        var requestUser = new User(new UserId(1), new AutoFaker<UserExternalId>().Generate());
+        var userExternalIdFaker = new AutoFaker<UserExternalId>();
+        var allUsers = otherUserIds.Select(id => new User(id, userExternalIdFaker.Generate())).ToList();
+        allUsers.Add(requestUser);
+
+        _persistenceContext.UserRepository.SetupQueryByUserIds(allUsers);
+        _persistenceContext.UserRepository.SetupQueryByUserExternalId(requestUser.UserExternalId, [requestUser]);
+
+        Faker<Account> accountFaker = FakerCreators.CreateAccountFaker(otherUserIds);
+        Faker<Account> userAccountFaker = FakerCreators.CreateAccountFaker([requestUser.Id], otherUserAccountsCount + 1);
+
+        var userAccounts = accountFaker.Generate(badUserAccounts)
+            .Concat(userAccountFaker.Generate(goodUserAccounts)).ToList();
+        List<Account> otherUserAccounts = accountFaker.Generate(otherUserAccountsCount);
+
+        var allAccounts = userAccounts.Concat(otherUserAccounts).ToList();
+
+        AccountId[] userAccountIds = userAccounts
+            .Select(acc => acc.Id).ToArray();
+        AccountId[] otherUserAccountIds = otherUserAccounts
+            .Select(acc => acc.Id).ToArray();
+
+        _persistenceContext.AccountRepository.SetupQueryByAccountIds(allAccounts);
+
+        long[] userIds = userAccountIds.Select(accId => accId.Value).ToArray();
+        long[] otherIds = otherUserAccountIds.Select(accId => accId.Value).ToArray();
+        var request = new GetInvoices.Request(requestUser.UserExternalId.Value, pageToken, pageSize, statusDto, userIds, otherIds, requestType);
+
+        // Act
+        GetInvoices.Response response = await _invoiceService.GetInvoicesAsync(request, CancellationToken.None);
+
+        // Assert
+        response.Should().BeOfType<GetInvoices.Response.Failure>();
+    }
+
+    [Theory]
+    [InlineData(5, 5, GetInvoices.RequestType.Incoming)]
+    [InlineData(5, 5, GetInvoices.RequestType.Outgoing)]
+    [InlineData(0, 5, GetInvoices.RequestType.Incoming)]
+    [InlineData(0, 5, GetInvoices.RequestType.Outgoing)]
+    public async Task GetInvoices_ShouldFail_WhenUserAccountsNotExist(
+        int goodUserAccounts,
+        int badUserAccounts,
+        GetInvoices.RequestType requestType)
+    {
+        // Arrange
+        const int otherUserAccountsCount = 5;
+        const int pageSize = 20;
+        GetInvoices.PageToken? pageToken = null;
+        InvoiceStatus[] statuses = [InvoiceStatus.Paid, InvoiceStatus.Cancelled, InvoiceStatus.Created];
+        InvoiceStatusDto[] statusDto = statuses.Select(st => st.MapToDto()).ToArray();
+
+        List<UserId> otherUserIds = [new(2), new(3), new(4), new(5)];
+
+        var requestUser = new User(new UserId(1), new AutoFaker<UserExternalId>().Generate());
+        var userExternalIdFaker = new AutoFaker<UserExternalId>();
+        var allUsers = otherUserIds.Select(id => new User(id, userExternalIdFaker.Generate())).ToList();
+        allUsers.Add(requestUser);
+
+        _persistenceContext.UserRepository.SetupQueryByUserIds(allUsers);
+        _persistenceContext.UserRepository.SetupQueryByUserExternalId(requestUser.UserExternalId, [requestUser]);
+
+        Faker<Account> accountFaker = FakerCreators.CreateAccountFaker(otherUserIds);
+        Faker<Account> userAccountFaker = FakerCreators.CreateAccountFaker([requestUser.Id], otherUserAccountsCount + 1);
+
+        List<Account> userExistingAccounts = userAccountFaker.Generate(goodUserAccounts);
+        List<Account> userNonExistingAccounts = userAccountFaker.Generate(badUserAccounts);
+        var allUserAccounts = userExistingAccounts.Concat(userNonExistingAccounts).ToList();
+
+        List<Account> otherUserAccounts = accountFaker.Generate(otherUserAccountsCount);
+
+        var allExistingAccounts = userExistingAccounts.Concat(otherUserAccounts).ToList();
+
+        AccountId[] userAccountRequestIds = allUserAccounts
+            .Select(acc => acc.Id).ToArray();
+        AccountId[] otherUserAccountIds = otherUserAccounts
+            .Select(acc => acc.Id).ToArray();
+
+        _persistenceContext.AccountRepository.SetupQueryByAccountIds(allExistingAccounts);
+
+        long[] userIds = userAccountRequestIds.Select(accId => accId.Value).ToArray();
+        long[] otherIds = otherUserAccountIds.Select(accId => accId.Value).ToArray();
+        var request = new GetInvoices.Request(requestUser.UserExternalId.Value, pageToken, pageSize, statusDto, userIds, otherIds, requestType);
+
+        // Act
+        GetInvoices.Response response = await _invoiceService.GetInvoicesAsync(request, CancellationToken.None);
+
+        // Assert
+        response.Should().BeOfType<GetInvoices.Response.Failure>();
+    }
+
+    [Theory]
+    [InlineData(5, 5, GetInvoices.RequestType.Incoming)]
+    [InlineData(5, 5, GetInvoices.RequestType.Outgoing)]
+    [InlineData(0, 5, GetInvoices.RequestType.Incoming)]
+    [InlineData(0, 5, GetInvoices.RequestType.Outgoing)]
+    public async Task GetInvoices_ShouldFail_WhenOtherUserAccountsNotExist(
+        int goodAccounts,
+        int badAccounts,
+        GetInvoices.RequestType requestType)
+    {
+        // Arrange
+        const int userAccountsCount = 5;
+        const int pageSize = 10;
+        int otherUserAccountsCount = goodAccounts + badAccounts;
+        GetInvoices.PageToken? pageToken = null;
+        InvoiceStatus[] statuses = [InvoiceStatus.Paid, InvoiceStatus.Cancelled, InvoiceStatus.Created];
+        InvoiceStatusDto[] statusDto = statuses.Select(st => st.MapToDto()).ToArray();
+
+        List<UserId> otherUserIds = [new(2), new(3), new(4), new(5)];
+
+        var requestUser = new User(new UserId(1), new AutoFaker<UserExternalId>().Generate());
+        var userExternalIdFaker = new AutoFaker<UserExternalId>();
+        var allUsers = otherUserIds.Select(id => new User(id, userExternalIdFaker.Generate())).ToList();
+        allUsers.Add(requestUser);
+
+        _persistenceContext.UserRepository.SetupQueryByUserIds(allUsers);
+        _persistenceContext.UserRepository.SetupQueryByUserExternalId(requestUser.UserExternalId, [requestUser]);
+
+        Faker<Account> accountFaker = FakerCreators.CreateAccountFaker(otherUserIds);
+        Faker<Account> userAccountFaker = FakerCreators.CreateAccountFaker([requestUser.Id], otherUserAccountsCount + 1);
+
+        List<Account> existingOtherUsersAccounts = accountFaker.Generate(goodAccounts);
+        List<Account> nonExistingOtherUsersAccounts = accountFaker.Generate(badAccounts);
+        var allOtherUsersAccounts = existingOtherUsersAccounts.Concat(nonExistingOtherUsersAccounts).ToList();
+
+        List<Account> userAccounts = userAccountFaker.Generate(userAccountsCount);
+
+        var allExistingAccounts = userAccounts.Concat(existingOtherUsersAccounts).ToList();
+
+        AccountId[] userAccountIds = userAccounts
+            .Select(acc => acc.Id).ToArray();
+        AccountId[] otherUserAccountIds = allOtherUsersAccounts
+            .Select(acc => acc.Id).ToArray();
+
+        _persistenceContext.AccountRepository.SetupQueryByAccountIds(allExistingAccounts);
+
+        long[] userIds = userAccountIds.Select(accId => accId.Value).ToArray();
+        long[] otherIds = otherUserAccountIds.Select(accId => accId.Value).ToArray();
+        var request = new GetInvoices.Request(requestUser.UserExternalId.Value, pageToken, pageSize, statusDto, userIds, otherIds, requestType);
+
+        // Act
+        GetInvoices.Response response = await _invoiceService.GetInvoicesAsync(request, CancellationToken.None);
+
+        // Assert
+        response.Should().BeOfType<GetInvoices.Response.Failure>();
     }
 
     private static List<Invoice> GenerateInvoices(int quantity, List<Account> accounts)
@@ -882,5 +1083,35 @@ public sealed class InvoiceServiceTests
         }
 
         return invoices;
+    }
+
+    private InvoiceQuery BuildInvoiceQuery(
+        InvoiceId? keyCursor,
+        int pageSize,
+        AccountId[] userAccountIds,
+        AccountId[] targetAccountIds,
+        InvoiceStatus[] statuses,
+        GetInvoices.RequestType type)
+    {
+        var queryBuilder = new InvoiceQuery.Builder();
+        queryBuilder
+            .WithPageSize(pageSize)
+            .WithKeyCursor(keyCursor)
+            .WithStatuses(statuses);
+        switch (type)
+        {
+            case GetInvoices.RequestType.Incoming:
+                queryBuilder.WithPayers(userAccountIds);
+                queryBuilder.WithRecipients(targetAccountIds);
+                break;
+            case GetInvoices.RequestType.Outgoing:
+                queryBuilder.WithRecipients(userAccountIds);
+                queryBuilder.WithPayers(targetAccountIds);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException($"Argument out of range: request type is {type}");
+        }
+
+        return queryBuilder.Build();
     }
 }

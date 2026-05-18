@@ -22,7 +22,7 @@ using System.Runtime.CompilerServices;
 
 namespace BankApp.Application.Services;
 
-internal partial class InvoiceService : IInvoiceService
+internal class InvoiceService : IInvoiceService
 {
     private const string PayerRole = "Payer";
     private const string RecipientRole = "Recipient";
@@ -278,11 +278,6 @@ internal partial class InvoiceService : IInvoiceService
         AccountId[] userAccountIds = request.UserAccountIds.Select(id => new AccountId(id)).ToArray();
         AccountId[] targetAccountIds = request.TargetAccountIds.Select(id => new AccountId(id)).ToArray();
 
-        if (userAccountIds.Length == 0)
-        {
-            return new GetInvoices.Response.Success([], null);
-        }
-
         InvoiceId? inputKeyCursor = request.PageToken is null
             ? null
             : new InvoiceId(request.PageToken.InvoiceId);
@@ -298,6 +293,11 @@ internal partial class InvoiceService : IInvoiceService
         {
             _logger.LogWarning("User with external id {ExternalId} not found", userId.Value);
             return new GetInvoices.Response.Failure("User not found");
+        }
+
+        if (userAccountIds.Length == 0)
+        {
+            return new GetInvoices.Response.Success([], null);
         }
 
         (AccountId[] otherUsersAccounts, AccountId[] nonExistingAccounts)
@@ -325,26 +325,13 @@ internal partial class InvoiceService : IInvoiceService
             return new GetInvoices.Response.Failure($"Accounts not found for user {user.Id.Value}");
         }
 
-        var queryBuilder = new InvoiceQuery.Builder();
-        queryBuilder
-            .WithPageSize(requestPageSize)
-            .WithKeyCursor(inputKeyCursor)
-            .WithStatuses(requestStatuses);
-        switch (request.Type)
-        {
-            case GetInvoices.RequestType.Incoming:
-                queryBuilder.WithPayers(userAccountIds);
-                queryBuilder.WithRecipients(targetAccountIds);
-                break;
-            case GetInvoices.RequestType.Outgouing:
-                queryBuilder.WithRecipients(userAccountIds);
-                queryBuilder.WithPayers(targetAccountIds);
-                break;
-            default:
-                throw new ArgumentOutOfRangeException($"Argument out of range: request type is {request.Type}");
-        }
-
-        InvoiceQuery query = queryBuilder.Build();
+        InvoiceQuery query = BuildInvoiceQuery(
+            requestPageSize,
+            inputKeyCursor,
+            requestStatuses,
+            request.Type,
+            userAccountIds,
+            targetAccountIds);
 
         Invoice[] invoices = await _context.InvoiceRepository
             .QueryAsync(query, cancellationToken)
@@ -433,10 +420,40 @@ internal partial class InvoiceService : IInvoiceService
         var existingAccountIdsSet = accounts.Select(acc => acc.Id).ToHashSet();
         foreach (AccountId accountId in accountIds)
         {
-            if (existingAccountIdsSet.Contains(accountId))
+            if (existingAccountIdsSet.Contains(accountId) is false)
             {
                 yield return accountId;
             }
         }
+    }
+
+    private InvoiceQuery BuildInvoiceQuery(
+        int pageSize,
+        InvoiceId? keyCursor,
+        InvoiceStatus[] statuses,
+        GetInvoices.RequestType type,
+        AccountId[] userAccountIds,
+        AccountId[] targetAccountIds)
+    {
+        var queryBuilder = new InvoiceQuery.Builder();
+        queryBuilder
+            .WithPageSize(pageSize)
+            .WithKeyCursor(keyCursor)
+            .WithStatuses(statuses);
+        switch (type)
+        {
+            case GetInvoices.RequestType.Incoming:
+                queryBuilder.WithPayers(userAccountIds);
+                queryBuilder.WithRecipients(targetAccountIds);
+                break;
+            case GetInvoices.RequestType.Outgoing:
+                queryBuilder.WithRecipients(userAccountIds);
+                queryBuilder.WithPayers(targetAccountIds);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException($"Argument out of range: request type is {type}");
+        }
+
+        return queryBuilder.Build();
     }
 }

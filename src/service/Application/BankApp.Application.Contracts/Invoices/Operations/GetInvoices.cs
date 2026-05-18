@@ -9,7 +9,7 @@ public static class GetInvoices
     public enum RequestType
     {
         Incoming = 0,
-        Outgouing = 1,
+        Outgoing = 1,
     }
 
     public sealed record Request(

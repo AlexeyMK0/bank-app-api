@@ -10,7 +10,7 @@ public static class GetInvoicesRequestMapper
         return requestType switch
         {
             ProtoGetInvoicesRequestType.Incoming => GetInvoices.RequestType.Incoming,
-            ProtoGetInvoicesRequestType.Outgoing => GetInvoices.RequestType.Outgouing,
+            ProtoGetInvoicesRequestType.Outgoing => GetInvoices.RequestType.Outgoing,
             ProtoGetInvoicesRequestType.Unspecified => throw new UnreachableException(),
             _ => throw new ArgumentOutOfRangeException(nameof(requestType), requestType, null),
         };
