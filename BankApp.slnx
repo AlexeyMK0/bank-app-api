@@ -42,6 +42,7 @@
     <Project Path="src\service\Presentation\BankApp.Presentation.Grpc\BankApp.Presentation.Grpc.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/IntegrationalTests/IntegrationalTests.csproj" />
     <Project Path="tests/UnitTests/UnitTests.csproj" />
   </Folder>
 </Solution>

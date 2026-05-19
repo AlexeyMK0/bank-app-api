@@ -21,4 +21,12 @@ public sealed class MockPersistenceContext : IPersistenceContext
     IOperationRepository IPersistenceContext.OperationRepository => OperationRepository.Object;
 
     IUserRepository IPersistenceContext.UserRepository => UserRepository.Object;
+
+    public void VerifyAll()
+    {
+        AccountRepository.VerifyAll();
+        InvoiceRepository.VerifyAll();
+        OperationRepository.VerifyAll();
+        UserRepository.VerifyAll();
+    }
 }
