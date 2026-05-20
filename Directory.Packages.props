@@ -41,6 +41,7 @@
     <PackageVersion Include="Npgsql.OpenTelemetry" Version="10.0.2" />
     <PackageVersion Include="Refit" Version="10.0.1" />
     <PackageVersion Include="Refit.HttpClientFactory" Version="10.0.1" />
+    <PackageVersion Include="Respawn" Version="7.0.0" />
     <PackageVersion Include="SourceKit" Version="1.1.54" />
     <PackageVersion Include="SourceKit.Analyzers.Collections" Version="1.0.52" />
     <PackageVersion Include="SourceKit.Analyzers.Enumerable" Version="1.0.52" />

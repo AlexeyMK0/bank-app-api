@@ -1,52 +1,45 @@
+using FluentMigrator.Runner;
 using Itmo.Dev.Platform.Testing.ApplicationFactories;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Npgsql;
+using Respawn;
+using System.Data;
+using System.Data.Common;
 using Testcontainers.PostgreSql;
 
 namespace IntegrationalTests.Fixtures;
 
 public class WebApplicationFixture : IAsyncLifetime
 {
-    private readonly PostgreSqlContainer _container = new PostgreSqlBuilder("postgres:latest").Build();
+    private readonly PostgreSqlContainer _container = new PostgreSqlBuilder("postgres:latest")
+        .WithReuse(true)
+        .Build();
 
 #pragma warning disable SK1200
+    private Respawner? _respawner = null;
+
     private WebApplicationFactory<Program> _webApplicationFactory = null!;
 #pragma warning restore SK1200
 
     public IServiceProvider Services => _webApplicationFactory.Services;
 
+    private static readonly string[] RespawnSchemasToInclude = new[] { "public" };
+
     public async Task InitializeAsync()
     {
-        // TODO: нужен ли cancellationToken
-        var ctSource = new CancellationTokenSource();
-        try
-        {
-            ctSource.CancelAfter(TimeSpan.FromMinutes(1));
-            await _container.StartAsync(ctSource.Token);
-        }
-        catch (OperationCanceledException)
-        {
-            return;
-        }
-        finally
-        {
-            ctSource.Dispose();
-        }
+        await _container.StartAsync();
 
         _webApplicationFactory = new PlatformWebApplicationBuilder<Program>()
-            .ConfigureConfiguration(builder => builder.AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                { "Infrastructure:Persistence:Postgres:Host", _container.Hostname },
-                {
-                    "Infrastructure:Persistence:Postgres:Port",
-                    _container.GetMappedPublicPort(5432).ToString()
-                },
-                { "Infrastructure:Persistence:Postgres:Database", "postgres" },
-                { "Infrastructure:Persistence:Postgres:Username", "postgres" },
-                { "Infrastructure:Persistence:Postgres:Password", "postgres" },
-                { "Infrastructure:Persistence:Postgres:SslMode", "Prefer" },
-            }))
+            .ConfigureConfiguration(ConfigureAppConfiguration)
             .Build();
+
+        using (IServiceScope scope = _webApplicationFactory.Services.CreateScope())
+        {
+            IMigrationRunner runner = scope.ServiceProvider.GetRequiredService<IMigrationRunner>();
+            runner.MigrateUp();
+        }
 
         _webApplicationFactory.StartServer();
     }
@@ -55,5 +48,67 @@ public class WebApplicationFixture : IAsyncLifetime
     {
         await _webApplicationFactory.DisposeAsync();
         await _container.DisposeAsync();
+    }
+
+    public async Task ResetDatabaseAsync()
+    {
+        Respawner respawner = await GetRespawner();
+
+        await using DbConnection conn = GetConnection();
+        if (conn.State is not ConnectionState.Open)
+            await conn.OpenAsync();
+
+        await respawner.ResetAsync(conn);
+    }
+
+    /*private async ValueTask UseProviderAsync(IServiceProvider provider)
+    {
+        await using AsyncServiceScope scope = provider.CreateAsyncScope();
+        IMigrationRunner migrationRunner = scope.ServiceProvider.GetRequiredService<IMigrationRunner>();
+
+        migrationRunner.MigrateUp();
+    }*/
+
+    private NpgsqlConnection GetConnection()
+    {
+        return new NpgsqlConnection(_container.GetConnectionString());
+    }
+
+    private void ConfigureAppConfiguration(IConfigurationBuilder builder)
+    {
+        builder.AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            { "Infrastructure:Persistence:Postgres:Host", _container.Hostname },
+            {
+                "Infrastructure:Persistence:Postgres:Port",
+                _container.GetMappedPublicPort(5432).ToString()
+            },
+            { "Infrastructure:Persistence:Postgres:Database", "postgres" },
+            { "Infrastructure:Persistence:Postgres:Username", "postgres" },
+            { "Infrastructure:Persistence:Postgres:Password", "postgres" },
+            { "Infrastructure:Persistence:Postgres:SslMode", "Prefer" },
+        });
+    }
+
+    private async ValueTask<Respawner> GetRespawner()
+    {
+        if (_respawner is not null)
+            return _respawner;
+
+        await using DbConnection connection = GetConnection();
+
+        if (connection.State is not ConnectionState.Open)
+            await connection.OpenAsync();
+
+        _respawner = await Respawner.CreateAsync(
+            connection,
+            new RespawnerOptions()
+            {
+                DbAdapter = DbAdapter.Postgres,
+                SchemasToInclude = RespawnSchemasToInclude,
+                TablesToIgnore = ["VersionInfo"],
+            });
+
+        return _respawner;
     }
 }
