@@ -1,4 +1,5 @@
 using FluentMigrator.Runner;
+using Grpc.Net.Client;
 using Itmo.Dev.Platform.Testing.ApplicationFactories;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
@@ -17,9 +18,9 @@ public class WebApplicationFixture : IAsyncLifetime
         .WithReuse(true)
         .Build();
 
-#pragma warning disable SK1200
     private Respawner? _respawner = null;
 
+#pragma warning disable SK1200
     private WebApplicationFactory<Program> _webApplicationFactory = null!;
 #pragma warning restore SK1200
 
@@ -61,13 +62,15 @@ public class WebApplicationFixture : IAsyncLifetime
         await respawner.ResetAsync(conn);
     }
 
-    /*private async ValueTask UseProviderAsync(IServiceProvider provider)
+    public GrpcChannel CreateChannel()
     {
-        await using AsyncServiceScope scope = provider.CreateAsyncScope();
-        IMigrationRunner migrationRunner = scope.ServiceProvider.GetRequiredService<IMigrationRunner>();
+        var grpcChannelOptions = new GrpcChannelOptions
+        {
+            HttpHandler = _webApplicationFactory.Server.CreateHandler(),
+        };
 
-        migrationRunner.MigrateUp();
-    }*/
+        return GrpcChannel.ForAddress("http://localhost/", grpcChannelOptions);
+    }
 
     private NpgsqlConnection GetConnection()
     {

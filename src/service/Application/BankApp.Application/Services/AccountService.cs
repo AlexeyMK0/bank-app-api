@@ -17,7 +17,7 @@ using System.Data;
 
 namespace BankApp.Application.Services;
 
-internal sealed partial class AccountService : IAccountService
+internal sealed class AccountService : IAccountService
 {
     private const IsolationLevel IsolationLevel = System.Data.IsolationLevel.ReadCommitted;
 
