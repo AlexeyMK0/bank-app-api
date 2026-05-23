@@ -25,6 +25,6 @@ public static class FakerCreators
     public static Faker<Money> CreateMoneyFaker()
     {
         return new Faker<Money>()
-            .CustomInstantiator(faker => new Money(faker.Random.Decimal(0, 10000000)));
+            .CustomInstantiator(faker => new Money(faker.Finance.Amount(0, 10000000)));
     }
 }

@@ -24,6 +24,7 @@
     <ItemGroup>
       <ProjectReference Include="..\..\src\service\Application\BankApp.Application.Abstractions\BankApp.Application.Abstractions.csproj" />
       <ProjectReference Include="..\..\src\service\Main\Main.csproj" />
+      <ProjectReference Include="..\TestCommon\TestCommon.csproj" />
     </ItemGroup>
 
 </Project>

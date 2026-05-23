@@ -1,0 +1,9 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\service\Application\BankApp.Application.Abstractions\BankApp.Application.Abstractions.csproj" />
+    <ProjectReference Include="..\..\src\service\Domain\BankApp.Domain\BankApp.Domain.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="AutoBogus" />
+  </ItemGroup>
+</Project>

@@ -4,11 +4,11 @@ using BankApp.Domain.Accounts;
 using BankApp.Domain.Invoices;
 using BankApp.Domain.Invoices.States;
 using Bogus;
-using IntegrationalTests.Fakers;
 using IntegrationalTests.Fixtures;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using System.Runtime.CompilerServices;
+using TestCommon.Fakers;
 
 namespace IntegrationalTests.RepositoryTests;
 

@@ -4,7 +4,7 @@ using BankApp.Domain.Invoices.States;
 using BankApp.Domain.ValueObjects;
 using Bogus;
 
-namespace IntegrationalTests.Fakers;
+namespace TestCommon.Fakers;
 
 public class InvoiceFaker : Faker<Invoice>
 {

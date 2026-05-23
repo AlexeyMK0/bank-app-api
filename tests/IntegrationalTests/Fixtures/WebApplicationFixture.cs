@@ -90,6 +90,7 @@ public class WebApplicationFixture : IAsyncLifetime
             { "Infrastructure:Persistence:Postgres:Username", "postgres" },
             { "Infrastructure:Persistence:Postgres:Password", "postgres" },
             { "Infrastructure:Persistence:Postgres:SslMode", "Prefer" },
+            { "Services:Accounts:MaxAccountsPerUser", "3" },
         });
     }
 
