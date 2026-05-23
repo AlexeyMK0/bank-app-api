@@ -1,18 +1,17 @@
-using AutoBogus;
 using BankApp.Application.Abstractions.Queries;
 using BankApp.Application.Abstractions.Repositories;
 using BankApp.Domain.Accounts;
 using BankApp.Domain.Sessions;
 using BankApp.Domain.ValueObjects;
-using Bogus;
 using IntegrationalTests.Fixtures;
+using IntegrationalTests.RepositoryTests.TestData;
 using Microsoft.Extensions.DependencyInjection;
 using System.Runtime.CompilerServices;
 
 namespace IntegrationalTests.RepositoryTests;
 
 [Collection(nameof(WebApplicationCollectionFixture))]
-public sealed class AccountRepositoryTests
+public sealed class AccountRepositoryTests : IAsyncLifetime
 {
     private readonly WebApplicationFixture _fixture;
 
@@ -20,6 +19,13 @@ public sealed class AccountRepositoryTests
     {
         _fixture = fixture;
     }
+
+    public async Task InitializeAsync()
+    {
+        await _fixture.ResetDatabaseAsync();
+    }
+
+    public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
     public async Task AddAccount_ShouldAdd()
@@ -63,25 +69,23 @@ public sealed class AccountRepositoryTests
     }
 
     [Theory]
-    [InlineData(5, new int[] { 2, 3, 4 })]
-    [InlineData(5, new int[] { 2 })]
-    public async Task QueryAccount_ShouldQuery_WhenAccountIdsAreQueried(int accountCount, int[] accountIdPositions)
+    [ClassData(typeof(QueryAccountsData))]
+    public async Task QueryAccount_ShouldQuery_WhenAccountIdsAreQueried(IEnumerable<Account> inputAccounts, int[] expectedAccountIds)
     {
         // Arrange
         CancellationToken cancellationToken = CancellationToken.None;
         await using AsyncServiceScope scope = _fixture.Services.CreateAsyncScope();
+
         IAccountRepository accountRepository = scope.ServiceProvider.GetRequiredService<IAccountRepository>();
 
-        List<Account> accounts = await GenerateAccountsAndAddToRepo(accountCount, accountRepository, cancellationToken)
-            .ToListAsync(cancellationToken);
-
-        List<Account> expectedAccounts = GetExpectedAccounts(accounts, accountIdPositions);
-        List<AccountId> accountIds = accountIdPositions is [] ? [] : expectedAccounts.Select(acc => acc.Id).ToList();
+        List<Account> accounts = await AddToRepo(inputAccounts, accountRepository, cancellationToken).ToListAsync(cancellationToken);
+        List<Account> expectedAccounts = GetExpectedAccounts(accounts, expectedAccountIds);
+        List<AccountId> accountIds = expectedAccountIds is [] ? [] : expectedAccounts.Select(acc => acc.Id).ToList();
 
         // Act
         List<Account> queriedAccounts = await accountRepository.QueryAsync(
                 AccountQuery.Build(builder => builder
-                    .WithPageSize(accountCount)
+                    .WithPageSize(accounts.Count)
                     .WithAccountIds(accountIds)),
                 cancellationToken)
             .ToListAsync(cancellationToken);
@@ -91,27 +95,25 @@ public sealed class AccountRepositoryTests
     }
 
     [Theory]
-    [InlineData(5, new int[] { 2, 3, 4 })]
-    [InlineData(5, new int[] { 2 })]
+    [ClassData(typeof(QueryAccountsData))]
     public async Task QueryAccount_ShouldQuery_WhenAccountOwnerIdsAreQueried(
-        int accountCount,
-        int[] accountOwnerIdPositions)
+        IEnumerable<Account> inputAccounts, int[] expectedAccountIds)
     {
         // Arrange
         CancellationToken cancellationToken = CancellationToken.None;
         await using AsyncServiceScope scope = _fixture.Services.CreateAsyncScope();
         IAccountRepository accountRepository = scope.ServiceProvider.GetRequiredService<IAccountRepository>();
 
-        List<Account> accounts = await GenerateAccountsAndAddToRepo(accountCount, accountRepository, cancellationToken)
+        List<Account> accounts = await AddToRepo(inputAccounts, accountRepository, cancellationToken)
             .ToListAsync(cancellationToken);
 
-        List<Account> expectedAccounts = GetExpectedAccounts(accounts, accountOwnerIdPositions);
-        List<UserId> accountOwnerIds = accountOwnerIdPositions is [] ? [] : expectedAccounts.Select(acc => acc.OwnerUserId).ToList();
+        List<Account> expectedAccounts = GetExpectedAccounts(accounts, expectedAccountIds);
+        List<UserId> accountOwnerIds = expectedAccountIds is [] ? [] : expectedAccounts.Select(acc => acc.OwnerUserId).ToList();
 
         // Act
         List<Account> queriedAccounts = await accountRepository.QueryAsync(
                 AccountQuery.Build(builder => builder
-                    .WithPageSize(accountCount)
+                    .WithPageSize(accounts.Count)
                     .WithUserIds(accountOwnerIds)),
                 cancellationToken)
             .ToListAsync(cancellationToken);
@@ -120,28 +122,24 @@ public sealed class AccountRepositoryTests
         queriedAccounts.Should().BeEquivalentTo(expectedAccounts);
     }
 
-    private async IAsyncEnumerable<Account> GenerateAccountsAndAddToRepo(
-        int accountCount,
-        IAccountRepository accountRepository,
-        [EnumeratorCancellation] CancellationToken cancellationToken)
+    private List<Account> GetExpectedAccounts(List<Account> accounts, int[] expectedAccountIds)
     {
-        Faker<Account> faker = new AutoFaker<Account>();
-
-        List<Account> accounts = faker.Generate(accountCount);
-
-        for (int i = 0; i < accountCount; i++)
-        {
-            yield return await accountRepository.AddAsync(accounts[i], cancellationToken);
-        }
-    }
-
-    private List<Account> GetExpectedAccounts(List<Account> accounts, int[] accountIdPositions)
-    {
-        if (accountIdPositions is [])
+        if (expectedAccountIds is [])
         {
             return accounts;
         }
 
-        return accountIdPositions.Select(id => accounts[id]).ToList();
+        return expectedAccountIds.Select(id => accounts[id]).ToList();
+    }
+
+    private async IAsyncEnumerable<Account> AddToRepo(
+        IEnumerable<Account> accounts,
+        IAccountRepository accountRepository,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        foreach (Account account in accounts)
+        {
+            yield return await accountRepository.AddAsync(account, cancellationToken);
+        }
     }
 }

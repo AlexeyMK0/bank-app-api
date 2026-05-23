@@ -4,9 +4,9 @@ using BankApp.Application.Abstractions.Repositories;
 using BankApp.Domain.Accounts;
 using BankApp.Domain.Operations;
 using BankApp.Domain.Operations.Implementation;
-using FluentAssertions.Extensions;
 using IntegrationalTests.Fixtures;
 using Microsoft.Extensions.DependencyInjection;
+using TestCommon.ModelExtensions;
 
 namespace IntegrationalTests.RepositoryTests;
 
@@ -66,23 +66,14 @@ public sealed class OperationHistoryTests : IAsyncLifetime
         IOperationRepository operationRepository = scope.ServiceProvider.GetRequiredService<IOperationRepository>();
 
         PayInvoiceOperationRecord payInvoiceOperation = new AutoFaker<PayInvoiceOperationRecord>().Generate();
-        PaymentReceivedOperationRecord paymentReceivedOperation =
-            new AutoFaker<PaymentReceivedOperationRecord>().Generate();
+        PaymentReceivedOperationRecord paymentReceivedOperation = new AutoFaker<PaymentReceivedOperationRecord>().Generate();
         DepositOperationRecord depositOperation = new AutoFaker<DepositOperationRecord>().Generate();
         WithdrawOperationRecord withdrawOperation = new AutoFaker<WithdrawOperationRecord>().Generate();
 
-        payInvoiceOperation = await operationRepository
-                                  .AddAsync(payInvoiceOperation, cancellationToken) as PayInvoiceOperationRecord
-                              ?? throw new InvalidCastException();
-        paymentReceivedOperation = await operationRepository
-                                       .AddAsync(paymentReceivedOperation, cancellationToken) as PaymentReceivedOperationRecord
-                                ?? throw new InvalidCastException();
-        depositOperation = await operationRepository
-                               .AddAsync(depositOperation, cancellationToken) as DepositOperationRecord
-                           ?? throw new InvalidCastException();
-        withdrawOperation = await operationRepository
-                                .AddAsync(withdrawOperation, cancellationToken) as WithdrawOperationRecord
-                            ?? throw new InvalidCastException();
+        payInvoiceOperation = await operationRepository.AddToRepositoryAsync(payInvoiceOperation, cancellationToken);
+        paymentReceivedOperation = await operationRepository.AddToRepositoryAsync(paymentReceivedOperation, cancellationToken);
+        depositOperation = await operationRepository.AddToRepositoryAsync(depositOperation, cancellationToken);
+        withdrawOperation = await operationRepository.AddToRepositoryAsync(withdrawOperation, cancellationToken);
 
         OperationRecord[] operationRecords =
         [
@@ -106,7 +97,7 @@ public sealed class OperationHistoryTests : IAsyncLifetime
                 operationRecords,
                 options => options
                     .Using<DateTimeOffset>(context =>
-                        context.Subject.Should().BeCloseTo(context.Expectation, 1.Milliseconds()))
+                        context.Subject.Should().BeCloseTo(context.Expectation, TimeSpan.FromMilliseconds(1)))
                     .WhenTypeIs<DateTimeOffset>());
     }
 }

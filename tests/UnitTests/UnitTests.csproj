@@ -18,6 +18,7 @@
       <ProjectReference Include="..\..\src\service\Application\BankApp.Application.Abstractions\BankApp.Application.Abstractions.csproj" />
       <ProjectReference Include="..\..\src\service\Application\BankApp.Application.Contracts\BankApp.Application.Contracts.csproj" />
       <ProjectReference Include="..\..\src\service\Application\BankApp.Application\BankApp.Application.csproj" />
+      <ProjectReference Include="..\TestCommon\TestCommon.csproj" />
     </ItemGroup>
 
 </Project>

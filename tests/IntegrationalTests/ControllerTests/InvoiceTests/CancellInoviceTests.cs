@@ -5,6 +5,7 @@ using BankApp.Domain.Invoices;
 using BankApp.Domain.Invoices.States;
 using BankApp.Domain.Sessions;
 using BankApp.Domain.ValueObjects;
+using Grpc.Core;
 using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -53,11 +54,11 @@ public sealed partial class InvoiceControllerTests
         var request = new ProtoCancelInvoiceRequest(actorUser.UserExternalId.Value.ToString(), invoice.Id.Value);
 
         // Act
-        var responseFunc = async () => await _client.CancelInvoiceAsync(request);
+        await _client.Awaiting(client => client.CancelInvoiceAsync(request).ResponseAsync)
+            .Should()
+            .NotThrowAsync();
 
         // Assert
-        await responseFunc.Should().NotThrowAsync();
-
         Invoice? queriedInvoice = await invoiceRepository.FindInvoiceByIdAsync(invoice.Id, cancellationToken);
         queriedInvoice.Should().NotBeNull()
             .And.BeEquivalentTo(invoice);
@@ -81,11 +82,10 @@ public sealed partial class InvoiceControllerTests
 
         var request = new ProtoCancelInvoiceRequest(payerOwner.UserExternalId.Value.ToString(), 1);
 
-        // Act
-        var responseFunc = async () => await _client.CancelInvoiceAsync(request);
-
-        // Assert
-        await responseFunc.Should().ThrowAsync();
+        // Act & Assert
+        var response = await _client.Awaiting(c => c.CancelInvoiceAsync(request).ResponseAsync)
+            .Should().ThrowAsync<RpcException>();
+        response.Which.StatusCode.Should().Be(StatusCode.InvalidArgument);
     }
 
     [Theory]
@@ -121,11 +121,10 @@ public sealed partial class InvoiceControllerTests
 
         var request = new ProtoCancelInvoiceRequest(actorUser.UserExternalId.Value.ToString(), invoice.Id.Value);
 
-        // Act
-        var responseFunc = async () => await _client.CancelInvoiceAsync(request);
-
-        // Assert
-        await responseFunc.Should().ThrowAsync();
+        // Act & Assert
+        var response = await _client.Awaiting(c => c.CancelInvoiceAsync(request).ResponseAsync)
+            .Should().ThrowAsync<RpcException>();
+        response.Which.StatusCode.Should().Be(StatusCode.InvalidArgument);
 
         Invoice? queriedInvoice = await invoiceRepository.FindInvoiceByIdAsync(invoice.Id, cancellationToken);
         queriedInvoice.Should().BeNull();
@@ -162,13 +161,12 @@ public sealed partial class InvoiceControllerTests
 
         invoice = await invoiceRepository.AddAsync(invoice, cancellationToken);
 
-        var request = new ProtoPayInvoiceRequest(actorUser.UserExternalId.Value.ToString(), invoice.Id.Value);
+        var request = new ProtoCancelInvoiceRequest(actorUser.UserExternalId.Value.ToString(), invoice.Id.Value);
 
-        // Act
-        var responseFunc = async () => await _client.PayInvoiceAsync(request);
-
-        // Assert
-        await responseFunc.Should().ThrowAsync();
+        // Act & Assert
+        var response = await _client.Awaiting(c => c.CancelInvoiceAsync(request).ResponseAsync)
+            .Should().ThrowAsync<RpcException>();
+        response.Which.StatusCode.Should().Be(StatusCode.InvalidArgument);
     }
 
     [Theory]
@@ -215,10 +213,9 @@ public sealed partial class InvoiceControllerTests
 
         var request = new ProtoCancelInvoiceRequest(actorUser.UserExternalId.Value.ToString(), invoice.Id.Value);
 
-        // Act
-        var responseFunc = async () => await _client.CancelInvoiceAsync(request);
-
-        // Assert
-        await responseFunc.Should().ThrowAsync();
+        // Act & Assert
+        var response = await _client.Awaiting(c => c.CancelInvoiceAsync(request).ResponseAsync)
+            .Should().ThrowAsync<RpcException>();
+        response.Which.StatusCode.Should().Be(StatusCode.InvalidArgument);
     }
 }

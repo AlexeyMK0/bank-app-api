@@ -4,32 +4,25 @@ using BankApp.Domain.Accounts;
 using BankApp.Domain.Sessions;
 using FluentAssertions;
 using UnitTests.Specifications;
+using UnitTests.Tests.TestData;
 
 namespace UnitTests.Tests.AccountTests;
 
 public sealed partial class AccountServiceTests
 {
     [Theory]
-    [InlineData(10, 10, true, null)]
-    [InlineData(10, 9, true, null)]
-    [InlineData(10, 0, false, null)]
-    [InlineData(10, 10, true, 1L)]
-    [InlineData(10, 9, true, 1L)]
-    [InlineData(10, 0, false, 1L)]
+    [ClassData(typeof(GetUserAccountsQueryData))]
     public async Task GetUserAccounts_ShouldSucceed(
         int requestPageSize,
-        int accountsCount,
+        User user,
+        IEnumerable<Account> inputAccounts,
         bool pageTokenReturned,
         long? pageToken)
     {
         // Arrange
         GetAccounts.PageToken? inputPageToken = pageToken is null ? null : new GetAccounts.PageToken(pageToken.Value);
-
-        var user = new User(new UserId(1), new AutoFaker<UserExternalId>().Generate());
-        List<Account> accounts = new AutoFaker<Account>()
-            .RuleFor(acc => acc.OwnerUserId, user.Id)
-            .RuleFor(acc => acc.Id, faker => new AccountId(faker.IndexFaker + 1))
-            .Generate(accountsCount);
+        var accounts = inputAccounts.ToList();
+        int accountsCount = accounts.Count;
 
         _persistenceContext.UserRepository.SetupQueryByUserExternalId(user.UserExternalId, [user]);
         _persistenceContext.AccountRepository.SetupQueryByUserIdAndPageToken(user.Id, accounts, pageToken);

@@ -8,6 +8,7 @@ using BankApp.Domain.Sessions;
 using BankApp.Grpc;
 using Bogus;
 using Google.Type;
+using Grpc.Core;
 using IntegrationalTests.Fixtures;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -59,12 +60,11 @@ public sealed class AccountControllerTests : IAsyncLifetime
 
         var request = new ProtoCreateAccountRequest(creatorUser.UserExternalId.Value.ToString(), ownerUser.Id.Value);
 
-        // Act
-        Func<Task<CreateAccountResponse>> responseFunc = async () => await _client
-            .CreateAccountAsync(request);
+        // Act & Assert
+        var response = await _client.Awaiting(client => client.CreateAccountAsync(request).ResponseAsync)
+            .Should()
+            .NotThrowAsync();
 
-        // Assert
-        var response = await responseFunc.Should().NotThrowAsync();
         ProtoAccount grpcAccount = response.Subject.Account;
         grpcAccount.UserId.Should().Be(ownerUser.Id.Value);
 
@@ -91,12 +91,10 @@ public sealed class AccountControllerTests : IAsyncLifetime
 
         var request = new ProtoCreateAccountRequest(creator.UserExternalId.Value.ToString(), ownerId);
 
-        // Act
-        Func<Task<CreateAccountResponse>> responseFunc = async () => await _client
-            .CreateAccountAsync(request);
-
-        // Assert
-        await responseFunc.Should().ThrowAsync();
+        // Act & Assert
+        var response = await _client.Awaiting(c => c.CreateAccountAsync(request).ResponseAsync)
+            .Should().ThrowAsync<RpcException>();
+        response.Which.StatusCode.Should().Be(StatusCode.InvalidArgument);
 
         IAccountRepository accountRepository = scope.ServiceProvider.GetRequiredService<IAccountRepository>();
         Account[] accounts = await accountRepository.QueryAsync(
@@ -138,11 +136,10 @@ public sealed class AccountControllerTests : IAsyncLifetime
 
         var request = new ProtoCreateAccountRequest(creatorUser.UserExternalId.Value.ToString(), ownerUser.Id.Value);
 
-        // Act
-        var responseFunc = async () => await _client.CreateAccountAsync(request);
-
-        // Assert
-        await responseFunc.Should().ThrowAsync();
+        // Act & Assert
+        var response = await _client.Awaiting(c => c.CreateAccountAsync(request).ResponseAsync)
+            .Should().ThrowAsync<RpcException>();
+        response.Which.StatusCode.Should().Be(StatusCode.InvalidArgument);
 
         List<Account> queriedAccounts = await accountRepository
             .FindAllUserAccountsAsync(ownerUser, accounts.Count + 1, cancellationToken)
@@ -179,11 +176,11 @@ public sealed class AccountControllerTests : IAsyncLifetime
         var request = new ProtoWithdrawMoneyRequest(
             actorUser.UserExternalId.Value.ToString(), account.Id.Value, requestAmount);
 
-        // Act
-        var responseFunc = async () => await _client.WithdrawMoneyAsync(request);
+        // Act & Assert
+        var response = await _client.Awaiting(client => client.WithdrawMoneyAsync(request).ResponseAsync)
+            .Should()
+            .NotThrowAsync();
 
-        // Assert
-        var response = await responseFunc.Should().NotThrowAsync();
         response.Subject.Balance.DecimalValue.Should().Be(expectedValue);
 
         Account? queriedAccount = await accountRepository.FindAccountByIdAsync(expectedAccount.Id, cancellationToken);
@@ -215,11 +212,10 @@ public sealed class AccountControllerTests : IAsyncLifetime
         var request = new ProtoWithdrawMoneyRequest(
             actorUser.UserExternalId.Value.ToString(), account.Id.Value, requestAmount);
 
-        // Act
-        var responseFunc = async () => await _client.WithdrawMoneyAsync(request);
-
-        // Assert
-        await responseFunc.Should().ThrowAsync();
+        // Act & Assert
+        var response = await _client.Awaiting(c => c.WithdrawMoneyAsync(request).ResponseAsync)
+            .Should().ThrowAsync<RpcException>();
+        response.Which.StatusCode.Should().Be(StatusCode.InvalidArgument);
 
         Account? queriedAccount = await accountRepository.FindAccountByIdAsync(expectedAccount.Id, cancellationToken);
         queriedAccount.Should()
@@ -247,11 +243,10 @@ public sealed class AccountControllerTests : IAsyncLifetime
         var request = new ProtoWithdrawMoneyRequest(
             actorUser.UserExternalId.Value.ToString(), account.Id.Value, requestAmount);
 
-        // Act
-        var responseFunc = async () => await _client.WithdrawMoneyAsync(request);
-
-        // Assert
-        await responseFunc.Should().ThrowAsync();
+        // Act & Assert
+        var response = await _client.Awaiting(c => c.WithdrawMoneyAsync(request).ResponseAsync)
+            .Should().ThrowAsync<RpcException>();
+        response.Which.StatusCode.Should().Be(StatusCode.InvalidArgument);
     }
 
     [Fact]
@@ -276,11 +271,10 @@ public sealed class AccountControllerTests : IAsyncLifetime
         var request = new ProtoWithdrawMoneyRequest(
             actorUser.UserExternalId.Value.ToString(), account.Id.Value, requestAmount);
 
-        // Act
-        var responseFunc = async () => await _client.WithdrawMoneyAsync(request);
-
-        // Assert
-        await responseFunc.Should().ThrowAsync();
+        // Act & Assert
+        var response = await _client.Awaiting(c => c.WithdrawMoneyAsync(request).ResponseAsync)
+            .Should().ThrowAsync<RpcException>();
+        response.Which.StatusCode.Should().Be(StatusCode.InvalidArgument);
 
         Account? queriedAccount = await accountRepository.FindAccountByIdAsync(account.Id, cancellationToken);
         queriedAccount.Should()
@@ -309,11 +303,10 @@ public sealed class AccountControllerTests : IAsyncLifetime
         var request = new ProtoWithdrawMoneyRequest(
             actorUser.UserExternalId.Value.ToString(), account.Id.Value, new Money { DecimalValue = requestAmount });
 
-        // Act
-        var responseFunc = async () => await _client.WithdrawMoneyAsync(request);
-
-        // Assert
-        await responseFunc.Should().ThrowAsync();
+        // Act & Assert
+        var response = await _client.Awaiting(c => c.WithdrawMoneyAsync(request).ResponseAsync)
+            .Should().ThrowAsync<RpcException>();
+        response.Which.StatusCode.Should().Be(StatusCode.InvalidArgument);
 
         Account? queriedAccount = await accountRepository.FindAccountByIdAsync(account.Id, cancellationToken);
         queriedAccount.Should()
@@ -347,11 +340,11 @@ public sealed class AccountControllerTests : IAsyncLifetime
         var request = new ProtoDepositMoneyRequest(
             actorUser.UserExternalId.Value.ToString(), account.Id.Value, requestAmount);
 
-        // Act
-        var responseFunc = async () => await _client.DepositMoneyAsync(request);
+        // Act & Assert
+        var response = await _client.Awaiting(client => client.DepositMoneyAsync(request).ResponseAsync)
+            .Should()
+            .NotThrowAsync();
 
-        // Assert
-        var response = await responseFunc.Should().NotThrowAsync();
         response.Subject.Balance.DecimalValue.Should().Be(expectedValue);
 
         Account? queriedAccount = await accountRepository.FindAccountByIdAsync(expectedAccount.Id, cancellationToken);
@@ -383,11 +376,10 @@ public sealed class AccountControllerTests : IAsyncLifetime
         var request = new ProtoDepositMoneyRequest(
             actorUser.UserExternalId.Value.ToString(), account.Id.Value, requestAmount);
 
-        // Act
-        var responseFunc = async () => await _client.DepositMoneyAsync(request);
-
-        // Assert
-        await responseFunc.Should().ThrowAsync();
+        // Act & Assert
+        var response = await _client.Awaiting(c => c.DepositMoneyAsync(request).ResponseAsync)
+            .Should().ThrowAsync<RpcException>();
+        response.Which.StatusCode.Should().Be(StatusCode.InvalidArgument);
 
         Account? queriedAccount = await accountRepository.FindAccountByIdAsync(expectedAccount.Id, cancellationToken);
         queriedAccount.Should()
@@ -415,11 +407,10 @@ public sealed class AccountControllerTests : IAsyncLifetime
         var request = new ProtoDepositMoneyRequest(
             actorUser.UserExternalId.Value.ToString(), account.Id.Value, requestAmount);
 
-        // Act
-        var responseFunc = async () => await _client.DepositMoneyAsync(request);
-
-        // Assert
-        await responseFunc.Should().ThrowAsync();
+        // Act & Assert
+        var response = await _client.Awaiting(c => c.DepositMoneyAsync(request).ResponseAsync)
+            .Should().ThrowAsync<RpcException>();
+        response.Which.StatusCode.Should().Be(StatusCode.InvalidArgument);
     }
 
     [Fact]
@@ -444,11 +435,10 @@ public sealed class AccountControllerTests : IAsyncLifetime
         var request = new ProtoDepositMoneyRequest(
             actorUser.UserExternalId.Value.ToString(), account.Id.Value, requestAmount);
 
-        // Act
-        var responseFunc = async () => await _client.DepositMoneyAsync(request);
-
-        // Assert
-        await responseFunc.Should().ThrowAsync();
+        // Act & Assert
+        var response = await _client.Awaiting(c => c.DepositMoneyAsync(request).ResponseAsync)
+            .Should().ThrowAsync<RpcException>();
+        response.Which.StatusCode.Should().Be(StatusCode.InvalidArgument);
 
         Account? queriedAccount = await accountRepository.FindAccountByIdAsync(account.Id, cancellationToken);
         queriedAccount.Should()

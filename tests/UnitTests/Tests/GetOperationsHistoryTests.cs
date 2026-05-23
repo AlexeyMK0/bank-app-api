@@ -4,17 +4,13 @@ using BankApp.Application.Contracts.OperationHistory;
 using BankApp.Application.Mappers;
 using BankApp.Application.Services;
 using BankApp.Domain.Accounts;
-using BankApp.Domain.Invoices;
 using BankApp.Domain.Operations;
-using BankApp.Domain.Operations.Implementation;
 using BankApp.Domain.Sessions;
-using BankApp.Domain.ValueObjects;
 using Bogus;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
-using System.Diagnostics;
-using UnitTests.Helpers;
+using TestCommon.Fakers;
 using UnitTests.Mocks;
 using UnitTests.Specifications;
 
@@ -41,11 +37,11 @@ public class GetOperationsHistoryTests
         var user = new User(userId, new AutoFaker<UserExternalId>().Generate());
         GetAccountOperations.PageToken? pageToken = null;
 
-        Faker<Account> userAccountFaker = FakerCreators.CreateAccountFaker([userId]);
+        Faker<Account> userAccountFaker = new AccountFaker([userId]);
 
         List<Account> accounts = userAccountFaker.Generate(5);
 
-        List<OperationRecord> operationRecords = GenerationOperations(operationCount, accounts);
+        List<OperationRecord> operationRecords = new OperationRecordFaker(accounts).Generate(operationCount);
         var operationDtos = operationRecords.Select(r => r.MapToDto()).ToList();
 
         _context.UserRepository.SetupQueryByUserExternalId(user.UserExternalId, [user]);
@@ -114,8 +110,8 @@ public class GetOperationsHistoryTests
         List<UserId> otherUserIds = [new(2), new(3), new(4)];
         GetAccountOperations.PageToken? pageToken = null;
 
-        Faker<Account> userAccountFaker = FakerCreators.CreateAccountFaker([userId]);
-        Faker<Account> otherUserAccountFaker = FakerCreators.CreateAccountFaker(otherUserIds);
+        Faker<Account> userAccountFaker = new AccountFaker([userId]);
+        Faker<Account> otherUserAccountFaker = new AccountFaker(otherUserIds);
         var userAccounts = userAccountFaker.Generate(userAccountsCount).ToList();
         var otherUserAccounts = otherUserAccountFaker.Generate(otherUserAccountsCount).ToList();
         var allAccounts = userAccounts.Concat(otherUserAccounts).ToList();
@@ -131,47 +127,5 @@ public class GetOperationsHistoryTests
 
         GetAccountOperations.Response response = await _historyService.GetOperationsAsync(request, CancellationToken.None);
         response.Should().BeOfType<GetAccountOperations.Response.Failure>();
-    }
-
-    private List<OperationRecord> GenerationOperations(int operationCount, List<Account> accounts)
-    {
-        Faker<Money> moneyFaker = FakerCreators.CreateMoneyFaker();
-
-        Faker<OperationRecord> operationRecordFaker = new Faker<OperationRecord>().CustomInstantiator(faker =>
-        {
-            int globalIndex = faker.IndexGlobal;
-
-            return (globalIndex % 4) switch
-            {
-                0 => new DepositOperationRecord(
-                    new OperationRecordId(globalIndex),
-                    faker.Date.Recent(3),
-                    faker.PickRandom(accounts).Id,
-                    moneyFaker.Generate()),
-
-                1 => new WithdrawOperationRecord(
-                    new OperationRecordId(globalIndex),
-                    faker.Date.Recent(3),
-                    faker.PickRandom(accounts).Id,
-                    moneyFaker.Generate()),
-
-                2 => new PayInvoiceOperationRecord(
-                    new OperationRecordId(globalIndex),
-                    faker.Date.Recent(3),
-                    faker.PickRandom(accounts).Id,
-                    new InvoiceId(globalIndex),
-                    moneyFaker.Generate()),
-
-                3 => new PaymentReceivedOperationRecord(
-                    new OperationRecordId(4),
-                    faker.Date.Recent(3),
-                    faker.PickRandom(accounts).Id,
-                    new InvoiceId(globalIndex),
-                    moneyFaker.Generate()),
-                _ => throw new UnreachableException(),
-            };
-        });
-
-        return operationRecordFaker.Generate(operationCount);
     }
 }

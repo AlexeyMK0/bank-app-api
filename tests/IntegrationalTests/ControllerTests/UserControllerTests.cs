@@ -37,13 +37,12 @@ public sealed class UserControllerTests : IAsyncLifetime
     {
         // Arrange
         Guid externalId = _faker.Random.Guid();
-        var request = new AddUserRequest(externalId.ToString());
+        var request = new ProtoAddUserRequest(externalId.ToString());
 
-        // Act
-        Func<Task<object>> response = async () => await _client.AddUserAsync(request);
-
-        // Assert
-        await response.Should().NotThrowAsync();
+        // Act & Assert
+        await _client.Awaiting(client => client.AddUserAsync(request).ResponseAsync)
+            .Should()
+            .NotThrowAsync();
 
         await using AsyncServiceScope scope = _fixture.Services.CreateAsyncScope();
         IUserRepository repository = scope.ServiceProvider.GetRequiredService<IUserRepository>();

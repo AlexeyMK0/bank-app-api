@@ -6,6 +6,8 @@ using BankApp.Domain.Accounts;
 using BankApp.Domain.Invoices;
 using BankApp.Domain.Invoices.States;
 using BankApp.Domain.Sessions;
+using BankApp.Domain.ValueObjects;
+using Grpc.Core;
 using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -37,7 +39,7 @@ public sealed partial class InvoiceControllerTests
         IInvoiceRepository invoiceRepository = scope.ServiceProvider.GetRequiredService<IInvoiceRepository>();
         var invoice = new Invoice(
             InvoiceId.Default,
-            new BankApp.Domain.ValueObjects.Money(invoiceAmount),
+            new Money(invoiceAmount),
             recipient.Id,
             payer.Id,
             new CreatedInvoiceState());
@@ -49,11 +51,10 @@ public sealed partial class InvoiceControllerTests
 
         var request = new ProtoPayInvoiceRequest(payerOwner.UserExternalId.Value.ToString(), invoice.Id.Value);
 
-        // Act
-        var responseFunc = async () => await _client.PayInvoiceAsync(request);
-
-        // Assert
-        await responseFunc.Should().NotThrowAsync();
+        // Act & Assert
+        await _client.Awaiting(client => client.PayInvoiceAsync(request).ResponseAsync)
+            .Should()
+            .NotThrowAsync();
 
         Invoice? queriedInvoice = await invoiceRepository.FindInvoiceByIdAsync(invoice.Id, cancellationToken);
         queriedInvoice.Should().NotBeNull()
@@ -78,11 +79,10 @@ public sealed partial class InvoiceControllerTests
 
         var request = new ProtoPayInvoiceRequest(payerOwner.UserExternalId.Value.ToString(), 1);
 
-        // Act
-        var responseFunc = async () => await _client.PayInvoiceAsync(request);
-
-        // Assert
-        await responseFunc.Should().ThrowAsync();
+        // Act & Assert
+        var response = await _client.Awaiting(c => c.PayInvoiceAsync(request).ResponseAsync)
+            .Should().ThrowAsync<RpcException>();
+        response.Which.StatusCode.Should().Be(StatusCode.InvalidArgument);
     }
 
     [Fact]
@@ -107,18 +107,17 @@ public sealed partial class InvoiceControllerTests
         IInvoiceRepository invoiceRepository = scope.ServiceProvider.GetRequiredService<IInvoiceRepository>();
         var invoice = new Invoice(
             new InvoiceId(1),
-            new BankApp.Domain.ValueObjects.Money(invoiceAmount),
+            new Money(invoiceAmount),
             recipient.Id,
             payer.Id,
             new CreatedInvoiceState());
 
         var request = new ProtoPayInvoiceRequest(payerOwner.UserExternalId.Value.ToString(), invoice.Id.Value);
 
-        // Act
-        var responseFunc = async () => await _client.PayInvoiceAsync(request);
-
-        // Assert
-        await responseFunc.Should().ThrowAsync();
+        // Act & Assert
+        var response = await _client.Awaiting(c => c.PayInvoiceAsync(request).ResponseAsync)
+            .Should().ThrowAsync<RpcException>();
+        response.Which.StatusCode.Should().Be(StatusCode.InvalidArgument);
 
         Invoice? queriedInvoice = await invoiceRepository.FindInvoiceByIdAsync(invoice.Id, cancellationToken);
         queriedInvoice.Should().BeNull();
@@ -153,7 +152,7 @@ public sealed partial class InvoiceControllerTests
         IInvoiceRepository invoiceRepository = scope.ServiceProvider.GetRequiredService<IInvoiceRepository>();
         var invoice = new Invoice(
             InvoiceId.Default,
-            new BankApp.Domain.ValueObjects.Money(invoiceAmount),
+            new Money(invoiceAmount),
             recipient.Id,
             payerId,
             new CreatedInvoiceState());
@@ -161,11 +160,10 @@ public sealed partial class InvoiceControllerTests
 
         var request = new ProtoPayInvoiceRequest(payerOwner.UserExternalId.Value.ToString(), invoice.Id.Value);
 
-        // Act
-        var responseFunc = async () => await _client.PayInvoiceAsync(request);
-
-        // Assert
-        await responseFunc.Should().ThrowAsync();
+        // Act & Assert
+        var response = await _client.Awaiting(c => c.PayInvoiceAsync(request).ResponseAsync)
+            .Should().ThrowAsync<RpcException>();
+        response.Which.StatusCode.Should().Be(StatusCode.InvalidArgument);
 
         Invoice? queriedInvoice = await invoiceRepository.FindInvoiceByIdAsync(invoice.Id, cancellationToken);
         queriedInvoice.Should().NotBeNull()
@@ -198,7 +196,7 @@ public sealed partial class InvoiceControllerTests
         IInvoiceRepository invoiceRepository = scope.ServiceProvider.GetRequiredService<IInvoiceRepository>();
         var invoice = new Invoice(
             InvoiceId.Default,
-            new BankApp.Domain.ValueObjects.Money(invoiceAmount),
+            new Money(invoiceAmount),
             recipient.Id,
             payer.Id,
             new CreatedInvoiceState());
@@ -206,11 +204,10 @@ public sealed partial class InvoiceControllerTests
 
         var request = new ProtoPayInvoiceRequest(actorUser.UserExternalId.Value.ToString(), invoice.Id.Value);
 
-        // Act
-        var responseFunc = async () => await _client.PayInvoiceAsync(request);
-
-        // Assert
-        await responseFunc.Should().ThrowAsync();
+        // Act & Assert
+        var response = await _client.Awaiting(c => c.PayInvoiceAsync(request).ResponseAsync)
+            .Should().ThrowAsync<RpcException>();
+        response.Which.StatusCode.Should().Be(StatusCode.InvalidArgument);
 
         Invoice? queriedInvoice = await invoiceRepository.FindInvoiceByIdAsync(invoice.Id, cancellationToken);
         queriedInvoice.Should().NotBeNull()
@@ -245,7 +242,7 @@ public sealed partial class InvoiceControllerTests
         IInvoiceRepository invoiceRepository = scope.ServiceProvider.GetRequiredService<IInvoiceRepository>();
         var invoice = new Invoice(
             InvoiceId.Default,
-            new BankApp.Domain.ValueObjects.Money(invoiceAmount),
+            new Money(invoiceAmount),
             recipientId,
             payer.Id,
             new CreatedInvoiceState());
@@ -253,11 +250,10 @@ public sealed partial class InvoiceControllerTests
 
         var request = new ProtoPayInvoiceRequest(payerOwner.UserExternalId.Value.ToString(), invoice.Id.Value);
 
-        // Act
-        var responseFunc = async () => await _client.PayInvoiceAsync(request);
-
-        // Assert
-        await responseFunc.Should().ThrowAsync();
+        // Act & Assert
+        var response = await _client.Awaiting(c => c.PayInvoiceAsync(request).ResponseAsync)
+            .Should().ThrowAsync<RpcException>();
+        response.Which.StatusCode.Should().Be(StatusCode.InvalidArgument);
 
         Invoice? queriedInvoice = await invoiceRepository.FindInvoiceByIdAsync(invoice.Id, cancellationToken);
         queriedInvoice.Should().NotBeNull()
@@ -290,7 +286,7 @@ public sealed partial class InvoiceControllerTests
         IInvoiceRepository invoiceRepository = scope.ServiceProvider.GetRequiredService<IInvoiceRepository>();
         var invoice = new Invoice(
             InvoiceId.Default,
-            new BankApp.Domain.ValueObjects.Money(invoiceAmount),
+            new Money(invoiceAmount),
             recipient.Id,
             payer.Id,
             new CreatedInvoiceState());
@@ -298,11 +294,10 @@ public sealed partial class InvoiceControllerTests
 
         var request = new ProtoPayInvoiceRequest(payerOwner.UserExternalId.Value.ToString(), invoice.Id.Value);
 
-        // Act
-        var responseFunc = async () => await _client.PayInvoiceAsync(request);
-
-        // Assert
-        await responseFunc.Should().ThrowAsync();
+        // Act & Assert
+        var response = await _client.Awaiting(c => c.PayInvoiceAsync(request).ResponseAsync)
+            .Should().ThrowAsync<RpcException>();
+        response.Which.StatusCode.Should().Be(StatusCode.InvalidArgument);
 
         Invoice? queriedInvoice = await invoiceRepository.FindInvoiceByIdAsync(invoice.Id, cancellationToken);
         queriedInvoice.Should().NotBeNull()
@@ -349,7 +344,7 @@ public sealed partial class InvoiceControllerTests
         IInvoiceRepository invoiceRepository = scope.ServiceProvider.GetRequiredService<IInvoiceRepository>();
         var invoice = new Invoice(
             InvoiceId.Default,
-            new BankApp.Domain.ValueObjects.Money(invoiceAmount),
+            new Money(invoiceAmount),
             recipient.Id,
             payer.Id,
             invoiceState);
@@ -357,11 +352,10 @@ public sealed partial class InvoiceControllerTests
 
         var request = new ProtoPayInvoiceRequest(payerOwner.UserExternalId.Value.ToString(), invoice.Id.Value);
 
-        // Act
-        var responseFunc = async () => await _client.PayInvoiceAsync(request);
-
-        // Assert
-        await responseFunc.Should().ThrowAsync();
+        // Act & Assert
+        var response = await _client.Awaiting(c => c.PayInvoiceAsync(request).ResponseAsync)
+            .Should().ThrowAsync<RpcException>();
+        response.Which.StatusCode.Should().Be(StatusCode.InvalidArgument);
 
         Invoice? queriedInvoice = await invoiceRepository.FindInvoiceByIdAsync(invoice.Id, cancellationToken);
         queriedInvoice.Should().NotBeNull()

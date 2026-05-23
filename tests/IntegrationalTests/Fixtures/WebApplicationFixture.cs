@@ -1,3 +1,5 @@
+#pragma warning disable SK1200
+
 using FluentMigrator.Runner;
 using Grpc.Net.Client;
 using Itmo.Dev.Platform.Testing.ApplicationFactories;
@@ -20,9 +22,7 @@ public class WebApplicationFixture : IAsyncLifetime
 
     private Respawner? _respawner = null;
 
-#pragma warning disable SK1200
     private WebApplicationFactory<Program> _webApplicationFactory = null!;
-#pragma warning restore SK1200
 
     public IServiceProvider Services => _webApplicationFactory.Services;
 

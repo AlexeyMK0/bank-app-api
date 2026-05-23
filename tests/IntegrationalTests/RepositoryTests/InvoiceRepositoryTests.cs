@@ -3,8 +3,8 @@ using BankApp.Application.Abstractions.Repositories;
 using BankApp.Domain.Accounts;
 using BankApp.Domain.Invoices;
 using BankApp.Domain.Invoices.States;
-using Bogus;
 using IntegrationalTests.Fixtures;
+using IntegrationalTests.RepositoryTests.TestData;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using System.Runtime.CompilerServices;
@@ -84,18 +84,15 @@ public sealed class InvoiceRepositoryTests : IAsyncLifetime
     }
 
     [Theory]
-    [InlineData(new int[] { 0, 2, 4 })]
-    [InlineData(new int[] { 3 })]
-    [InlineData(new int[] { })]
-    public async Task QueryInvoice_ShouldQuery_InvoiceIdsAreQueried(int[] invoiceIdPositions)
+    [ClassData(typeof(QueryInvoicesData))]
+    public async Task QueryInvoice_ShouldQuery_InvoiceIdsAreQueried(IEnumerable<Invoice> inputInvoices, int[] invoiceIdPositions)
     {
         // Arrange
-        const int invoiceCount = 5;
         CancellationToken cancellationToken = CancellationToken.None;
         await using AsyncServiceScope scope = _fixture.Services.CreateAsyncScope();
         IInvoiceRepository invoiceRepository = scope.ServiceProvider.GetRequiredService<IInvoiceRepository>();
 
-        List<Invoice> invoices = await GenerateInvoicesAndAddToRepo(invoiceCount, invoiceRepository, cancellationToken)
+        List<Invoice> invoices = await AddToRepo(inputInvoices, invoiceRepository, cancellationToken)
             .ToListAsync(cancellationToken);
 
         List<Invoice> expectedInvoices = GetExpectedInvoices(invoices, invoiceIdPositions);
@@ -104,7 +101,7 @@ public sealed class InvoiceRepositoryTests : IAsyncLifetime
         // Act
         List<Invoice> queriedInvoices = await invoiceRepository.QueryAsync(
                 InvoiceQuery.Build(builder => builder
-                    .WithPageSize(invoiceCount)
+                    .WithPageSize(invoices.Count)
                     .WithInvoiceIds(invoiceIds)),
                 cancellationToken)
             .ToListAsync(cancellationToken);
@@ -114,18 +111,15 @@ public sealed class InvoiceRepositoryTests : IAsyncLifetime
     }
 
     [Theory]
-    [InlineData(new int[] { 0, 2, 4 })]
-    [InlineData(new int[] { 3 })]
-    [InlineData(new int[] { })]
-    public async Task QueryInvoice_ShouldQuery_PayersAreQueried(int[] payersIdPositions)
+    [ClassData(typeof(QueryInvoicesData))]
+    public async Task QueryInvoice_ShouldQuery_PayersAreQueried(IEnumerable<Invoice> inputInvoices, int[] payersIdPositions)
     {
         // Arrange
-        const int invoiceCount = 5;
         CancellationToken cancellationToken = CancellationToken.None;
         await using AsyncServiceScope scope = _fixture.Services.CreateAsyncScope();
         IInvoiceRepository invoiceRepository = scope.ServiceProvider.GetRequiredService<IInvoiceRepository>();
 
-        List<Invoice> invoices = await GenerateInvoicesAndAddToRepo(invoiceCount, invoiceRepository, cancellationToken)
+        List<Invoice> invoices = await AddToRepo(inputInvoices, invoiceRepository, cancellationToken)
             .ToListAsync(cancellationToken);
 
         List<Invoice> expectedInvoices = GetExpectedInvoices(invoices, payersIdPositions);
@@ -134,7 +128,7 @@ public sealed class InvoiceRepositoryTests : IAsyncLifetime
         // Act
         List<Invoice> queriedInvoices = await invoiceRepository.QueryAsync(
                 InvoiceQuery.Build(builder => builder
-                    .WithPageSize(invoiceCount)
+                    .WithPageSize(invoices.Count)
                     .WithPayers(payerIds)),
                 cancellationToken)
             .ToListAsync(cancellationToken);
@@ -144,10 +138,8 @@ public sealed class InvoiceRepositoryTests : IAsyncLifetime
     }
 
     [Theory]
-    [InlineData(new int[] { 0, 2, 4 })]
-    [InlineData(new int[] { 3 })]
-    [InlineData(new int[] { })]
-    public async Task QueryInvoice_ShouldQuery_RecipientsAreQueried(int[] recipientsIdsPositions)
+    [ClassData(typeof(QueryInvoicesData))]
+    public async Task QueryInvoice_ShouldQuery_RecipientsAreQueried(IEnumerable<Invoice> inputInvoices, int[] recipientsIdsPositions)
     {
         // Arrange
         const int invoiceCount = 5;
@@ -155,7 +147,7 @@ public sealed class InvoiceRepositoryTests : IAsyncLifetime
         await using AsyncServiceScope scope = _fixture.Services.CreateAsyncScope();
         IInvoiceRepository invoiceRepository = scope.ServiceProvider.GetRequiredService<IInvoiceRepository>();
 
-        List<Invoice> invoices = await GenerateInvoicesAndAddToRepo(invoiceCount, invoiceRepository, cancellationToken)
+        List<Invoice> invoices = await AddToRepo(inputInvoices, invoiceRepository, cancellationToken)
             .ToListAsync(cancellationToken);
 
         List<Invoice> expectedInvoices = GetExpectedInvoices(invoices, recipientsIdsPositions);
@@ -174,28 +166,25 @@ public sealed class InvoiceRepositoryTests : IAsyncLifetime
     }
 
     [Theory]
-    [InlineData(new InvoiceStatus[] { InvoiceStatus.Cancelled, InvoiceStatus.Cancelled, InvoiceStatus.Paid })]
-    [InlineData(new InvoiceStatus[] { InvoiceStatus.Paid })]
-    public async Task QueryInvoice_ShouldQuery_StatusesAreQueried(InvoiceStatus[] statuses)
+    [ClassData(typeof(QueryInvoicesWithStatusesData))]
+    public async Task QueryInvoice_ShouldQuery_StatusesAreQueried(InvoiceStatus[] statuses, IEnumerable<Invoice> inputInvoices)
     {
         // Arrange
-        const int invoiceCount = 5;
         CancellationToken cancellationToken = CancellationToken.None;
         await using AsyncServiceScope scope = _fixture.Services.CreateAsyncScope();
         IInvoiceRepository invoiceRepository = scope.ServiceProvider.GetRequiredService<IInvoiceRepository>();
 
-        List<Invoice> invoices = await GenerateInvoicesAndAddToRepo(invoiceCount, invoiceRepository, cancellationToken)
+        List<Invoice> invoices = await AddToRepo(inputInvoices, invoiceRepository, cancellationToken)
             .ToListAsync(cancellationToken);
 
-        var invoiceIds = invoices.Select(i => i.Id).ToList();
-
-        var expectedInvoices = invoices.Where(i => statuses.Contains(i.State.Status)).ToList();
+        List<Invoice> expectedInvoices = statuses is []
+            ? invoices
+            : invoices.Where(i => statuses.Contains(i.State.Status)).ToList();
 
         // Act
         List<Invoice> queriedInvoices = await invoiceRepository.QueryAsync(
                 InvoiceQuery.Build(builder => builder
-                    .WithPageSize(invoiceCount)
-                    .WithInvoiceIds(invoiceIds)
+                    .WithPageSize(invoices.Count)
                     .WithStatuses(statuses)),
                 cancellationToken)
             .ToListAsync(cancellationToken);
@@ -204,18 +193,14 @@ public sealed class InvoiceRepositoryTests : IAsyncLifetime
         queriedInvoices.Should().BeEquivalentTo(expectedInvoices);
     }
 
-    private async IAsyncEnumerable<Invoice> GenerateInvoicesAndAddToRepo(
-        int invoiceCount,
+    private async IAsyncEnumerable<Invoice> AddToRepo(
+        IEnumerable<Invoice> invoices,
         IInvoiceRepository invoiceRepository,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        Faker<Invoice> faker = new InvoiceFaker();
-
-        List<Invoice> invoices = faker.Generate(invoiceCount);
-
-        for (int i = 0; i < invoiceCount; i++)
+        foreach (Invoice invoice in invoices)
         {
-            yield return await invoiceRepository.AddAsync(invoices[i], cancellationToken);
+            yield return await invoiceRepository.AddAsync(invoice, cancellationToken);
         }
     }
 
