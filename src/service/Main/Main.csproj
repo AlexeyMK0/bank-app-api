@@ -5,10 +5,14 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\..\Itmo.Backend.ServiceDefaults\Itmo.Backend.ServiceDefaults.csproj" />
+      <ProjectReference Include="..\..\..\BankApp.ServiceDefaults\BankApp.ServiceDefaults.csproj" />
       <ProjectReference Include="..\Application\BankApp.Application\BankApp.Application.csproj" />
       <ProjectReference Include="..\Infrastructure\BankApp.Infrastructure.Persistence\BankApp.Infrastructure.Persistence.csproj" />
       <ProjectReference Include="..\Presentation\BankApp.Presentation.Grpc\BankApp.Presentation.Grpc.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Npgsql.OpenTelemetry" />
     </ItemGroup>
 
 </Project>

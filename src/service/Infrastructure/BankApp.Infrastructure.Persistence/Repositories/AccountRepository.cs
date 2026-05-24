@@ -52,7 +52,7 @@ public sealed class AccountRepository : IAccountRepository
     {
         const string sql = """
         UPDATE accounts
-        SET account_pincode = :pincode, account_balance = :balance, user_id = :user_id
+        SET account_balance = :balance, user_id = :user_id
         WHERE account_id = :account_id
         """;
 
@@ -71,7 +71,7 @@ public sealed class AccountRepository : IAccountRepository
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         const string sql = """
-        SELECT account_id, account_pincode, account_balance, user_id
+        SELECT account_id, account_balance, user_id
         FROM accounts
         WHERE (:key_cursor IS NULL or account_id > :key_cursor)
             and (cardinality(:ids) = 0 or account_id = ANY(:ids))

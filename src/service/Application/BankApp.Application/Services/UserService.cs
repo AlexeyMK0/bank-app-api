@@ -25,7 +25,6 @@ public sealed class UserService : IUserService
 
     private static UserDto MapToDto(User user)
     {
-        // TODO: is it ok to pass to Presentation this guid?
         return new UserDto(user.UserExternalId.Value, user.Id.Value);
     }
 }
