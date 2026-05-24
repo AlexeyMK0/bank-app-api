@@ -2,6 +2,11 @@ using Projects;
 
 IDistributedApplicationBuilder builder = DistributedApplication.CreateBuilder(args);
 
+IResourceBuilder<RedisResource> redis = builder
+    .AddRedis("redis-cache")
+    .WithDataVolume(isReadOnly: false)
+    .WithRedisInsight();
+
 IResourceBuilder<KeycloakResource> keycloak = builder
     .AddKeycloakContainer("service-keycloak")
     .WithLifetime(ContainerLifetime.Persistent)
@@ -48,6 +53,7 @@ IResourceBuilder<ProjectResource> gateway = builder
     .WaitFor(keycloak)
     .WithReference(service)
     .WithReference(realm)
+    .WithReference(redis)
     .WithEnvironment(
         "Infrastructure:Service:service-account:BaseAddress",
         service.GetEndpoint("gRPC"))

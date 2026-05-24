@@ -24,6 +24,9 @@ builder.AddServiceDefaults();
 
 builder.Logging.AddConsole();
 
+builder.AddRedisDistributedCache("redis-cache");
+builder.Services.AddHybridCache();
+
 builder.Services
     .AddClients()
     .AddServices()
@@ -89,7 +92,7 @@ builder.Services
                 long userId = await userService.AddUserAsync(Guid.Parse(token), context.HttpContext.RequestAborted);
                 ILogger<IUserService> logger = context.HttpContext.RequestServices
                     .GetRequiredService<ILogger<IUserService>>();
-                logger.LogInformation($"Token validated for user {userId}");
+                logger.LogInformation("Token validated for user {UserId}", userId);
             },
         };
     })
@@ -119,7 +122,7 @@ builder.Services
                 long userId = await userService.AddUserAsync(Guid.Parse(token), context.HttpContext.RequestAborted);
                 ILogger<IUserService> logger = context.HttpContext.RequestServices
                     .GetRequiredService<ILogger<IUserService>>();
-                logger.LogInformation($"Token validated for user {userId}");
+                logger.LogInformation("Token validated for user {UserId}", userId);
             },
         };
     });

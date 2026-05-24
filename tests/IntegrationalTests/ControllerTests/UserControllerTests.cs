@@ -1,3 +1,5 @@
+#pragma warning disable IDE0008
+
 using BankApp.Application.Abstractions.Repositories;
 using BankApp.Application.Extensions.RepositorySpecifications;
 using BankApp.Domain.Sessions;
@@ -40,15 +42,17 @@ public sealed class UserControllerTests : IAsyncLifetime
         var request = new ProtoAddUserRequest(externalId.ToString());
 
         // Act & Assert
-        await _client.Awaiting(client => client.AddUserAsync(request).ResponseAsync)
+        var response = await _client.Awaiting(client => client.AddUserAsync(request).ResponseAsync)
             .Should()
             .NotThrowAsync();
+
+        var createdUser = new User(new UserId(response.Subject.UserId), new UserExternalId(externalId));
 
         await using AsyncServiceScope scope = _fixture.Services.CreateAsyncScope();
         IUserRepository repository = scope.ServiceProvider.GetRequiredService<IUserRepository>();
 
-        User? user = await repository.FindUserByExternalIdAsync(new UserExternalId(externalId), CancellationToken.None);
+        User? user = await repository.FindUserByExternalIdAsync(createdUser.UserExternalId, CancellationToken.None);
         user.Should().NotBeNull();
-        user.UserExternalId.Value.Should().Be(externalId);
+        user.Should().BeEquivalentTo(createdUser);
     }
 }
