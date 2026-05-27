@@ -17,4 +17,8 @@
       <PackageReference Include="Npgsql" />
     </ItemGroup>
 
+    <ItemGroup>
+        <InternalsVisibleTo Include="IntegrationalTests"/>
+    </ItemGroup>
+    
 </Project>

@@ -2,6 +2,13 @@ using Projects;
 
 IDistributedApplicationBuilder builder = DistributedApplication.CreateBuilder(args);
 
+IResourceBuilder<RedisResource> redis = builder
+    .AddRedis("redis-cache")
+    .WithOtlpExporter()
+    .WithDataVolume(isReadOnly: false)
+    .WithExternalHttpEndpoints()
+    .WithRedisInsight();
+
 IResourceBuilder<KeycloakResource> keycloak = builder
     .AddKeycloakContainer("service-keycloak")
     .WithLifetime(ContainerLifetime.Persistent)
@@ -39,7 +46,6 @@ IResourceBuilder<ProjectResource> service = builder.AddProject<Main>("main")
         "Infrastructure:Persistence:Postgres:Password",
         postgres.Resource.PasswordParameter)
     .WithHttpHealthCheck("/health");
-/*.WithEnvironment("USE_PROMETHEUS_METRICS", "false")*/
 
 Console.WriteLine($"gRpcEndpoint {service.GetEndpoint("gRpcEndpoint")}");
 
@@ -49,6 +55,7 @@ IResourceBuilder<ProjectResource> gateway = builder
     .WaitFor(keycloak)
     .WithReference(service)
     .WithReference(realm)
+    .WithReference(redis)
     .WithEnvironment(
         "Infrastructure:Service:service-account:BaseAddress",
         service.GetEndpoint("gRPC"))
@@ -67,9 +74,6 @@ IResourceBuilder<ProjectResource> gateway = builder
     .WithEnvironment(
         "Authentication__ClientId",
         "bank-app-gateway")
-    /*.WithEnvironment(
-        "Authentication__ClientSecret",
-        "9eZuGWJJW11PjO49SVlJvdg4EbiaXok7")*/
     ;
 
 builder.Build().Run();

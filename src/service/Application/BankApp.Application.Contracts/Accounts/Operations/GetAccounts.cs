@@ -2,9 +2,9 @@ using BankApp.Application.Contracts.Accounts.Model;
 
 namespace BankApp.Application.Contracts.Accounts.Operations;
 
-public class GetAccounts
+public static class GetAccounts
 {
-    public sealed record PageToken(long UserId);
+    public sealed record PageToken(long AccountId);
 
     public sealed record Request(Guid UserId, int PageSize, PageToken? PageToken = null);
 
@@ -13,5 +13,7 @@ public class GetAccounts
         public sealed record Success(IEnumerable<AccountDto> Accounts, PageToken? PageToken) : Response;
 
         public sealed record Failure(string Message) : Response;
+
+        public sealed record NotFound(string Message) : Response;
     }
 }

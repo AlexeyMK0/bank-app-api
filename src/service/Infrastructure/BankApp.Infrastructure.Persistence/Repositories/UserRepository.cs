@@ -10,7 +10,7 @@ using System.Runtime.CompilerServices;
 
 namespace BankApp.Infrastructure.Persistence.Repositories;
 
-public sealed class UserRepository : IUserRepository
+internal sealed class UserRepository : IUserRepository
 {
     private readonly IPersistenceConnectionProvider _connectionProvider;
 

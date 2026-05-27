@@ -8,6 +8,7 @@ using BankApp.Gateway.Application.Contracts;
 using BankApp.Gateway.Application.Services;
 using BankApp.Gateway.Infrastructure.Service;
 using BankApp.Gateway.Presentation.Http;
+using BankApp.Gateway.Presentation.Http.Extensions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -23,17 +24,21 @@ builder.AddServiceDefaults();
 
 builder.Logging.AddConsole();
 
+builder.AddRedisDistributedCache("redis-cache");
+builder.Services.AddHybridCache();
+
 builder.Services
     .AddClients()
     .AddServices()
     .AddPresentationHttp()
-    .AddHttpContextAccessor()
-    .AddAuthorization();
+    .AddHttpContextAccessor();
+
+builder.Services
+    .AddAuthorization(auth => auth.AddFeaturePolicies());
 
 builder.Services
     .AddAuthentication(auth =>
     {
-        // name of our custom scheme
         auth.DefaultScheme = "composite";
         auth.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
     })
@@ -42,25 +47,14 @@ builder.Services
         "composite",
         options =>
         {
-            // на основе запроса позволяет выбрать какая политика будет использоваться
-            // нужно, чтобы можно было авторизоваться в swagger
             options.ForwardDefaultSelector = context =>
             {
-                // если есть токен, начинающийся с Bearer
                 if (context.Request.Headers.Authorization.ToString().StartsWith("Bearer"))
                 {
-                    // используем авторизацию по Bearer
                     return JwtBearerDefaults.AuthenticationScheme;
                 }
 
-                // иначе авторизуемся через Cookie
                 return CookieAuthenticationDefaults.AuthenticationScheme;
-
-                /*
-                 * Дальше настроили swagger
-                 * Он будет отправлять через Bearer
-                 * Запрос просто через браузер идут через cookie
-                 */
             };
         })
     .AddCookie(options =>
@@ -95,10 +89,10 @@ builder.Services
                     ?? throw new UnreachableException("Token not found");
                 IUserService userService = context.HttpContext.RequestServices
                     .GetRequiredService<IUserService>();
+                long userId = await userService.AddUserAsync(Guid.Parse(token), context.HttpContext.RequestAborted);
                 ILogger<IUserService> logger = context.HttpContext.RequestServices
                     .GetRequiredService<ILogger<IUserService>>();
-                long userId = await userService.AddUserAsync(Guid.Parse(token), context.HttpContext.RequestAborted);
-                logger.LogInformation($"Token validated for user {userId}");
+                logger.LogInformation("Token validated for user {UserId}", userId);
             },
         };
     })
@@ -125,10 +119,10 @@ builder.Services
                                ?? throw new UnreachableException("Token not found");
                 IUserService userService = context.HttpContext.RequestServices
                     .GetRequiredService<IUserService>();
+                long userId = await userService.AddUserAsync(Guid.Parse(token), context.HttpContext.RequestAborted);
                 ILogger<IUserService> logger = context.HttpContext.RequestServices
                     .GetRequiredService<ILogger<IUserService>>();
-                long userId = await userService.AddUserAsync(Guid.Parse(token), context.HttpContext.RequestAborted);
-                logger.LogInformation($"Token validated for user {userId}");
+                logger.LogInformation("Token validated for user {UserId}", userId);
             },
         };
     });
@@ -137,7 +131,6 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(swagger =>
 {
-    // Добавляет кнопку авторизации
     swagger.AddSecurityDefinition(
         "oidc",
         new OpenApiSecurityScheme
@@ -145,14 +138,11 @@ builder.Services.AddSwaggerGen(swagger =>
             Type = SecuritySchemeType.OAuth2,
             Flows = new OpenApiOAuthFlows
             {
-                // упрощенный поток, когда клиент -- это браузер
                 AuthorizationCode = new OpenApiOAuthFlow
                 {
-                    // url на keyCloak, нужен, чтобы перенаправить туда для авторизации
                     AuthorizationUrl =
                         new Uri(
                             $"{builder.Configuration["Authentication:IdentityProviderUri"]}/protocol/openid-connect/auth"),
-                    // где брать url
                     TokenUrl = new Uri(
                         $"{builder.Configuration["Authentication:IdentityProviderUri"]}/protocol/openid-connect/token"),
                 },
@@ -183,8 +173,6 @@ if (app.Environment.IsDevelopment())
         swagger.RoutePrefix = "aboba"; // specifies path to ui
         swagger.SwaggerEndpoint("/swagger/v1/swagger.json", "BankApp Gateway v1"); // specifies path to JSON
         swagger.OAuthClientId(builder.Configuration["Authentication:ClientId"] + "-swagger");
-        /* так клиент это браузер, то не можем передать туда пользовательские секреты
-         proof key for code exchange */
         swagger.OAuthUsePkce();
     });
 }

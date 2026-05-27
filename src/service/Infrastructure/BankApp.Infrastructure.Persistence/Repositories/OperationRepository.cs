@@ -14,7 +14,7 @@ using OperationQuery = BankApp.Application.Abstractions.Queries.OperationQuery;
 
 namespace BankApp.Infrastructure.Persistence.Repositories;
 
-public sealed class OperationRepository : IOperationRepository
+internal sealed class OperationRepository : IOperationRepository
 {
     private readonly IPersistenceConnectionProvider _connectionProvider;
 

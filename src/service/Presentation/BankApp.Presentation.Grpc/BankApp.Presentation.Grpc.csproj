@@ -20,7 +20,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Protobuf Include="protos/**/*.proto" ProtoRoot="protos" GrpcServices="Server"/>
+        <Protobuf Include="protos/**/*.proto" ProtoRoot="protos" GrpcServices="Both"/>
         <Protobuf Remove="protos/google/**/*.proto" ProtoRoot="protos" ProtoCompile="false" />
     </ItemGroup>
 

@@ -1,6 +1,7 @@
 using BankApp.Application.Contracts.Invoices;
 using BankApp.Application.Contracts.Invoices.Operations;
 using BankApp.Grpc;
+using BankApp.Presentation.Grpc.Extensions.RequestExtensions;
 using BankApp.Presentation.Grpc.Mappers;
 using BankApp.Presentation.Grpc.Options;
 using Grpc.Core;
@@ -37,6 +38,8 @@ public class InvoiceController : InvoiceService.InvoiceServiceBase
             CreateInvoice.Response.Success success => new ProtoCreateInvoiceResponse(success.InvoiceId),
             CreateInvoice.Response.Failure failure => throw new RpcException(
                 new Status(StatusCode.InvalidArgument, failure.Message)),
+            CreateInvoice.Response.NotFound notFound => throw new RpcException(
+                new Status(StatusCode.InvalidArgument, notFound.Message)),
             _ => throw new UnreachableException(),
         };
     }
@@ -56,6 +59,8 @@ public class InvoiceController : InvoiceService.InvoiceServiceBase
             CancelInvoice.Response.Success success => new ProtoCancelInvoiceResponse(),
             CancelInvoice.Response.Failure failure => throw new RpcException(
                 new Status(StatusCode.InvalidArgument, failure.Message)),
+            CancelInvoice.Response.NotFound notFound => throw new RpcException(
+                new Status(StatusCode.InvalidArgument, notFound.Message)),
             _ => throw new UnreachableException(),
         };
     }
@@ -72,95 +77,29 @@ public class InvoiceController : InvoiceService.InvoiceServiceBase
             PayInvoice.Response.Success success => new ProtoPayInvoiceResponse(),
             PayInvoice.Response.Failure failure => throw new RpcException(
                 new Status(StatusCode.InvalidArgument, failure.Message)),
+            PayInvoice.Response.NotFound notFound => throw new RpcException(
+                new Status(StatusCode.InvalidArgument, notFound.Message)),
             _ => throw new UnreachableException(),
         };
     }
 
-    /*public async Task<ProtoGetInvoicesResponse> GetInvoices(ProtoGetInvoicesRequest request, ServerCallContext context)
+    public override async Task<ProtoGetInvoicesResponse> GetInvoices(ProtoGetInvoicesRequest request, ServerCallContext context)
     {
-        var sessionId = Guid.Parse(request.SessionId);
-        InvoiceStatusDto[] states = request
-            .InvoiceStatuses.Select(state => state
-                .MapToDto())
-            .ToArray();
-        int pageSize = request.PageSize ?? _defaultPageSize;
-        long[] recipientIds = request.RecipientIds.ToArray();
-        Console.WriteLine($"Page token is null: {request.PageToken is null}");
-        GetIncomingInvoices.PageToken? pageToken
-            = request.PageToken is null
-                ? null
-                : JsonSerializer.Deserialize<GetIncomingInvoices.PageToken>(request.PageToken);
-    }*/
-
-    public override async Task<GetIncomingInvoicesResponse> GetIncomingInvoices(
-        GetIncomingInvoicesRequest request,
-        ServerCallContext context)
-    {
-        var externalId = Guid.Parse(request.UserExternalId);
-        InvoiceStatusDto[] statuses = request
-            .InvoiceStatuses.Select(state => state
-                .MapToDto())
-            .ToArray();
-        int pageSize = request.PageSize ?? _defaultPageSize;
-        long[] accountIds = request.UserIds.ToArray();
-        long[] recipientIds = request.RecipientIds.ToArray();
-        Console.WriteLine($"Page token is null: {request.PageToken is null}");
-        GetIncomingInvoices.PageToken? pageToken
-            = request.PageToken is null
-                ? null
-                : JsonSerializer.Deserialize<GetIncomingInvoices.PageToken>(request.PageToken);
-
-        var apiRequest = new GetIncomingInvoices.Request(externalId, accountIds, pageToken, pageSize, statuses, recipientIds);
-
-        GetIncomingInvoices.Response result =
-            await _invoiceService.GetIncomingInvoicesAsync(apiRequest, context.CancellationToken);
-        return result switch
+        GetInvoices.Request apiRequest = request.MapToDomain(_defaultPageSize);
+        GetInvoices.Response response = await _invoiceService.GetInvoicesAsync(apiRequest, context.CancellationToken);
+        return response switch
         {
-            GetIncomingInvoices.Response.Success success => new ProtoGetIncomingInvoicesResponse
+            GetInvoices.Response.Success success => new ProtoGetInvoicesResponse
             {
                 Invoices = { success.Invoices.Select(invoice => invoice.MapToProto()) },
                 PageToken = success.PageToken is null
                     ? null
-                    : JsonSerializer.Serialize<GetIncomingInvoices.PageToken>(success.PageToken),
+                    : JsonSerializer.Serialize<GetInvoices.PageToken>(success.PageToken),
             },
-            GetIncomingInvoices.Response.Failure failure => throw new RpcException(
+            GetInvoices.Response.Failure failure => throw new RpcException(
                 new Status(StatusCode.InvalidArgument, failure.Message)),
-            _ => throw new UnreachableException(),
-        };
-    }
-
-    public override async Task<GetOutgoingInvoicesResponse> GetOutgoingInvoices(
-        GetOutgoingInvoicesRequest request,
-        ServerCallContext context)
-    {
-        var externalId = Guid.Parse(request.UserExternalId);
-        InvoiceStatusDto[] statuses = request
-            .InvoiceStatuses.Select(state => state
-                .MapToDto())
-            .ToArray();
-        int pageSize = request.PageSize ?? _defaultPageSize;
-        long[] payerIds = request.PayerIds.ToArray();
-        long[] accountIds = request.UserIds.ToArray();
-        GetOutgoingInvoices.PageToken? pageToken
-            = request.PageToken is null
-                ? null
-                : JsonSerializer.Deserialize<GetOutgoingInvoices.PageToken>(request.PageToken);
-
-        var apiRequest = new GetOutgoingInvoices.Request(externalId, accountIds, pageToken, pageSize, statuses, payerIds);
-
-        GetOutgoingInvoices.Response result =
-            await _invoiceService.GetOutgoingInvoicesAsync(apiRequest, context.CancellationToken);
-        return result switch
-        {
-            GetOutgoingInvoices.Response.Success success => new ProtoGetOutgoingInvoicesResponse
-            {
-                Invoices = { success.Invoices.Select(invoice => invoice.MapToProto()) },
-                PageToken = success.PageToken is null
-                    ? null
-                    : JsonSerializer.Serialize<GetOutgoingInvoices.PageToken>(success.PageToken),
-            },
-            GetOutgoingInvoices.Response.Failure failure => throw new RpcException(
-                new Status(StatusCode.InvalidArgument, failure.Message)),
+            GetInvoices.Response.NotFound notFound => throw new RpcException(
+                new Status(StatusCode.InvalidArgument, notFound.Message)),
             _ => throw new UnreachableException(),
         };
     }

@@ -7,7 +7,16 @@ public static class ServiceCollectionExtension
 {
     public static IServiceCollection AddServices(this IServiceCollection serviceCollection)
     {
-        serviceCollection.AddScoped<IUserService, UserService>();
+        serviceCollection
+            .AddScoped<IUserService, UserService>()
+            .Decorate<IUserService, CachedUserService>();
+
+        serviceCollection
+            .AddOptions<UserCachingOptions>()
+            .BindConfiguration("Application:UserService:Caching")
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
         return serviceCollection;
     }
 }

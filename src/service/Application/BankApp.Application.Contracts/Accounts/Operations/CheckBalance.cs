@@ -9,5 +9,7 @@ public static class CheckBalance
         public sealed record Success(decimal Balance) : Response;
 
         public sealed record Failure(string Message) : Response;
+
+        public sealed record NotFound(string Message) : Response;
     }
 }

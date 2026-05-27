@@ -1,5 +1,6 @@
 using BankApp.Application.Contracts.OperationHistory;
 using BankApp.Grpc;
+using BankApp.Presentation.Grpc.Extensions.RequestExtensions;
 using BankApp.Presentation.Grpc.Mappers;
 using BankApp.Presentation.Grpc.Options;
 using Grpc.Core;
@@ -22,20 +23,11 @@ public class OperationHistoryController : OperationHistoryService.OperationHisto
         _defaultPageSize = options.Value.DefaultPageSize;
     }
 
-    public override async Task<GetOperationHistoryResponse> GetOperationHistory(
+    public override async Task<ProtoGetOperationHistoryResponse> GetOperationHistory(
         ProtoGetOperationHistoryRequest request,
         ServerCallContext context)
     {
-        var externalId = Guid.Parse(request.UserExternalId);
-        int pageSize = request.PageSize ?? _defaultPageSize;
-        long[] accountIds = request.AccountIds.ToArray();
-        GetAccountOperations.PageToken? pageToken
-            = request.PageToken is null
-                ? null
-                : JsonSerializer.Deserialize<GetAccountOperations.PageToken>(request.PageToken);
-
-        var apiRequest = new GetAccountOperations.Request(externalId, accountIds, pageToken, pageSize);
-
+        GetAccountOperations.Request apiRequest = request.MapToDomain(_defaultPageSize);
         GetAccountOperations.Response result =
             await _historyService.GetOperationsAsync(apiRequest, context.CancellationToken);
         return result switch
@@ -49,6 +41,8 @@ public class OperationHistoryController : OperationHistoryService.OperationHisto
             },
             GetAccountOperations.Response.Failure failure
                 => throw new RpcException(new Status(StatusCode.InvalidArgument, failure.Message)),
+            GetAccountOperations.Response.NotFound notFound => throw new RpcException(
+                new Status(StatusCode.InvalidArgument, notFound.Message)),
             _ => throw new UnreachableException(),
         };
     }

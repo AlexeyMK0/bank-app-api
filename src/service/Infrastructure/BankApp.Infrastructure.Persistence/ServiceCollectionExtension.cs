@@ -1,3 +1,4 @@
+using BankApp.Application.Abstractions;
 using BankApp.Application.Abstractions.Repositories;
 using BankApp.Infrastructure.Persistence.Model;
 using BankApp.Infrastructure.Persistence.Model.Links;
@@ -38,6 +39,9 @@ public static class ServiceCollectionExtension
         services.AddScoped<IOperationRepository, OperationRepository>();
         services.AddScoped<IInvoiceRepository, InvoiceRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
+
+        services.AddScoped<IPersistenceContext, PersistenceContext>();
+
         services.AddSingleton<IInvoiceFactory, InvoiceFactory>();
 
         return services;

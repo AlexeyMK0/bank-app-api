@@ -12,7 +12,7 @@ using AccountQuery = BankApp.Application.Abstractions.Queries.AccountQuery;
 
 namespace BankApp.Infrastructure.Persistence.Repositories;
 
-public sealed class AccountRepository : IAccountRepository
+internal sealed class AccountRepository : IAccountRepository
 {
     private readonly IPersistenceConnectionProvider _connectionProvider;
 
@@ -43,7 +43,7 @@ public sealed class AccountRepository : IAccountRepository
         }
 
         long newId = reader.GetInt64(0);
-        return account with { Id = new AccountId(newId) };
+        return new Account(new AccountId(newId), account.Balance, account.OwnerUserId);
     }
 
     public async Task<Account> UpdateAsync(

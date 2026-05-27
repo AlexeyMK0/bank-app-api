@@ -11,7 +11,7 @@ using InvoiceQuery = BankApp.Application.Abstractions.Queries.InvoiceQuery;
 
 namespace BankApp.Infrastructure.Persistence.Repositories;
 
-public class InvoiceRepository : IInvoiceRepository
+internal class InvoiceRepository : IInvoiceRepository
 {
     private readonly IPersistenceConnectionProvider _connectionProvider;
 

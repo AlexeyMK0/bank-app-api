@@ -1,6 +1,7 @@
 using BankApp.Gateway.Application.Abstractions.Clients;
 using BankApp.Gateway.Application.Abstractions.Requests;
 using BankApp.Gateway.Application.Models;
+using BankApp.Gateway.Presentation.Http.AuthorizationModels;
 using BankApp.Gateway.Presentation.Http.Extensions;
 using BankApp.Gateway.Presentation.Http.Operations;
 using BankApp.Gateway.Presentation.Http.Responses;
@@ -22,7 +23,7 @@ public class AccountController : ControllerBase
     }
 
     [HttpGet("balance")]
-    [Authorize]
+    [Authorize(Policy = AppFeatures.ReadAccountBalance)]
     public async Task<ActionResult<decimal>> CheckAccountBalance(
         [FromQuery] long accountId,
         CancellationToken cancellationToken)
@@ -37,7 +38,7 @@ public class AccountController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles="admin")]
+    [Authorize(Policy = AppFeatures.CreateAccount)]
     public async Task<ActionResult<AccountDto>> CreateNewAccount(
         [FromBody] CreateAccountRequest httpRequest,
         CancellationToken cancellationToken)
@@ -52,7 +53,7 @@ public class AccountController : ControllerBase
     }
 
     [HttpPost("deposit")]
-    [Authorize]
+    [Authorize(Policy = AppFeatures.AccountDeposit)]
     public async Task<ActionResult<decimal>> DepositSum(
         [FromBody] DepositMoneyRequest httpRequest,
         CancellationToken cancellationToken)
@@ -68,7 +69,7 @@ public class AccountController : ControllerBase
     }
 
     [HttpPost("withdraw")]
-    [Authorize]
+    [Authorize(Policy = AppFeatures.AccountWithdraw)]
     public async Task<ActionResult<decimal>> WithdrawSum(
         [FromBody] WithdrawMoneyRequest httpRequest,
         CancellationToken cancellationToken)
@@ -84,7 +85,7 @@ public class AccountController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize]
+    [Authorize(Policy = AppFeatures.ReadAccount)]
     public async Task<ActionResult<GetUserAccountsResponse>> GetUserAccounts(
         [FromQuery] GetUserAccountsRequest httpRequest,
         CancellationToken cancellationToken)

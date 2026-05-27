@@ -30,7 +30,7 @@ public sealed partial class CreateInvoiceRequest : IValidatableObject
         if (Amount.DecimalValue < 0)
         {
             yield return new ValidationResult(
-                "Deposit amount must be positive");
+                "Create invoice amount must be positive");
         }
 
         if (Guid.TryParse(UserExternalId, out Guid guid) is false)

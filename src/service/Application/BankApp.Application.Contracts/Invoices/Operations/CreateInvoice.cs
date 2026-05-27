@@ -13,5 +13,7 @@ public static class CreateInvoice
         public sealed record Success(long InvoiceId) : Response;
 
         public sealed record Failure(string Message) : Response;
+
+        public sealed record NotFound(string Message) : Response;
     }
 }

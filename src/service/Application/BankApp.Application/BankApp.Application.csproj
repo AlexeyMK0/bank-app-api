@@ -14,4 +14,8 @@
       <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" />
     </ItemGroup>
 
+    <ItemGroup>
+        <InternalsVisibleTo Include="UnitTests"/>
+    </ItemGroup>
+    
 </Project>
