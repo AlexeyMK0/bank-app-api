@@ -65,22 +65,22 @@ internal class InvoiceService : IInvoiceService
         if (foundUser is null)
         {
             _logger.LogWarning("User with external id {ExternalId} not found", externalUserId.Value);
-            return new CreateInvoice.Response.Failure("User not found");
+            return new CreateInvoice.Response.NotFound("User not found");
         }
 
         Account? payerAccount = await _context.AccountRepository.FindAccountByIdAsync(payerAccountId, cancellationToken);
         if (payerAccount is null)
         {
             _logger.LogInformation("{UserId} attempted to find non-existing {Role} account with id {AccountId} for invoice", foundUser.Id.Value, PayerRole, payerAccountId.Value);
-            return new CreateInvoice.Response.Failure("Payer account not found");
+            return new CreateInvoice.Response.NotFound("Payer account not found");
         }
 
         Account? recipientAccount =
             await _context.AccountRepository.FindAccountByIdAsync(recipientAccountId, cancellationToken);
         if (recipientAccount is null)
         {
-            _logger.LogInformation("{UserId} attempted to find non-existing {Role} account with id {AccountId} for invoice", foundUser.Id.Value, RecipientRole, payerAccountId.Value);
-            return new CreateInvoice.Response.Failure(CreateAccountNotFoundForUserMessage(payerAccountId, foundUser));
+            _logger.LogInformation("{UserId} attempted to access non-existing {Role} account with id {AccountId} for invoice", foundUser.Id.Value, RecipientRole, payerAccountId.Value);
+            return new CreateInvoice.Response.NotFound(CreateAccountNotFoundForUserMessage(payerAccountId, foundUser));
         }
 
         if (recipientAccount.OwnerUserId != foundUser.Id)
@@ -90,7 +90,7 @@ internal class InvoiceService : IInvoiceService
                 foundUser.Id.Value,
                 recipientAccount.Id.Value,
                 recipientAccount.OwnerUserId.Value);
-            return new CreateInvoice.Response.Failure(
+            return new CreateInvoice.Response.NotFound(
                 CreateAccountNotFoundForUserMessage(recipientAccountId, foundUser));
         }
 
@@ -128,14 +128,14 @@ internal class InvoiceService : IInvoiceService
         if (foundUser is null)
         {
             _logger.LogWarning("User with external id {ExternalId} not found", userId.Value);
-            return new CancelInvoice.Response.Failure("User not found");
+            return new CancelInvoice.Response.NotFound("User not found");
         }
 
         Invoice? invoice = await _context.InvoiceRepository.FindInvoiceByIdAsync(invoiceId, cancellationToken);
         if (invoice is null)
         {
             _logger.LogInformation("User {UserId} attempted to access non-existing invoice with id {InvoiceId}", foundUser.Id.Value, invoiceId.Value);
-            return new CancelInvoice.Response.Failure(CreateInvoiceNotFoundForUserMessage(invoiceId, foundUser));
+            return new CancelInvoice.Response.NotFound(CreateInvoiceNotFoundForUserMessage(invoiceId, foundUser));
         }
 
         bool userIsInvolved = await UserIsInvolvedAsync(foundUser, invoice, cancellationToken);
@@ -147,7 +147,7 @@ internal class InvoiceService : IInvoiceService
                 foundUser.Id.Value,
                 invoice.PayerId.Value,
                 invoice.RecipientId.Value);
-            return new CancelInvoice.Response.Failure(CreateInvoiceNotFoundForUserMessage(invoiceId, foundUser));
+            return new CancelInvoice.Response.NotFound(CreateInvoiceNotFoundForUserMessage(invoiceId, foundUser));
         }
 
         CancelInvoiceResult result = invoice.Cancel();
@@ -175,7 +175,7 @@ internal class InvoiceService : IInvoiceService
         if (user is null)
         {
             _logger.LogWarning("User with external id {ExternalId} not found", userId.Value);
-            return new PayInvoice.Response.Failure("User not found");
+            return new PayInvoice.Response.NotFound("User not found");
         }
 
         Invoice? invoice = await _context.InvoiceRepository
@@ -183,7 +183,7 @@ internal class InvoiceService : IInvoiceService
         if (invoice is null)
         {
             _logger.LogInformation("User {UserId} attempted to access non-existing invoice with id {InvoiceId}", user.Id.Value, invoiceId.Value);
-            return new PayInvoice.Response.Failure(CreateInvoiceNotFoundForUserMessage(invoiceId, user));
+            return new PayInvoice.Response.NotFound(CreateInvoiceNotFoundForUserMessage(invoiceId, user));
         }
 
         Account? payerAccount = await _context.AccountRepository
@@ -191,8 +191,8 @@ internal class InvoiceService : IInvoiceService
         if (payerAccount is null)
         {
             _logger.LogWarning("{Role} account {accountId} of invoice {InvoiceId} not found", invoice.PayerId.Value, invoiceId.Value, PayerRole);
-            return new PayInvoice.Response.Failure(
-                $"Cannot pay invoice with id: {invoiceId.Value} - not found or account {user.Id} is not its payer");
+            return new PayInvoice.Response.NotFound(
+                CreateInvoiceNotFoundForUserMessage(invoiceId, user));
         }
 
         if (payerAccount.OwnerUserId != user.Id)
@@ -202,8 +202,8 @@ internal class InvoiceService : IInvoiceService
                 user.Id.Value,
                 payerAccount.Id.Value,
                 payerAccount.OwnerUserId.Value);
-            return new PayInvoice.Response.Failure(
-                $"Cannot pay invoice with id: {invoiceId.Value} - not found or account {user.Id} is not its payer");
+            return new PayInvoice.Response.NotFound(
+                CreateInvoiceNotFoundForUserMessage(invoiceId, user));
         }
 
         Account? recipientAccount = await _context.AccountRepository
@@ -292,7 +292,7 @@ internal class InvoiceService : IInvoiceService
         if (user is null)
         {
             _logger.LogWarning("User with external id {ExternalId} not found", userId.Value);
-            return new GetInvoices.Response.Failure("User not found");
+            return new GetInvoices.Response.NotFound("User not found");
         }
 
         if (userAccountIds.Length == 0)
@@ -322,7 +322,7 @@ internal class InvoiceService : IInvoiceService
                 badAccounts.Length,
                 errorIds);
 
-            return new GetInvoices.Response.Failure($"Accounts not found for user {user.Id.Value}");
+            return new GetInvoices.Response.NotFound($"Accounts not found for user {user.Id.Value}");
         }
 
         InvoiceQuery query = BuildInvoiceQuery(

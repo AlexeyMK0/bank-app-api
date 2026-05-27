@@ -94,7 +94,7 @@ public sealed class AccountControllerTests : IAsyncLifetime
         // Act & Assert
         var response = await _client.Awaiting(c => c.CreateAccountAsync(request).ResponseAsync)
             .Should().ThrowAsync<RpcException>();
-        response.Which.StatusCode.Should().Be(StatusCode.InvalidArgument);
+        response.Which.StatusCode.Should().Be(StatusCode.NotFound);
 
         IAccountRepository accountRepository = scope.ServiceProvider.GetRequiredService<IAccountRepository>();
         Account[] accounts = await accountRepository.QueryAsync(
@@ -215,7 +215,7 @@ public sealed class AccountControllerTests : IAsyncLifetime
         // Act & Assert
         var response = await _client.Awaiting(c => c.WithdrawMoneyAsync(request).ResponseAsync)
             .Should().ThrowAsync<RpcException>();
-        response.Which.StatusCode.Should().Be(StatusCode.InvalidArgument);
+        response.Which.StatusCode.Should().Be(StatusCode.NotFound);
 
         Account? queriedAccount = await accountRepository.FindAccountByIdAsync(expectedAccount.Id, cancellationToken);
         queriedAccount.Should()
@@ -246,7 +246,7 @@ public sealed class AccountControllerTests : IAsyncLifetime
         // Act & Assert
         var response = await _client.Awaiting(c => c.WithdrawMoneyAsync(request).ResponseAsync)
             .Should().ThrowAsync<RpcException>();
-        response.Which.StatusCode.Should().Be(StatusCode.InvalidArgument);
+        response.Which.StatusCode.Should().Be(StatusCode.NotFound);
     }
 
     [Fact]
@@ -274,7 +274,7 @@ public sealed class AccountControllerTests : IAsyncLifetime
         // Act & Assert
         var response = await _client.Awaiting(c => c.WithdrawMoneyAsync(request).ResponseAsync)
             .Should().ThrowAsync<RpcException>();
-        response.Which.StatusCode.Should().Be(StatusCode.InvalidArgument);
+        response.Which.StatusCode.Should().Be(StatusCode.NotFound);
 
         Account? queriedAccount = await accountRepository.FindAccountByIdAsync(account.Id, cancellationToken);
         queriedAccount.Should()
@@ -379,7 +379,7 @@ public sealed class AccountControllerTests : IAsyncLifetime
         // Act & Assert
         var response = await _client.Awaiting(c => c.DepositMoneyAsync(request).ResponseAsync)
             .Should().ThrowAsync<RpcException>();
-        response.Which.StatusCode.Should().Be(StatusCode.InvalidArgument);
+        response.Which.StatusCode.Should().Be(StatusCode.NotFound);
 
         Account? queriedAccount = await accountRepository.FindAccountByIdAsync(expectedAccount.Id, cancellationToken);
         queriedAccount.Should()
@@ -410,7 +410,7 @@ public sealed class AccountControllerTests : IAsyncLifetime
         // Act & Assert
         var response = await _client.Awaiting(c => c.DepositMoneyAsync(request).ResponseAsync)
             .Should().ThrowAsync<RpcException>();
-        response.Which.StatusCode.Should().Be(StatusCode.InvalidArgument);
+        response.Which.StatusCode.Should().Be(StatusCode.NotFound);
     }
 
     [Fact]
@@ -438,7 +438,7 @@ public sealed class AccountControllerTests : IAsyncLifetime
         // Act & Assert
         var response = await _client.Awaiting(c => c.DepositMoneyAsync(request).ResponseAsync)
             .Should().ThrowAsync<RpcException>();
-        response.Which.StatusCode.Should().Be(StatusCode.InvalidArgument);
+        response.Which.StatusCode.Should().Be(StatusCode.NotFound);
 
         Account? queriedAccount = await accountRepository.FindAccountByIdAsync(account.Id, cancellationToken);
         queriedAccount.Should()

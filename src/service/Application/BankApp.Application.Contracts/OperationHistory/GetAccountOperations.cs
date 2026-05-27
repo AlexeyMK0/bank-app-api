@@ -11,5 +11,7 @@ public class GetAccountOperations
         public sealed record Success(HistoryDto HistoryDto, PageToken? KeyCursor) : Response;
 
         public sealed record Failure(string Message) : Response;
+
+        public sealed record NotFound(string Message) : Response;
     }
 }

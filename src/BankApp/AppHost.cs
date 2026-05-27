@@ -4,7 +4,9 @@ IDistributedApplicationBuilder builder = DistributedApplication.CreateBuilder(ar
 
 IResourceBuilder<RedisResource> redis = builder
     .AddRedis("redis-cache")
+    .WithOtlpExporter()
     .WithDataVolume(isReadOnly: false)
+    .WithExternalHttpEndpoints()
     .WithRedisInsight();
 
 IResourceBuilder<KeycloakResource> keycloak = builder

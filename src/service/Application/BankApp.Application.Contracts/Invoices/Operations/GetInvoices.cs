@@ -26,5 +26,7 @@ public static class GetInvoices
         public sealed record Success(InvoiceDto[] Invoices, PageToken? PageToken) : Response;
 
         public sealed record Failure(string Message) : Response;
+
+        public sealed record NotFound(string Message) : Response;
     }
 }

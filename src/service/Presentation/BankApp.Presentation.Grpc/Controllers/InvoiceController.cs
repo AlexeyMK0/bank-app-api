@@ -38,6 +38,8 @@ public class InvoiceController : InvoiceService.InvoiceServiceBase
             CreateInvoice.Response.Success success => new ProtoCreateInvoiceResponse(success.InvoiceId),
             CreateInvoice.Response.Failure failure => throw new RpcException(
                 new Status(StatusCode.InvalidArgument, failure.Message)),
+            CreateInvoice.Response.NotFound notFound => throw new RpcException(
+                new Status(StatusCode.InvalidArgument, notFound.Message)),
             _ => throw new UnreachableException(),
         };
     }
@@ -57,6 +59,8 @@ public class InvoiceController : InvoiceService.InvoiceServiceBase
             CancelInvoice.Response.Success success => new ProtoCancelInvoiceResponse(),
             CancelInvoice.Response.Failure failure => throw new RpcException(
                 new Status(StatusCode.InvalidArgument, failure.Message)),
+            CancelInvoice.Response.NotFound notFound => throw new RpcException(
+                new Status(StatusCode.InvalidArgument, notFound.Message)),
             _ => throw new UnreachableException(),
         };
     }
@@ -73,6 +77,8 @@ public class InvoiceController : InvoiceService.InvoiceServiceBase
             PayInvoice.Response.Success success => new ProtoPayInvoiceResponse(),
             PayInvoice.Response.Failure failure => throw new RpcException(
                 new Status(StatusCode.InvalidArgument, failure.Message)),
+            PayInvoice.Response.NotFound notFound => throw new RpcException(
+                new Status(StatusCode.InvalidArgument, notFound.Message)),
             _ => throw new UnreachableException(),
         };
     }
@@ -92,6 +98,8 @@ public class InvoiceController : InvoiceService.InvoiceServiceBase
             },
             GetInvoices.Response.Failure failure => throw new RpcException(
                 new Status(StatusCode.InvalidArgument, failure.Message)),
+            GetInvoices.Response.NotFound notFound => throw new RpcException(
+                new Status(StatusCode.InvalidArgument, notFound.Message)),
             _ => throw new UnreachableException(),
         };
     }

@@ -35,6 +35,8 @@ public class AccountController : AccountService.AccountServiceBase
                     new Money { DecimalValue = success.Balance }),
             CheckBalance.Response.Failure failure =>
                 throw new RpcException(new Status(StatusCode.InvalidArgument, failure.Message)),
+            CheckBalance.Response.NotFound notFound =>
+                throw new RpcException(new Status(StatusCode.NotFound, notFound.Message)),
             _ => throw new UnreachableException(),
         };
     }
@@ -55,6 +57,8 @@ public class AccountController : AccountService.AccountServiceBase
                 new Money { DecimalValue = success.AccountDto.Balance }),
             DepositMoney.Response.Failure failure =>
                 throw new RpcException(new Status(StatusCode.InvalidArgument, failure.Message)),
+            DepositMoney.Response.NotFound notFound =>
+                throw new RpcException(new Status(StatusCode.NotFound, notFound.Message)),
             _ => throw new UnreachableException(),
         };
     }
@@ -75,6 +79,8 @@ public class AccountController : AccountService.AccountServiceBase
                 new Money { DecimalValue = success.AccountDto.Balance }),
             WithdrawMoney.Response.Failure failure =>
                 throw new RpcException(new Status(StatusCode.InvalidArgument, failure.Message)),
+            WithdrawMoney.Response.NotFound notFound =>
+                throw new RpcException(new Status(StatusCode.NotFound, notFound.Message)),
             _ => throw new UnreachableException(),
         };
     }
@@ -94,6 +100,8 @@ public class AccountController : AccountService.AccountServiceBase
                 MapToGrpc(success.AccountDto)),
             CreateAccount.Response.Failure failure =>
                 throw new RpcException(new Status(StatusCode.InvalidArgument, failure.Message)),
+            CreateAccount.Response.NotFound notFound =>
+                throw new RpcException(new Status(StatusCode.NotFound, notFound.Message)),
             _ => throw new UnreachableException(),
         };
     }
@@ -117,6 +125,8 @@ public class AccountController : AccountService.AccountServiceBase
             },
             GetAccounts.Response.Failure failure =>
                 throw new RpcException(new Status(StatusCode.InvalidArgument, failure.Message)),
+            GetAccounts.Response.NotFound notFound =>
+                throw new RpcException(new Status(StatusCode.NotFound, notFound.Message)),
             _ => throw new UnreachableException(),
         };
     }

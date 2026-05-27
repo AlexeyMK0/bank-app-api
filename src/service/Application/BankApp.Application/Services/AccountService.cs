@@ -54,7 +54,7 @@ internal sealed class AccountService : IAccountService
         if (user is null)
         {
             _logger.LogWarning("User with external id {ExternalId} not found", userCreatorId.Value);
-            return new CreateAccount.Response.Failure("User not found");
+            return new CreateAccount.Response.NotFound("User not found");
         }
 
         User? userOwner = await _context.UserRepository
@@ -62,7 +62,7 @@ internal sealed class AccountService : IAccountService
         if (userOwner is null)
         {
             _logger.LogWarning("User with id {UserId} not found", userOwnerId.Value);
-            return new CreateAccount.Response.Failure("User not found");
+            return new CreateAccount.Response.NotFound($"User with id {userOwnerId.Value} not found");
         }
 
         Account[] userAccounts = await _context.AccountRepository
@@ -99,7 +99,7 @@ internal sealed class AccountService : IAccountService
         if (user is null)
         {
             _logger.LogWarning("User with external id {ExternalId} not found", userId.Value);
-            return new CheckBalance.Response.Failure("User not found");
+            return new CheckBalance.Response.NotFound("User not found");
         }
 
         var accountId = new AccountId(request.AccountId);
@@ -111,7 +111,7 @@ internal sealed class AccountService : IAccountService
                 "User {UserId} attempted to find non-existing account {accountId}",
                 user.Id.Value,
                 accountId.Value);
-            return new CheckBalance.Response.Failure(CreateAccountNotFoundForUserMessage(accountId, user));
+            return new CheckBalance.Response.NotFound(CreateAccountNotFoundForUserMessage(accountId, user));
         }
 
         if (account.OwnerUserId != user.Id)
@@ -121,7 +121,7 @@ internal sealed class AccountService : IAccountService
                 user.Id.Value,
                 account.Id.Value,
                 account.OwnerUserId.Value);
-            return new CheckBalance.Response.Failure(CreateAccountNotFoundForUserMessage(accountId, user));
+            return new CheckBalance.Response.NotFound(CreateAccountNotFoundForUserMessage(accountId, user));
         }
 
         return new CheckBalance.Response.Success(account.Balance.Value);
@@ -139,7 +139,7 @@ internal sealed class AccountService : IAccountService
         if (user is null)
         {
             _logger.LogWarning("User with external id {ExternalId} not found", userId.Value);
-            return new WithdrawMoney.Response.Failure("User not found");
+            return new WithdrawMoney.Response.NotFound("User not found");
         }
 
         var accountId = new AccountId(request.AccountId);
@@ -151,7 +151,7 @@ internal sealed class AccountService : IAccountService
                 "User {UserId} attempted to find non-existing account {accountId}",
                 user.Id.Value,
                 accountId.Value);
-            return new WithdrawMoney.Response.Failure(CreateAccountNotFoundForUserMessage(accountId, user));
+            return new WithdrawMoney.Response.NotFound(CreateAccountNotFoundForUserMessage(accountId, user));
         }
 
         if (account.OwnerUserId != user.Id)
@@ -161,7 +161,7 @@ internal sealed class AccountService : IAccountService
                 user.Id.Value,
                 accountId.Value,
                 account.OwnerUserId.Value);
-            return new WithdrawMoney.Response.Failure(CreateAccountNotFoundForUserMessage(accountId, user));
+            return new WithdrawMoney.Response.NotFound(CreateAccountNotFoundForUserMessage(accountId, user));
         }
 
         if (account.CanWithdraw(requestMoney) is false)
@@ -212,7 +212,7 @@ internal sealed class AccountService : IAccountService
         if (user is null)
         {
             _logger.LogWarning("User with external id {ExternalId} not found", userId.Value);
-            return new DepositMoney.Response.Failure("User not found");
+            return new DepositMoney.Response.NotFound("User not found");
         }
 
         var accountId = new AccountId(request.AccountId);
@@ -221,10 +221,10 @@ internal sealed class AccountService : IAccountService
         if (account is null)
         {
             _logger.LogInformation(
-                "User {UserId} attempted to find non-existing account {accountId}",
+                "User {UserId} attempted to access non-existing account {accountId}",
                 user.Id.Value,
                 accountId.Value);
-            return new DepositMoney.Response.Failure(CreateAccountNotFoundForUserMessage(accountId, user));
+            return new DepositMoney.Response.NotFound(CreateAccountNotFoundForUserMessage(accountId, user));
         }
 
         if (account.OwnerUserId != user.Id)
@@ -234,7 +234,7 @@ internal sealed class AccountService : IAccountService
                 user.Id.Value,
                 account.Id.Value,
                 account.OwnerUserId.Value);
-            return new DepositMoney.Response.Failure(CreateAccountNotFoundForUserMessage(accountId, user));
+            return new DepositMoney.Response.NotFound(CreateAccountNotFoundForUserMessage(accountId, user));
         }
 
         account.Deposit(requestMoney);
@@ -270,7 +270,7 @@ internal sealed class AccountService : IAccountService
         if (user is null)
         {
             _logger.LogWarning("User with external id {ExternalId} not found", userId.Value);
-            return new GetAccounts.Response.Failure("User not found");
+            return new GetAccounts.Response.NotFound("User not found");
         }
 
         int pageSize = request.PageSize;

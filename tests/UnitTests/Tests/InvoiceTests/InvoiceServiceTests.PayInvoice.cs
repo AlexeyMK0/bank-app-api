@@ -123,7 +123,7 @@ public sealed partial class InvoiceServiceTests
         PayInvoice.Response response = await _invoiceService.PayInvoiceAsync(request, CancellationToken.None);
 
         // Assert
-        response.Should().BeOfType<PayInvoice.Response.Failure>();
+        response.Should().BeOfType<PayInvoice.Response.NotFound>();
     }
 
     [Fact]
@@ -148,7 +148,7 @@ public sealed partial class InvoiceServiceTests
         PayInvoice.Response response = await _invoiceService.PayInvoiceAsync(request, CancellationToken.None);
 
         // Assert
-        response.Should().BeOfType<PayInvoice.Response.Failure>();
+        response.Should().BeOfType<PayInvoice.Response.NotFound>();
     }
 
     [Fact]
@@ -190,7 +190,7 @@ public sealed partial class InvoiceServiceTests
         PayInvoice.Response response = await _invoiceService.PayInvoiceAsync(request, CancellationToken.None);
 
         // Assert
-        response.Should().BeOfType<PayInvoice.Response.Failure>();
+        response.Should().BeOfType<PayInvoice.Response.NotFound>();
     }
 
     [Fact]
@@ -233,7 +233,7 @@ public sealed partial class InvoiceServiceTests
         PayInvoice.Response response = await _invoiceService.PayInvoiceAsync(request, CancellationToken.None);
 
         // Assert
-        response.Should().BeOfType<PayInvoice.Response.Failure>();
+        response.Should().BeOfType<PayInvoice.Response.NotFound>();
     }
 
     [Fact]

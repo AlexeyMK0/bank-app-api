@@ -75,10 +75,8 @@ public sealed partial class InvoiceServiceTests
 
         var payerAccountId = new AccountId(1);
 
-        var recipientAccountId = new AccountId(2);
+        AccountId recipientAccountId = payerAccountId;
         UserExternalId invoiceCreatorId = new AutoFaker<UserExternalId>().Generate();
-
-        _persistenceContext.UserRepository.SetupQueryByUserExternalId(invoiceCreatorId, []);
 
         var request = new CreateInvoice.Request(
             invoiceCreatorId.Value,
@@ -117,7 +115,7 @@ public sealed partial class InvoiceServiceTests
         CreateInvoice.Response response = await _invoiceService.CreateInvoiceAsync(request, CancellationToken.None);
 
         // Assert
-        response.Should().BeOfType<CreateInvoice.Response.Failure>();
+        response.Should().BeOfType<CreateInvoice.Response.NotFound>();
     }
 
     [Fact]
@@ -146,7 +144,7 @@ public sealed partial class InvoiceServiceTests
         CreateInvoice.Response response = await _invoiceService.CreateInvoiceAsync(request, CancellationToken.None);
 
         // Assert
-        response.Should().BeOfType<CreateInvoice.Response.Failure>();
+        response.Should().BeOfType<CreateInvoice.Response.NotFound>();
     }
 
     [Fact]
@@ -177,7 +175,7 @@ public sealed partial class InvoiceServiceTests
         CreateInvoice.Response response = await _invoiceService.CreateInvoiceAsync(request, CancellationToken.None);
 
         // Assert
-        response.Should().BeOfType<CreateInvoice.Response.Failure>();
+        response.Should().BeOfType<CreateInvoice.Response.NotFound>();
     }
 
     [Fact]
@@ -218,6 +216,6 @@ public sealed partial class InvoiceServiceTests
         CreateInvoice.Response response = await _invoiceService.CreateInvoiceAsync(request, CancellationToken.None);
 
         // Assert
-        response.Should().BeOfType<CreateInvoice.Response.Failure>();
+        response.Should().BeOfType<CreateInvoice.Response.NotFound>();
     }
 }

@@ -13,5 +13,7 @@ public static class GetAccounts
         public sealed record Success(IEnumerable<AccountDto> Accounts, PageToken? PageToken) : Response;
 
         public sealed record Failure(string Message) : Response;
+
+        public sealed record NotFound(string Message) : Response;
     }
 }

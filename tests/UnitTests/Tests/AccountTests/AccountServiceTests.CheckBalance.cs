@@ -46,7 +46,7 @@ public sealed partial class AccountServiceTests
         CheckBalance.Response response = await _accountService.CheckBalanceAsync(request, CancellationToken.None);
 
         // Assert
-        response.Should().BeOfType<CheckBalance.Response.Failure>();
+        response.Should().BeOfType<CheckBalance.Response.NotFound>();
     }
 
     [Fact]
@@ -68,7 +68,7 @@ public sealed partial class AccountServiceTests
         CheckBalance.Response response = await _accountService.CheckBalanceAsync(request, CancellationToken.None);
 
         // Assert
-        response.Should().BeOfType<CheckBalance.Response.Failure>();
+        response.Should().BeOfType<CheckBalance.Response.NotFound>();
     }
 
     [Fact]
@@ -90,6 +90,6 @@ public sealed partial class AccountServiceTests
         CheckBalance.Response response = await _accountService.CheckBalanceAsync(request, CancellationToken.None);
 
         // Assert
-        response.Should().BeOfType<CheckBalance.Response.Failure>();
+        response.Should().BeOfType<CheckBalance.Response.NotFound>();
     }
 }

@@ -61,7 +61,7 @@ public sealed partial class AccountServiceTests
         CreateAccount.Response response = await _accountService.CreateAccountAsync(request, CancellationToken.None);
 
         // Assert
-        response.Should().BeOfType<CreateAccount.Response.Failure>();
+        response.Should().BeOfType<CreateAccount.Response.NotFound>();
     }
 
     [Fact]
@@ -82,7 +82,7 @@ public sealed partial class AccountServiceTests
         CreateAccount.Response response = await _accountService.CreateAccountAsync(request, CancellationToken.None);
 
         // Assert
-        response.Should().BeOfType<CreateAccount.Response.Failure>();
+        response.Should().BeOfType<CreateAccount.Response.NotFound>();
     }
 
     [Fact]

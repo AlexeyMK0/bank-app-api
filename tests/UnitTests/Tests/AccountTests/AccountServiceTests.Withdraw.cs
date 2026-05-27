@@ -81,7 +81,7 @@ public sealed partial class AccountServiceTests
         WithdrawMoney.Response response = await _accountService.WithdrawMoneyAsync(request, CancellationToken.None);
 
         // Assert
-        response.Should().BeOfType<WithdrawMoney.Response.Failure>();
+        response.Should().BeOfType<WithdrawMoney.Response.NotFound>();
     }
 
     [Fact]
@@ -102,7 +102,7 @@ public sealed partial class AccountServiceTests
         WithdrawMoney.Response response = await _accountService.WithdrawMoneyAsync(request, CancellationToken.None);
 
         // Assert
-        response.Should().BeOfType<WithdrawMoney.Response.Failure>();
+        response.Should().BeOfType<WithdrawMoney.Response.NotFound>();
     }
 
     [Fact]
@@ -123,7 +123,7 @@ public sealed partial class AccountServiceTests
         WithdrawMoney.Response response = await _accountService.WithdrawMoneyAsync(request, CancellationToken.None);
 
         // Assert
-        response.Should().BeOfType<WithdrawMoney.Response.Failure>();
+        response.Should().BeOfType<WithdrawMoney.Response.NotFound>();
     }
 
     [Fact]

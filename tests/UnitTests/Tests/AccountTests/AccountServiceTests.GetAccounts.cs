@@ -61,6 +61,6 @@ public sealed partial class AccountServiceTests
         GetAccounts.Response response = await _accountService.GetUserAccountsAsync(request, CancellationToken.None);
 
         // Assert
-        response.Should().BeOfType<GetAccounts.Response.Failure>();
+        response.Should().BeOfType<GetAccounts.Response.NotFound>();
     }
 }

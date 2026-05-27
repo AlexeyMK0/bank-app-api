@@ -108,7 +108,7 @@ public sealed partial class InvoiceServiceTests
         GetInvoices.Response response = await _invoiceService.GetInvoicesAsync(request, CancellationToken.None);
 
         // Assert
-        response.Should().BeOfType<GetInvoices.Response.Failure>();
+        response.Should().BeOfType<GetInvoices.Response.NotFound>();
     }
 
     [Theory]
@@ -144,7 +144,7 @@ public sealed partial class InvoiceServiceTests
         GetInvoices.Response response = await _invoiceService.GetInvoicesAsync(request, CancellationToken.None);
 
         // Assert
-        response.Should().BeOfType<GetInvoices.Response.Failure>();
+        response.Should().BeOfType<GetInvoices.Response.NotFound>();
     }
 
     [Theory]
@@ -183,7 +183,7 @@ public sealed partial class InvoiceServiceTests
         GetInvoices.Response response = await _invoiceService.GetInvoicesAsync(request, CancellationToken.None);
 
         // Assert
-        response.Should().BeOfType<GetInvoices.Response.Failure>();
+        response.Should().BeOfType<GetInvoices.Response.NotFound>();
     }
 
     [Theory]
@@ -223,7 +223,7 @@ public sealed partial class InvoiceServiceTests
         GetInvoices.Response response = await _invoiceService.GetInvoicesAsync(request, CancellationToken.None);
 
         // Assert
-        response.Should().BeOfType<GetInvoices.Response.Failure>();
+        response.Should().BeOfType<GetInvoices.Response.NotFound>();
     }
 
     private InvoiceQuery BuildInvoiceQuery(

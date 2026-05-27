@@ -41,6 +41,8 @@ public class OperationHistoryController : OperationHistoryService.OperationHisto
             },
             GetAccountOperations.Response.Failure failure
                 => throw new RpcException(new Status(StatusCode.InvalidArgument, failure.Message)),
+            GetAccountOperations.Response.NotFound notFound => throw new RpcException(
+                new Status(StatusCode.InvalidArgument, notFound.Message)),
             _ => throw new UnreachableException(),
         };
     }

@@ -86,7 +86,7 @@ public sealed partial class InvoiceServiceTests
         CancelInvoice.Response response = await _invoiceService.CancelInvoiceAsync(request, CancellationToken.None);
 
         // Assert
-        response.Should().BeOfType<CancelInvoice.Response.Failure>();
+        response.Should().BeOfType<CancelInvoice.Response.NotFound>();
     }
 
     [Theory]
@@ -116,7 +116,7 @@ public sealed partial class InvoiceServiceTests
         CancelInvoice.Response response = await _invoiceService.CancelInvoiceAsync(request, CancellationToken.None);
 
         // Assert
-        response.Should().BeOfType<CancelInvoice.Response.Failure>();
+        response.Should().BeOfType<CancelInvoice.Response.NotFound>();
     }
 
     [Fact]
@@ -165,7 +165,7 @@ public sealed partial class InvoiceServiceTests
         CancelInvoice.Response response = await _invoiceService.CancelInvoiceAsync(request, CancellationToken.None);
 
         // Assert
-        response.Should().BeOfType<CancelInvoice.Response.Failure>();
+        response.Should().BeOfType<CancelInvoice.Response.NotFound>();
     }
 
     [Theory]
