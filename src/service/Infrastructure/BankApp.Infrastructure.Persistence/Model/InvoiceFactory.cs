@@ -15,6 +15,8 @@ public class InvoiceFactory : IInvoiceFactory
             InvoiceStatus.Created => new CreatedInvoiceState(),
             InvoiceStatus.Paid => new PaidInvoiceState(),
             InvoiceStatus.Cancelled => new CancelledInvoiceState(),
+            InvoiceStatus.Declined => new DeclinedInvoiceState(),
+            InvoiceStatus.Approved => new ApprovedInvoiceState(),
             _ => throw new UnreachableException(),
         };
 

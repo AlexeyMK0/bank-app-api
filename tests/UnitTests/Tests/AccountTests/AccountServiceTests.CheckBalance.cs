@@ -15,7 +15,7 @@ public sealed partial class AccountServiceTests
     {
         // Arrange
         User user = new AutoFaker<User>().Generate();
-        var expectedAccount = new Account(new AccountId(1), new Money(1234), user.Id);
+        var expectedAccount = new Account(new AccountId(1), new Money(1234), user.Id, AccountType.Personal);
 
         _persistenceContext.UserRepository.SetupQueryByUserExternalId(user.UserExternalId, [user]);
 
@@ -36,7 +36,7 @@ public sealed partial class AccountServiceTests
     {
         // Arrange
         User user = new AutoFaker<User>().Generate();
-        var expectedAccount = new Account(new AccountId(1), new Money(1234), user.Id);
+        var expectedAccount = new Account(new AccountId(1), new Money(1234), user.Id, AccountType.Personal);
 
         _persistenceContext.UserRepository.SetupQueryByUserExternalId(user.UserExternalId, []);
 
@@ -56,7 +56,7 @@ public sealed partial class AccountServiceTests
         var userFaker = new AutoFaker<User>();
         User user = userFaker.Generate();
         User ownerUser = userFaker.Generate();
-        var expectedAccount = new Account(new AccountId(1), new Money(1234), ownerUser.Id);
+        var expectedAccount = new Account(new AccountId(1), new Money(1234), ownerUser.Id, AccountType.Personal);
 
         _persistenceContext.UserRepository.SetupQueryByUserExternalId(user.UserExternalId, [user]);
 
@@ -78,7 +78,7 @@ public sealed partial class AccountServiceTests
         var userFaker = new AutoFaker<User>();
         User user = userFaker.Generate();
         User ownerUser = userFaker.Generate();
-        var expectedAccount = new Account(new AccountId(1), new Money(1234), ownerUser.Id);
+        var expectedAccount = new Account(new AccountId(1), new Money(1234), ownerUser.Id, AccountType.Personal);
 
         _persistenceContext.UserRepository.SetupQueryByUserExternalId(user.UserExternalId, [user]);
 

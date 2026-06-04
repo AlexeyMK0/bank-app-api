@@ -6,6 +6,7 @@
 
 using BankApp.Gateway.Application.Contracts;
 using BankApp.Gateway.Application.Services;
+using BankApp.Gateway.Infrastructure.Lab5Tools;
 using BankApp.Gateway.Infrastructure.Service;
 using BankApp.Gateway.Presentation.Http;
 using BankApp.Gateway.Presentation.Http.Extensions;
@@ -18,6 +19,8 @@ using Microsoft.OpenApi;
 using System.Diagnostics;
 using System.Security.Claims;
 
+AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
+
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
@@ -29,6 +32,7 @@ builder.Services.AddHybridCache();
 
 builder.Services
     .AddClients()
+    .AddLab5ToolsClients()
     .AddServices()
     .AddPresentationHttp()
     .AddHttpContextAccessor();

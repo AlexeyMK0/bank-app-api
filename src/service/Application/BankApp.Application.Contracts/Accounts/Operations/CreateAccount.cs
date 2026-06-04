@@ -4,7 +4,7 @@ namespace BankApp.Application.Contracts.Accounts.Operations;
 
 public static class CreateAccount
 {
-    public sealed record Request(Guid UserId, long OwnerId);
+    public sealed record Request(Guid UserId, long OwnerId, AccountTypeDto AccountType);
 
     public abstract record Response
     {

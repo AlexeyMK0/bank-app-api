@@ -13,6 +13,8 @@ public static class InvoiceStatusMappers
             InvoiceStatusDto.Created => InvoiceStatus.Created,
             InvoiceStatusDto.Paid => InvoiceStatus.Paid,
             InvoiceStatusDto.Cancelled => InvoiceStatus.Cancelled,
+            InvoiceStatusDto.Approved => InvoiceStatus.Approved,
+            InvoiceStatusDto.Declined => InvoiceStatus.Declined,
             _ => throw new UnreachableException(),
         };
     }
@@ -24,6 +26,8 @@ public static class InvoiceStatusMappers
             InvoiceStatus.Created => InvoiceStatusDto.Created,
             InvoiceStatus.Paid => InvoiceStatusDto.Paid,
             InvoiceStatus.Cancelled => InvoiceStatusDto.Cancelled,
+            InvoiceStatus.Declined => InvoiceStatusDto.Declined,
+            InvoiceStatus.Approved => InvoiceStatusDto.Approved,
             _ => throw new UnreachableException(),
         };
     }

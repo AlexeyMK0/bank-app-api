@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <ItemGroup>
+        <PackageReference Include="Itmo.Dev.Platform.Kafka"/>
+        <PackageReference Include="Google.Api.CommonProtos"/>
+        <PackageReference Include="Grpc.AspNetCore"/>
+        <PackageReference Include="Grpc.AspNetCore.Server.Reflection"/>
+        <PackageReference Include="Grpc.Tools">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="SourceKit.Generators.Grpc"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Protobuf Include="protos/**/*.proto" ProtoRoot="protos" GrpcServices="Both"/>
+        <Protobuf Remove="protos/google/**/*.proto" ProtoRoot="protos" ProtoCompile="false"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\Application\BankApp.Application.Abstractions\BankApp.Application.Abstractions.csproj" />
+    </ItemGroup>
+</Project>

@@ -1,6 +1,8 @@
 using AutoBogus;
+using BankApp.Application.Abstractions.Events;
 using BankApp.Application.Contracts.Accounts.Model;
 using BankApp.Application.Contracts.Accounts.Operations;
+using BankApp.Application.Mappers;
 using BankApp.Domain.Accounts;
 using BankApp.Domain.Sessions;
 using BankApp.Domain.ValueObjects;
@@ -19,7 +21,18 @@ public sealed partial class AccountServiceTests
         // Arrange
         var expectedAccountId = new AccountId(1);
         User user = new AutoFaker<User>().Generate();
-        var expectedAccount = new Account(expectedAccountId, Money.Zero, user.Id);
+        var expectedAccount = new Account(expectedAccountId, Money.Zero, user.Id, AccountType.Personal);
+
+        var expectedEvent = new AccountCreatedEvent(
+            expectedAccount.OwnerUserId,
+            expectedAccountId,
+            expectedAccount.Type);
+
+        _accountCreatedPublisherMock.Setup(publisher => publisher.PublishAsync(
+            It.Is<IReadOnlyList<AccountCreatedEvent>>(
+                list => list.Single() == expectedEvent),
+            It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
 
         _persistenceContext.UserRepository.SetupQueryByUserId(user.Id, [user]);
 
@@ -33,7 +46,7 @@ public sealed partial class AccountServiceTests
                     It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedAccount);
 
-        var request = new CreateAccount.Request(user.UserExternalId.Value, user.Id.Value);
+        var request = new CreateAccount.Request(user.UserExternalId.Value, user.Id.Value, expectedAccount.Type.MapToDto());
 
         _metricsMock.Setup(metrics => metrics.IncCreatedAccounts());
 
@@ -46,8 +59,10 @@ public sealed partial class AccountServiceTests
         createdAccount.OwnerId.Should().Be(expectedAccount.OwnerUserId.Value);
     }
 
-    [Fact]
-    public async Task CreateAccount_ShouldNotCreateAccount_WhenCreatorUserNotExists()
+    [Theory]
+    [InlineData(AccountType.Corporate)]
+    [InlineData(AccountType.Personal)]
+    public async Task CreateAccount_ShouldNotCreateAccount_WhenCreatorUserNotExists(AccountType accountType)
     {
         // Arrange
         var userFaker = new AutoFaker<User>();
@@ -55,7 +70,7 @@ public sealed partial class AccountServiceTests
 
         _persistenceContext.UserRepository.SetupQueryByUserExternalId(user.UserExternalId, []);
 
-        var request = new CreateAccount.Request(user.UserExternalId.Value, user.Id.Value);
+        var request = new CreateAccount.Request(user.UserExternalId.Value, user.Id.Value, accountType.MapToDto());
 
         // Act
         CreateAccount.Response response = await _accountService.CreateAccountAsync(request, CancellationToken.None);
@@ -64,8 +79,10 @@ public sealed partial class AccountServiceTests
         response.Should().BeOfType<CreateAccount.Response.NotFound>();
     }
 
-    [Fact]
-    public async Task CreateAccount_ShouldNotCreateAccount_WhenOwnerUserNotExists()
+    [Theory]
+    [InlineData(AccountType.Corporate)]
+    [InlineData(AccountType.Personal)]
+    public async Task CreateAccount_ShouldNotCreateAccount_WhenOwnerUserNotExists(AccountType accountType)
     {
         // Arrange
         var userFaker = new AutoFaker<User>();
@@ -76,7 +93,7 @@ public sealed partial class AccountServiceTests
 
         _persistenceContext.UserRepository.SetupQueryByUserId(nonExistingUser.Id, []);
 
-        var request = new CreateAccount.Request(user.UserExternalId.Value, nonExistingUser.Id.Value);
+        var request = new CreateAccount.Request(user.UserExternalId.Value, nonExistingUser.Id.Value, accountType.MapToDto());
 
         // Act
         CreateAccount.Response response = await _accountService.CreateAccountAsync(request, CancellationToken.None);
@@ -85,8 +102,10 @@ public sealed partial class AccountServiceTests
         response.Should().BeOfType<CreateAccount.Response.NotFound>();
     }
 
-    [Fact]
-    public async Task CreateAccount_ShouldNotCreateAccount_WhenUserAccountsLimitExceeded()
+    [Theory]
+    [InlineData(AccountType.Corporate)]
+    [InlineData(AccountType.Personal)]
+    public async Task CreateAccount_ShouldNotCreateAccount_WhenUserAccountsLimitExceeded(AccountType accountType)
     {
         // Arrange
         User user = new AutoFaker<User>().Generate();
@@ -100,7 +119,7 @@ public sealed partial class AccountServiceTests
         IEnumerable<Account> userAccounts = accountFaker.Generate(MaxAccountsPerUser);
         _persistenceContext.AccountRepository.SetupQueryByUserId(user.Id, userAccounts);
 
-        var request = new CreateAccount.Request(user.UserExternalId.Value, user.Id.Value);
+        var request = new CreateAccount.Request(user.UserExternalId.Value, user.Id.Value, accountType.MapToDto());
 
         // Act
         CreateAccount.Response response = await _accountService.CreateAccountAsync(request, CancellationToken.None);

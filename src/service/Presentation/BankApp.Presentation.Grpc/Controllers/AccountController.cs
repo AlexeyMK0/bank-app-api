@@ -3,6 +3,7 @@ using BankApp.Application.Contracts.Accounts.Model;
 using BankApp.Application.Contracts.Accounts.Operations;
 using BankApp.Grpc;
 using BankApp.Presentation.Grpc.Extensions.RequestExtensions;
+using BankApp.Presentation.Grpc.Mappers;
 using Google.Type;
 using Grpc.Core;
 using System.Diagnostics;
@@ -90,8 +91,9 @@ public class AccountController : AccountService.AccountServiceBase
         ServerCallContext context)
     {
         var externalId = Guid.Parse(request.UserExternalId);
+        AccountTypeDto accountType = request.AccountType.MapToDto();
 
-        var apiRequest = new CreateAccount.Request(externalId, request.AccountOwnerId);
+        var apiRequest = new CreateAccount.Request(externalId, request.AccountOwnerId, accountType);
 
         CreateAccount.Response result = await _accountService.CreateAccountAsync(apiRequest, context.CancellationToken);
         return result switch
@@ -136,6 +138,7 @@ public class AccountController : AccountService.AccountServiceBase
         return new ProtoAccount(
             accountDto.AccountId,
             new Money { DecimalValue = accountDto.Balance },
-            accountDto.OwnerId);
+            accountDto.OwnerId,
+            accountDto.AccountTypeDto.MapToProto());
     }
 }

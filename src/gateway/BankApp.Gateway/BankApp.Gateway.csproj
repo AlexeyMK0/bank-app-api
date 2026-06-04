@@ -4,6 +4,7 @@
       <ProjectReference Include="..\..\..\BankApp.ServiceDefaults\BankApp.ServiceDefaults.csproj" />
       <ProjectReference Include="..\Application\BankApp.Gateway.Application.Contracts\BankApp.Gateway.Application.Contracts.csproj" />
       <ProjectReference Include="..\Application\BankApp.Gateway.Application.Services\BankApp.Gateway.Application.Services.csproj" />
+      <ProjectReference Include="..\Infrastructure\BankApp.Gateway.Infrastructure.Lab5Tools\BankApp.Gateway.Infrastructure.Lab5Tools.csproj" />
       <ProjectReference Include="..\Infrastructure\BankApp.Gateway.Infrastructure.Service\BankApp.Gateway.Infrastructure.Service.csproj" />
       <ProjectReference Include="..\Presentation\BankApp.Gateway.Presentation.Http\BankApp.Gateway.Presentation.Http.csproj" />
     </ItemGroup>

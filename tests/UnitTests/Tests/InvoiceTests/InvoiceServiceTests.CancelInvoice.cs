@@ -24,12 +24,12 @@ public sealed partial class InvoiceServiceTests
         var payerAccountId = new AccountId(1);
         var payerUserId = new UserId(1);
         var payerUser = new User(payerUserId, new AutoFaker<UserExternalId>().Generate());
-        var payerAccount = new Account(payerAccountId, new Money(4321), payerUserId);
+        var payerAccount = new Account(payerAccountId, new Money(4321), payerUserId, AccountType.Personal);
 
         var recipientAccountId = new AccountId(2);
         var recipientUserId = new UserId(2);
         var recipientUser = new User(recipientUserId, new AutoFaker<UserExternalId>().Generate());
-        var recipientAccount = new Account(recipientAccountId, new Money(4321), recipientUserId);
+        var recipientAccount = new Account(recipientAccountId, new Money(4321), recipientUserId, AccountType.Personal);
 
         User cancellerUser = cancellerIsPayer ? payerUser : recipientUser;
 
@@ -129,12 +129,12 @@ public sealed partial class InvoiceServiceTests
         var payerAccountId = new AccountId(1);
         var payerUserId = new UserId(1);
         var payerUser = new User(payerUserId, userExternalIdFaker.Generate());
-        var payerAccount = new Account(payerAccountId, new Money(4321), payerUserId);
+        var payerAccount = new Account(payerAccountId, new Money(4321), payerUserId, AccountType.Personal);
 
         var recipientAccountId = new AccountId(2);
         var recipientUserId = new UserId(2);
         var recipientUser = new User(recipientUserId, userExternalIdFaker.Generate());
-        var recipientAccount = new Account(recipientAccountId, new Money(4321), recipientUserId);
+        var recipientAccount = new Account(recipientAccountId, new Money(4321), recipientUserId, AccountType.Personal);
 
         var cancellerUser = new User(new UserId(3), userExternalIdFaker.Generate());
 
@@ -179,17 +179,19 @@ public sealed partial class InvoiceServiceTests
         var payerAccountId = new AccountId(1);
         var payerUserId = new UserId(1);
         var payerUser = new User(payerUserId, new AutoFaker<UserExternalId>().Generate());
-        var payerAccount = new Account(payerAccountId, new Money(4321), payerUserId);
+        var payerAccount = new Account(payerAccountId, new Money(4321), payerUserId, AccountType.Personal);
 
         var recipientAccountId = new AccountId(2);
         var recipientUserId = new UserId(2);
         var recipientUser = new User(recipientUserId, new AutoFaker<UserExternalId>().Generate());
-        var recipientAccount = new Account(recipientAccountId, new Money(4321), recipientUserId);
+        var recipientAccount = new Account(recipientAccountId, new Money(4321), recipientUserId, AccountType.Personal);
 
         User cancellerUser = cancellerIsPayer ? payerUser : recipientUser;
 
         var invoiceStateMock = new Mock<IInvoiceState>();
-        invoiceStateMock.Setup(state => state.CanCancel())
+        invoiceStateMock.Setup(state => state.CanCancel(
+                It.Is<Account>(account => account.Id == recipientAccountId),
+                It.Is<Account>(account => account.Id == payerAccountId)))
             .Returns(false);
         var invoice = new Invoice(
             invoiceId,

@@ -26,15 +26,16 @@ internal sealed class AccountRepository : IAccountRepository
         CancellationToken cancellationToken)
     {
         const string sql = """
-        INSERT INTO accounts (account_balance, user_id)
-        VALUES (:balance, :user_id)
+        INSERT INTO accounts (account_balance, user_id, account_type)
+        VALUES (:balance, :user_id, :account_type)
         RETURNING account_id;
         """;
 
         await using IPersistenceConnection connection = await _connectionProvider.GetConnectionAsync(cancellationToken);
         await using IPersistenceCommand command = connection.CreateCommand(sql)
             .AddParameter("balance", account.Balance.Value)
-            .AddParameter("user_id", account.OwnerUserId.Value);
+            .AddParameter("user_id", account.OwnerUserId.Value)
+            .AddParameter("account_type", account.Type);
 
         await using DbDataReader reader = await command.ExecuteReaderAsync(cancellationToken);
         if (await reader.ReadAsync(cancellationToken) is false)
@@ -43,7 +44,7 @@ internal sealed class AccountRepository : IAccountRepository
         }
 
         long newId = reader.GetInt64(0);
-        return new Account(new AccountId(newId), account.Balance, account.OwnerUserId);
+        return new Account(new AccountId(newId), account.Balance, account.OwnerUserId, account.Type);
     }
 
     public async Task<Account> UpdateAsync(
@@ -52,7 +53,7 @@ internal sealed class AccountRepository : IAccountRepository
     {
         const string sql = """
         UPDATE accounts
-        SET account_balance = :balance, user_id = :user_id
+        SET account_balance = :balance, user_id = :user_id, account_type = :account_type
         WHERE account_id = :account_id
         """;
 
@@ -60,6 +61,7 @@ internal sealed class AccountRepository : IAccountRepository
         await using IPersistenceCommand command = connection.CreateCommand(sql)
             .AddParameter("account_id", account.Id.Value)
             .AddParameter("balance", account.Balance.Value)
+            .AddParameter("account_type", account.Type)
             .AddParameter("user_id", account.OwnerUserId.Value);
 
         await command.ExecuteNonQueryAsync(cancellationToken);
@@ -71,7 +73,7 @@ internal sealed class AccountRepository : IAccountRepository
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         const string sql = """
-        SELECT account_id, account_balance, user_id
+        SELECT account_id, account_balance, user_id, account_type
         FROM accounts
         WHERE (:key_cursor IS NULL or account_id > :key_cursor)
             and (cardinality(:ids) = 0 or account_id = ANY(:ids))
@@ -93,7 +95,8 @@ internal sealed class AccountRepository : IAccountRepository
             yield return new Account(
                 new AccountId(reader.GetInt64("account_id")),
                 new Money(reader.GetDecimal("account_balance")),
-                new UserId(reader.GetInt64("user_id")));
+                new UserId(reader.GetInt64("user_id")),
+                reader.GetFieldValue<AccountType>("account_type"));
         }
     }
 }

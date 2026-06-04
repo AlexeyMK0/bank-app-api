@@ -10,13 +10,14 @@ public static class AccountRepositorySpecification
     public static async Task<Account?> FindAccountByIdAsync(
         this IAccountRepository accountRepository, AccountId accountId, CancellationToken cancellationToken)
     {
-        return await accountRepository
+        List<Account> list = await accountRepository
             .QueryAsync(
                 AccountQuery.Build(builder => builder
                     .WithPageSize(1)
                     .WithAccountId(accountId)),
                 cancellationToken)
-            .FirstOrDefaultAsync(cancellationToken);
+            .ToListAsync(cancellationToken);
+        return list.SingleOrDefault();
     }
 
     public static async Task<Account[]> FilterUserAccountsAsync(

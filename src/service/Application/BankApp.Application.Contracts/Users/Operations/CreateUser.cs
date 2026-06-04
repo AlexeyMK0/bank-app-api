@@ -1,6 +1,6 @@
 using BankApp.Application.Contracts.Users.Model;
 
-namespace BankApp.Application.Contracts.Users;
+namespace BankApp.Application.Contracts.Users.Operations;
 
 public static class CreateUser
 {

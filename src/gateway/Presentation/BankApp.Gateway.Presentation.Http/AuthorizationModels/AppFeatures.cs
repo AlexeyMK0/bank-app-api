@@ -15,6 +15,10 @@ public static class AppFeatures
     public const string ReadInvoice = "invoice:read";
     public const string CancelInvoice = "invoice:cancel";
     public const string PayInvoice = "invoice:pay";
+    public const string ApproveInvoice = "invoice:approve";
+    public const string DeclineInvoice = "invoice:decline";
+
+    public const string AssignUserToInvoice = "invoice:assign";
 
     public const string ReadOperation = "operation:read";
 }

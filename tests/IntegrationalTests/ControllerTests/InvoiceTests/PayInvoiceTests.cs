@@ -45,9 +45,7 @@ public sealed partial class InvoiceControllerTests
             new CreatedInvoiceState());
         invoice = await invoiceRepository.AddAsync(invoice, cancellationToken);
 
-        invoice.Pay();
-        recipient.Deposit(invoice.Amount);
-        payer.Withdraw(invoice.Amount);
+        invoice.Pay(recipient, payer);
 
         var request = new ProtoPayInvoiceRequest(payerOwner.UserExternalId.Value.ToString(), invoice.Id.Value);
 
@@ -338,6 +336,8 @@ public sealed partial class InvoiceControllerTests
             InvoiceStatus.Cancelled => new CancelledInvoiceState(),
             InvoiceStatus.Paid => new PaidInvoiceState(),
             InvoiceStatus.Created => throw new InvalidEnumArgumentException(),
+            InvoiceStatus.Declined => throw new InvalidEnumArgumentException(),
+            InvoiceStatus.Approved => throw new InvalidEnumArgumentException(),
             _ => throw new UnreachableException(),
         };
 

@@ -1,5 +1,6 @@
 using BankApp.Gateway.Application.Abstractions.Clients;
 using BankApp.Gateway.Application.Abstractions.Requests;
+using BankApp.Gateway.Infrastructure.Service.Mappers;
 using BankApp.Grpc;
 using Google.Type;
 using AccountDto = BankApp.Gateway.Application.Models.AccountDto;
@@ -41,11 +42,16 @@ public class AccountClient : IAccountClient
         return new Withdraw.Response(response.Balance.DecimalValue);
     }
 
-    public async Task<CreateAccount.Response> CreateAccountAsync(Guid userId, long accountOwnerId, CancellationToken cancellationToken)
+    public async Task<CreateAccount.Response> CreateAccountAsync(
+        CreateAccount.Request request, CancellationToken cancellationToken)
     {
-        var request = new ProtoCreateAccountRequest(userId.ToString(), accountOwnerId);
+        var protoRequest = new ProtoCreateAccountRequest(
+            request.UserId.ToString(),
+            request.AccountOwnerId,
+            request.AccountType.MapToProto());
+
         ProtoCreateAccountResponse response = await _client.CreateAccountAsync(
-            request, cancellationToken: cancellationToken);
+            protoRequest, cancellationToken: cancellationToken);
         return new CreateAccount.Response(MapToDto(response.Account));
     }
 

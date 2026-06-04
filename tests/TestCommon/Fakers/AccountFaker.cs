@@ -17,7 +17,7 @@ public class AccountFaker : Faker<Account>
             var balance = new Money(faker.Finance.Amount(1, 1000000));
             UserId userId = faker.PickRandom(idsList);
 
-            return new Account(id, balance, userId);
+            return new Account(id, balance, userId, AccountType.Personal);
         });
     }
 
@@ -29,7 +29,7 @@ public class AccountFaker : Faker<Account>
             var balance = new Money(faker.Finance.Amount(1, 1000000));
             var userId = new UserId(faker.IndexGlobal);
 
-            return new Account(id, balance, userId);
+            return new Account(id, balance, userId, AccountType.Personal);
         });
     }
 }

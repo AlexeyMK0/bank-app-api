@@ -1,4 +1,5 @@
 using AutoBogus;
+using BankApp.Application.Abstractions.Events;
 using BankApp.Application.Contracts.Invoices.Operations;
 using BankApp.Domain.Accounts;
 using BankApp.Domain.Invoices;
@@ -22,12 +23,12 @@ public sealed partial class InvoiceServiceTests
         var payerAccountId = new AccountId(1);
         var payerUserId = new UserId(1);
         var payerUser = new User(payerUserId, new AutoFaker<UserExternalId>().Generate());
-        var payerAccount = new Account(payerAccountId, new Money(4321), payerUserId);
+        var payerAccount = new Account(payerAccountId, new Money(4321), payerUserId, AccountType.Personal);
 
         var recipientAccountId = new AccountId(2);
         var recipientUserId = new UserId(2);
         var recipientUser = new User(recipientUserId, new AutoFaker<UserExternalId>().Generate());
-        var recipientAccount = new Account(recipientAccountId, new Money(4321), recipientUserId);
+        var recipientAccount = new Account(recipientAccountId, new Money(4321), recipientUserId, AccountType.Personal);
 
         var createdInvoice = new Invoice(
             new InvoiceId(1),
@@ -35,6 +36,18 @@ public sealed partial class InvoiceServiceTests
             recipientAccountId,
             payerAccountId,
             new CreatedInvoiceState());
+
+        var expectedEvent = new InvoiceCreatedEvent(
+            createdInvoice.Id,
+            createdInvoice.RecipientId,
+            createdInvoice.PayerId,
+            createdInvoice.Amount);
+
+        _invoiceCreatedPublisherMock.Setup(publisher => publisher.PublishAsync(
+            It.Is<IReadOnlyList<InvoiceCreatedEvent>>(
+                list => list.Single() == expectedEvent),
+            It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
 
         _persistenceContext.UserRepository.SetupQueryByUserExternalId(recipientUser.UserExternalId, [recipientUser]);
         _persistenceContext.AccountRepository.SetupQueryByAccountId(payerAccountId, [payerAccount]);
@@ -129,7 +142,7 @@ public sealed partial class InvoiceServiceTests
         var recipientAccountId = new AccountId(2);
         var recipientUserId = new UserId(2);
         var recipientUser = new User(recipientUserId, new AutoFaker<UserExternalId>().Generate());
-        var recipientAccount = new Account(recipientAccountId, new Money(4321), recipientUserId);
+        var recipientAccount = new Account(recipientAccountId, new Money(4321), recipientUserId, AccountType.Personal);
 
         _persistenceContext.UserRepository.SetupQueryByUserExternalId(recipientUser.UserExternalId, [recipientUser]);
         _persistenceContext.AccountRepository.SetupQueryByAccountId(payerAccountId, []);
@@ -155,7 +168,7 @@ public sealed partial class InvoiceServiceTests
 
         var payerAccountId = new AccountId(1);
         var payerUserId = new UserId(1);
-        var payerAccount = new Account(payerAccountId, new Money(4321), payerUserId);
+        var payerAccount = new Account(payerAccountId, new Money(4321), payerUserId, AccountType.Personal);
 
         var recipientAccountId = new AccountId(2);
         var recipientUserId = new UserId(2);
@@ -186,14 +199,14 @@ public sealed partial class InvoiceServiceTests
 
         var payerAccountId = new AccountId(1);
         var payerUserId = new UserId(1);
-        var payerAccount = new Account(payerAccountId, new Money(4321), payerUserId);
+        var payerAccount = new Account(payerAccountId, new Money(4321), payerUserId, AccountType.Personal);
 
         var recipientUserId = new UserId(2);
         var invoiceCreatorUser = new User(recipientUserId, new AutoFaker<UserExternalId>().Generate());
 
         var recipientAccountId = new AccountId(2);
         var realAccountOwnerId = new UserId(3);
-        var recipientAccount = new Account(recipientAccountId, new Money(4321), realAccountOwnerId);
+        var recipientAccount = new Account(recipientAccountId, new Money(4321), realAccountOwnerId, AccountType.Personal);
 
         var createdInvoice = new Invoice(
             new InvoiceId(1),

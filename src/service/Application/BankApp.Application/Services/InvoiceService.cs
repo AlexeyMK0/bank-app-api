@@ -1,7 +1,9 @@
 #pragma warning disable CA1506
 
 using BankApp.Application.Abstractions;
+using BankApp.Application.Abstractions.Events;
 using BankApp.Application.Abstractions.Metrics;
+using BankApp.Application.Abstractions.Publishers;
 using BankApp.Application.Abstractions.Queries;
 using BankApp.Application.Contracts.Invoices;
 using BankApp.Application.Contracts.Invoices.Operations;
@@ -33,17 +35,20 @@ internal class InvoiceService : IInvoiceService
     private readonly IPersistenceTransactionProvider _transactionProvider;
     private readonly ILogger<InvoiceService> _logger;
     private readonly IServiceMetrics _metrics;
+    private readonly IInvoiceCreatedEventPublisher _publisher;
 
     public InvoiceService(
         IPersistenceTransactionProvider transactionProvider,
         ILogger<InvoiceService> logger,
         IServiceMetrics metrics,
-        IPersistenceContext context)
+        IPersistenceContext context,
+        IInvoiceCreatedEventPublisher publisher)
     {
         _transactionProvider = transactionProvider;
         _logger = logger;
         _metrics = metrics;
         _context = context;
+        _publisher = publisher;
     }
 
     public async Task<CreateInvoice.Response> CreateInvoiceAsync(
@@ -103,6 +108,10 @@ internal class InvoiceService : IInvoiceService
 
         invoice = await _context.InvoiceRepository.AddAsync(invoice, cancellationToken);
 
+        await _publisher.PublishAsync(
+            [new InvoiceCreatedEvent(invoice.Id, invoice.RecipientId, invoice.PayerId, invoice.Amount)],
+            cancellationToken);
+
         _logger.LogInformation(
             "{UserId} successfully created invoice with payer: {PayerAccountId}, recipient: {RecipientAccountId}, amount: {Amount}",
             foundUser.Id.Value,
@@ -123,9 +132,9 @@ internal class InvoiceService : IInvoiceService
         var invoiceId = new InvoiceId(request.InvoiceId);
         var userId = new UserExternalId(request.UserId);
 
-        User? foundUser = await _context.UserRepository
+        User? user = await _context.UserRepository
             .FindUserByExternalIdAsync(userId, cancellationToken);
-        if (foundUser is null)
+        if (user is null)
         {
             _logger.LogWarning("User with external id {ExternalId} not found", userId.Value);
             return new CancelInvoice.Response.NotFound("User not found");
@@ -134,23 +143,40 @@ internal class InvoiceService : IInvoiceService
         Invoice? invoice = await _context.InvoiceRepository.FindInvoiceByIdAsync(invoiceId, cancellationToken);
         if (invoice is null)
         {
-            _logger.LogInformation("User {UserId} attempted to access non-existing invoice with id {InvoiceId}", foundUser.Id.Value, invoiceId.Value);
-            return new CancelInvoice.Response.NotFound(CreateInvoiceNotFoundForUserMessage(invoiceId, foundUser));
+            _logger.LogInformation("User {UserId} attempted to access non-existing invoice with id {InvoiceId}", user.Id.Value, invoiceId.Value);
+            return new CancelInvoice.Response.NotFound(CreateInvoiceNotFoundForUserMessage(invoiceId, user));
         }
 
-        bool userIsInvolved = await UserIsInvolvedAsync(foundUser, invoice, cancellationToken);
+        Account? payerAccount = await _context.AccountRepository
+            .FindAccountByIdAsync(invoice.PayerId, cancellationToken);
+        if (payerAccount is null)
+        {
+            _logger.LogWarning("{Role} account {accountId} of invoice {InvoiceId} not found", invoice.PayerId.Value, invoiceId.Value, PayerRole);
+            return new CancelInvoice.Response.NotFound(
+                "Payer Account not found. It is probably deleted");
+        }
+
+        Account? recipientAccount = await _context.AccountRepository
+            .FindAccountByIdAsync(invoice.RecipientId, cancellationToken);
+        if (recipientAccount is null)
+        {
+            _logger.LogWarning("{Role} account {accountId} of invoice {InvoiceId} not found", invoice.PayerId.Value, invoiceId.Value, RecipientRole);
+            return new CancelInvoice.Response.NotFound("Recipient Account not found. It is probably deleted");
+        }
+
+        bool userIsInvolved = UserIsInvolvedAsync(user, recipientAccount, payerAccount);
         if (userIsInvolved is false)
         {
             _logger.LogWarning(
                 "User {UserId} attempted to access invoice {InvoiceId} (payer: {PayerId}, recipient: {RecipientId})",
                 invoiceId.Value,
-                foundUser.Id.Value,
+                user.Id.Value,
                 invoice.PayerId.Value,
                 invoice.RecipientId.Value);
-            return new CancelInvoice.Response.NotFound(CreateInvoiceNotFoundForUserMessage(invoiceId, foundUser));
+            return new CancelInvoice.Response.NotFound(CreateInvoiceNotFoundForUserMessage(invoiceId, user));
         }
 
-        CancelInvoiceResult result = invoice.Cancel();
+        CancelInvoiceResult result = invoice.Cancel(recipientAccount, payerAccount);
         if (result is CancelInvoiceResult.Failure failure)
         {
             return new CancelInvoice.Response.Failure(failure.Reason);
@@ -214,20 +240,7 @@ internal class InvoiceService : IInvoiceService
             return new PayInvoice.Response.Failure("Recipient Account not found. It is probably deleted");
         }
 
-        if (payerAccount.CanWithdraw(invoice.Amount) is false)
-        {
-            _logger.LogInformation(
-                "Not enough money on user {UserId} account {AccountId} to pay invoice {InvoiceId} (Required: {RequiredMoney}, Actual: {ActualMoney})",
-                user.Id.Value,
-                payerAccount.Id.Value,
-                invoiceId.Value,
-                invoice.Amount.Value,
-                payerAccount.Balance.Value);
-            return new PayInvoice.Response.Failure(
-                $"Not enough money to pay invoice {payerAccount.Balance.Value}/{invoice.Amount.Value}");
-        }
-
-        PayInvoiceResult result = invoice.Pay();
+        PayInvoiceResult result = invoice.Pay(recipientAccount, payerAccount);
         if (result is PayInvoiceResult.Failure failure)
         {
             _logger.LogInformation(
@@ -238,9 +251,6 @@ internal class InvoiceService : IInvoiceService
                 failure.Reason);
             return new PayInvoice.Response.Failure(failure.Reason);
         }
-
-        payerAccount.Withdraw(invoice.Amount);
-        recipientAccount.Deposit(invoice.Amount);
 
         PayInvoiceOperationRecord payerOperationRecord =
             CreatePayInvoiceOperationRecord(invoice);
@@ -347,6 +357,50 @@ internal class InvoiceService : IInvoiceService
             outputPageToken);
     }
 
+    public async Task<ApproveInvoice.Response> ApproveInvoicesAsync(ApproveInvoice.Request request, CancellationToken cancellationToken)
+    {
+        var invoiceId = new InvoiceId(request.InvoiceId);
+
+        Invoice? invoice = await _context.InvoiceRepository.FindInvoiceByIdAsync(invoiceId, cancellationToken);
+        if (invoice is null)
+        {
+            _logger.LogInformation("Attempted to access non-existing invoice with id {InvoiceId}", invoiceId.Value);
+            return new ApproveInvoice.Response.NotFound("Invoice not found");
+        }
+
+        ApproveInvoiceResult approvalResult = invoice.Approve();
+        if (approvalResult is ApproveInvoiceResult.Failure failure)
+            return new ApproveInvoice.Response.Failure(failure.Reason);
+
+        await _context.InvoiceRepository.UpdateAsync(invoice, cancellationToken);
+
+        _logger.LogInformation("Successfully approved invoice {InvoiceId}", invoiceId.Value);
+
+        return new ApproveInvoice.Response.Success();
+    }
+
+    public async Task<DeclineInvoice.Response> DeclineInvoicesAsync(DeclineInvoice.Request request, CancellationToken cancellationToken)
+    {
+        var invoiceId = new InvoiceId(request.InvoiceId);
+
+        Invoice? invoice = await _context.InvoiceRepository.FindInvoiceByIdAsync(invoiceId, cancellationToken);
+        if (invoice is null)
+        {
+            _logger.LogInformation("Attempted to access non-existing invoice with id {InvoiceId}", invoiceId.Value);
+            return new DeclineInvoice.Response.NotFound("Invoice not found");
+        }
+
+        DeclineInvoiceResult declineResult = invoice.Decline();
+        if (declineResult is DeclineInvoiceResult.Failure failure)
+            return new DeclineInvoice.Response.Failure(failure.Reason);
+
+        await _context.InvoiceRepository.UpdateAsync(invoice, cancellationToken);
+
+        _logger.LogInformation("Successfully declined invoice {Invoice}", invoiceId.Value);
+
+        return new DeclineInvoice.Response.Success();
+    }
+
     private static string CreateAccountNotFoundForUserMessage(AccountId accountId, User user)
     {
         return $"Account with id {accountId.Value} not found for user {user.Id.Value}";
@@ -379,15 +433,9 @@ internal class InvoiceService : IInvoiceService
             invoice.Amount);
     }
 
-    private async Task<bool> UserIsInvolvedAsync(User user, Invoice invoice, CancellationToken cancellationToken)
+    private bool UserIsInvolvedAsync(User user, Account recipient, Account payer)
     {
-        var accountQuery = AccountQuery.Build(builder => builder
-            .WithAccountIds([invoice.PayerId, invoice.RecipientId])
-            .WithPageSize(2));
-        UserId[] involvedUsers = await _context.AccountRepository.QueryAsync(accountQuery, cancellationToken)
-            .Select(acc => acc.OwnerUserId)
-            .ToArrayAsync(cancellationToken);
-        return involvedUsers.Contains(user.Id);
+        return recipient.OwnerUserId == user.Id || payer.OwnerUserId == user.Id;
     }
 
     private async Task<(AccountId[] OtherUsersAccounts, AccountId[] NonExistingAccounts)> FilterAccountsOfOtherUsers(

@@ -47,8 +47,13 @@ public class AccountController : ControllerBase
 
         Activity.Current?.AddUserIdBaggage(creatorId);
 
-        CreateAccount.Response response = await _client
-            .CreateAccountAsync(creatorId, httpRequest.AccountOwnerId, cancellationToken);
+        var request = new CreateAccount.Request(
+            creatorId,
+            httpRequest.AccountOwnerId,
+            cancellationToken,
+            httpRequest.AccountType);
+
+        CreateAccount.Response response = await _client.CreateAccountAsync(request, cancellationToken);
         return Ok(response.AccountDto);
     }
 
