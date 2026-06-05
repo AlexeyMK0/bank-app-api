@@ -1,3 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
+  <ItemGroup>
+    <ProjectReference Include="..\BankApp.Gateway.Application.Models\BankApp.Gateway.Application.Models.csproj" />
+  </ItemGroup>
 </Project>

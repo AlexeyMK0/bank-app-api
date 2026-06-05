@@ -34,7 +34,7 @@ public class InvoiceApprovalClient : IInvoiceApprovalClient
     {
         try
         {
-            var protoRequest = new ProtoAssignAccountantRequest(request.InvoiceId, request.UserId);
+            var protoRequest = new ProtoAssignAccountantRequest(request.InvoiceId, request.AccountantId);
             await _client.AssignAccountantAsync(protoRequest, cancellationToken: cancellationToken);
             _logger.LogInformation("Successfully called AssignAccountantAsync");
         }

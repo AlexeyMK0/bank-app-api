@@ -2,7 +2,7 @@ using BankApp.Gateway.Application.Contracts;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Options;
 
-namespace BankApp.Gateway.Application.Services;
+namespace BankApp.Gateway.Application.Services.User;
 
 public sealed class CachedUserService : IUserService
 {

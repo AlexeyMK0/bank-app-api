@@ -1,6 +1,6 @@
 using BankApp.Gateway.Application.Models;
 
-namespace BankApp.Gateway.Presentation.Http.Operations;
+namespace BankApp.Gateway.Presentation.Http.Operations.Accounts.Requests;
 
 public sealed class CreateAccountRequest
 {

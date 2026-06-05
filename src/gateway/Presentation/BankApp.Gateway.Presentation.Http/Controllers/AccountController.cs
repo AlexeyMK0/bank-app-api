@@ -1,10 +1,9 @@
 using BankApp.Gateway.Application.Abstractions.Clients;
 using BankApp.Gateway.Application.Abstractions.Requests;
-using BankApp.Gateway.Application.Models;
 using BankApp.Gateway.Presentation.Http.AuthorizationModels;
 using BankApp.Gateway.Presentation.Http.Extensions;
-using BankApp.Gateway.Presentation.Http.Operations;
-using BankApp.Gateway.Presentation.Http.Responses;
+using BankApp.Gateway.Presentation.Http.Operations.Accounts.Requests;
+using BankApp.Gateway.Presentation.Http.Operations.Accounts.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
@@ -22,10 +21,10 @@ public class AccountController : ControllerBase
         _client = client;
     }
 
-    [HttpGet("balance")]
+    [HttpGet("{accountId}/balance")]
     [Authorize(Policy = AppFeatures.ReadAccountBalance)]
-    public async Task<ActionResult<decimal>> CheckAccountBalance(
-        [FromQuery] long accountId,
+    public async Task<ActionResult<CheckBalanceResponse>> CheckAccountBalance(
+        [FromRoute] long accountId,
         CancellationToken cancellationToken)
     {
         Guid userId = HttpContext.GetCurrentUserId();
@@ -34,12 +33,12 @@ public class AccountController : ControllerBase
 
         GetBalance.Response response = await _client
             .GetBalanceAsync(userId, accountId, cancellationToken);
-        return Ok(response.Balance);
+        return Ok(new CheckBalanceResponse(response.Balance));
     }
 
     [HttpPost]
     [Authorize(Policy = AppFeatures.CreateAccount)]
-    public async Task<ActionResult<AccountDto>> CreateNewAccount(
+    public async Task<ActionResult<CreateAccountResponse>> CreateNewAccount(
         [FromBody] CreateAccountRequest httpRequest,
         CancellationToken cancellationToken)
     {
@@ -54,39 +53,41 @@ public class AccountController : ControllerBase
             httpRequest.AccountType);
 
         CreateAccount.Response response = await _client.CreateAccountAsync(request, cancellationToken);
-        return Ok(response.AccountDto);
+        return Ok(new CreateAccountResponse(response.AccountDto));
     }
 
-    [HttpPost("deposit")]
+    [HttpPost("{accountId}/deposit")]
     [Authorize(Policy = AppFeatures.AccountDeposit)]
-    public async Task<ActionResult<decimal>> DepositSum(
-        [FromBody] DepositMoneyRequest httpRequest,
+    public async Task<ActionResult<DepositResponse>> DepositSum(
+        [FromRoute] long accountId,
+        [FromBody] DepositRequest httpRequest,
         CancellationToken cancellationToken)
     {
         Guid userId = HttpContext.GetCurrentUserId();
 
         Activity.Current?.AddUserIdBaggage(userId);
-        Activity.Current?.AddAccountIdBaggage(httpRequest.AccountId);
+        Activity.Current?.AddAccountIdBaggage(accountId);
 
         Deposit.Response response = await _client
-            .DepositAsync(userId, httpRequest.AccountId, httpRequest.Amount, cancellationToken);
-        return Ok(response.Balance);
+            .DepositAsync(userId, accountId, httpRequest.Amount, cancellationToken);
+        return Ok(new DepositResponse(response.Balance));
     }
 
-    [HttpPost("withdraw")]
+    [HttpPost("{accountId}/withdraw")]
     [Authorize(Policy = AppFeatures.AccountWithdraw)]
-    public async Task<ActionResult<decimal>> WithdrawSum(
-        [FromBody] WithdrawMoneyRequest httpRequest,
+    public async Task<ActionResult<WithdrawResponse>> WithdrawSum(
+        [FromRoute] long accountId,
+        [FromBody] WithdrawRequest httpRequest,
         CancellationToken cancellationToken)
     {
         Guid userId = HttpContext.GetCurrentUserId();
 
         Activity.Current?.AddUserIdBaggage(userId);
-        Activity.Current?.AddAccountIdBaggage(httpRequest.AccountId);
+        Activity.Current?.AddAccountIdBaggage(accountId);
 
         Withdraw.Response response = await _client
-            .WithdrawAsync(userId, httpRequest.AccountId, httpRequest.Amount, cancellationToken);
-        return Ok(response.Balance);
+            .WithdrawAsync(userId, accountId, httpRequest.Amount, cancellationToken);
+        return Ok(new WithdrawResponse(response.Balance));
     }
 
     [HttpGet]

@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 
-namespace BankApp.Gateway.Presentation.Http.Operations;
+namespace BankApp.Gateway.Presentation.Http.Operations.OperationHistory;
 
 public class CheckHistoryRequest
 {

@@ -2,7 +2,7 @@ using BankApp.Gateway.Application.Abstractions.Clients;
 using BankApp.Gateway.Application.Abstractions.Requests;
 using BankApp.Gateway.Application.Contracts;
 
-namespace BankApp.Gateway.Application.Services;
+namespace BankApp.Gateway.Application.Services.User;
 
 public class UserService : IUserService
 {

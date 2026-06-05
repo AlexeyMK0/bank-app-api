@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace BankApp.Gateway.Application.Services;
+namespace BankApp.Gateway.Application.Services.User;
 
 public sealed class UserCachingOptions
 {

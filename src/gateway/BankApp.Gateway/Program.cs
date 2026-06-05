@@ -19,8 +19,6 @@ using Microsoft.OpenApi;
 using System.Diagnostics;
 using System.Security.Claims;
 
-AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
-
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();

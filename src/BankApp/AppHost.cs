@@ -22,6 +22,7 @@ IResourceBuilder<KeycloakRealmResource> realm = keycloak.AddRealm("bank-app-real
 
 IResourceBuilder<PostgresServerResource> postgres = builder
     .AddPostgres("service-postgres")
+    .WithArgs("postgres", "-c", "max_prepared_transactions=100")
     .WithLifetime(ContainerLifetime.Persistent)
     .WithDataVolume("service-postgres-volume");
 

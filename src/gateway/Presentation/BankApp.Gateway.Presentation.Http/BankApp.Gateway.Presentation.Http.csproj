@@ -4,5 +4,6 @@
 </PropertyGroup>
 <ItemGroup>
   <ProjectReference Include="..\..\Application\BankApp.Gateway.Application.Clients\BankApp.Gateway.Application.Clients.csproj" />
+  <ProjectReference Include="..\..\Application\BankApp.Gateway.Application.Contracts\BankApp.Gateway.Application.Contracts.csproj" />
 </ItemGroup>
 </Project>

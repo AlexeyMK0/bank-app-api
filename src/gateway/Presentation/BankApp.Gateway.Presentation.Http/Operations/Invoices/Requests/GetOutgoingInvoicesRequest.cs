@@ -1,6 +1,6 @@
 using BankApp.Gateway.Application.Models;
 
-namespace BankApp.Gateway.Presentation.Http.Operations;
+namespace BankApp.Gateway.Presentation.Http.Operations.Invoices.Requests;
 
 public sealed record GetOutgoingInvoicesRequest(
     string? PageToken,
