@@ -30,12 +30,12 @@ public sealed partial class InvoiceServiceTests
         var payerAccountId = new AccountId(1);
         var payerUserId = new UserId(1);
         var payerUser = new User(payerUserId, new AutoFaker<UserExternalId>().Generate());
-        var payerAccount = new Account(payerAccountId, new Money(payerBalance), payerUserId);
+        var payerAccount = new Account(payerAccountId, new Money(payerBalance), payerUserId, AccountType.Personal);
 
         var recipientAccountId = new AccountId(2);
         var recipientUserId = new UserId(2);
         var recipientUser = new User(recipientUserId, new AutoFaker<UserExternalId>().Generate());
-        var recipientAccount = new Account(recipientAccountId, new Money(recipientBalance), recipientUserId);
+        var recipientAccount = new Account(recipientAccountId, new Money(recipientBalance), recipientUserId, AccountType.Personal);
 
         User actorUser = payerUser;
 
@@ -166,7 +166,7 @@ public sealed partial class InvoiceServiceTests
 
         var recipientAccountId = new AccountId(2);
         var recipientUserId = new UserId(2);
-        var recipientAccount = new Account(recipientAccountId, new Money(recipientBalance), recipientUserId);
+        var recipientAccount = new Account(recipientAccountId, new Money(recipientBalance), recipientUserId, AccountType.Personal);
 
         User actorUser = payerUser;
 
@@ -205,11 +205,11 @@ public sealed partial class InvoiceServiceTests
 
         var payerAccountId = new AccountId(1);
         var payerUserId = new UserId(1);
-        var payerAccount = new Account(payerAccountId, new Money(payerBalance), payerUserId);
+        var payerAccount = new Account(payerAccountId, new Money(payerBalance), payerUserId, AccountType.Personal);
 
         var recipientAccountId = new AccountId(2);
         var recipientUserId = new UserId(2);
-        var recipientAccount = new Account(recipientAccountId, new Money(recipientBalance), recipientUserId);
+        var recipientAccount = new Account(recipientAccountId, new Money(recipientBalance), recipientUserId, AccountType.Personal);
 
         var actorUser = new User(new UserId(3), new AutoFaker<UserExternalId>().Generate());
 
@@ -248,7 +248,7 @@ public sealed partial class InvoiceServiceTests
         var payerAccountId = new AccountId(1);
         var payerUserId = new UserId(1);
         var payerUser = new User(payerUserId, new AutoFaker<UserExternalId>().Generate());
-        var payerAccount = new Account(payerAccountId, new Money(payerBalance), payerUserId);
+        var payerAccount = new Account(payerAccountId, new Money(payerBalance), payerUserId, AccountType.Personal);
 
         var recipientAccountId = new AccountId(2);
 
@@ -291,12 +291,12 @@ public sealed partial class InvoiceServiceTests
         var payerAccountId = new AccountId(1);
         var payerUserId = new UserId(1);
         var payerUser = new User(payerUserId, new AutoFaker<UserExternalId>().Generate());
-        var payerAccount = new Account(payerAccountId, new Money(payerBalance), payerUserId);
+        var payerAccount = new Account(payerAccountId, new Money(payerBalance), payerUserId, AccountType.Personal);
 
         var recipientAccountId = new AccountId(2);
         var recipientUserId = new UserId(2);
         var recipientUser = new User(recipientUserId, new AutoFaker<UserExternalId>().Generate());
-        var recipientAccount = new Account(recipientAccountId, new Money(recipientBalance), recipientUserId);
+        var recipientAccount = new Account(recipientAccountId, new Money(recipientBalance), recipientUserId, AccountType.Personal);
 
         User actorUser = payerUser;
 

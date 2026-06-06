@@ -19,4 +19,12 @@ public class UserClient : IUserClient
         ProtoAddUserResponse response = await _userClient.AddUserAsync(request, cancellationToken: cancellationToken);
         return new AddUser.Response(response.UserId);
     }
+
+    public async Task<GetUser.Response> GetUserAsync(GetUser.Request request, CancellationToken cancellationToken)
+    {
+        var protoRequest = new ProtoGetUserRequest(request.ExternalUserId.ToString());
+
+        ProtoGetUserResponse response = await _userClient.GetUserAsync(protoRequest, cancellationToken: cancellationToken);
+        return new GetUser.Response(Guid.Parse(response.UserExternalId), response.UserId);
+    }
 }

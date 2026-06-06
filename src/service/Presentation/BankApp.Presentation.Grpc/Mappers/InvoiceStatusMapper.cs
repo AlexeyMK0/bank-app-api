@@ -12,6 +12,8 @@ public static class InvoiceStatusMapper
             ProtoInvoiceStatus.Created => InvoiceStatusDto.Created,
             ProtoInvoiceStatus.Paid => InvoiceStatusDto.Paid,
             ProtoInvoiceStatus.Cancelled => InvoiceStatusDto.Cancelled,
+            ProtoInvoiceStatus.Approved => InvoiceStatusDto.Approved,
+            ProtoInvoiceStatus.Declined => InvoiceStatusDto.Declined,
             ProtoInvoiceStatus.Unspecified => throw new InvalidOperationException("Unknown invoice state"),
             _ => throw new UnreachableException(),
         };
@@ -24,6 +26,8 @@ public static class InvoiceStatusMapper
             InvoiceStatusDto.Created => ProtoInvoiceStatus.Created,
             InvoiceStatusDto.Paid => ProtoInvoiceStatus.Paid,
             InvoiceStatusDto.Cancelled => ProtoInvoiceStatus.Cancelled,
+            InvoiceStatusDto.Approved => ProtoInvoiceStatus.Approved,
+            InvoiceStatusDto.Declined => ProtoInvoiceStatus.Declined,
             _ => throw new UnreachableException(),
         };
     }

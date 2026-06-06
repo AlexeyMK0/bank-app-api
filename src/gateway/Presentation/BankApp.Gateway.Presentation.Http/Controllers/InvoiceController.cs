@@ -3,12 +3,12 @@ using BankApp.Gateway.Application.Abstractions.Requests;
 using BankApp.Gateway.Application.Models;
 using BankApp.Gateway.Presentation.Http.AuthorizationModels;
 using BankApp.Gateway.Presentation.Http.Extensions;
-using BankApp.Gateway.Presentation.Http.Operations;
-using BankApp.Gateway.Presentation.Http.Responses;
+using BankApp.Gateway.Presentation.Http.Operations.Invoices.Requests;
+using BankApp.Gateway.Presentation.Http.Operations.Invoices.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
-using GetOutgoingInvoicesResponse = BankApp.Gateway.Presentation.Http.Responses.GetOutgoingInvoicesResponse;
+using GetOutgoingInvoicesResponse = BankApp.Gateway.Presentation.Http.Operations.Invoices.Responses.GetOutgoingInvoicesResponse;
 
 namespace BankApp.Gateway.Presentation.Http.Controllers;
 
@@ -25,7 +25,7 @@ public class InvoiceController : ControllerBase
 
     [HttpPost("create")]
     [Authorize(Policy = AppFeatures.CreateInvoice)]
-    public async Task<ActionResult<long>> CreateInvoiceAsync(
+    public async Task<ActionResult<CreateInvoiceResponse>> CreateInvoiceAsync(
         [FromBody] CreateInvoiceRequest httpRequest,
         CancellationToken cancellationToken)
     {
@@ -40,31 +40,31 @@ public class InvoiceController : ControllerBase
             httpRequest.RecipientId,
             httpRequest.Amount,
             cancellationToken);
-        return Ok(response.InvoiceId);
+        return Ok(new CreateInvoiceResponse(response.InvoiceId));
     }
 
-    [HttpPost("cancel")]
+    [HttpPost("{id}/cancel")]
     [Authorize(Policy = AppFeatures.CancelInvoice)]
     public async Task<ActionResult> CancelInvoiceAsync(
-        [FromBody] CancelInvoiceRequest httpRequest,
+        [FromRoute] long id,
         CancellationToken cancellationToken)
     {
         Guid userId = HttpContext.GetCurrentUserId();
 
         Activity.Current?.AddUserIdBaggage(userId);
 
-        await _client.CancelInvoiceAsync(userId, httpRequest.InvoiceId, cancellationToken);
+        await _client.CancelInvoiceAsync(userId, id, cancellationToken);
         return Ok();
     }
 
-    [HttpPost("pay")]
+    [HttpPost("{id}/pay")]
     [Authorize(Policy = AppFeatures.PayInvoice)]
     public async Task<ActionResult> PayInvoiceAsync(
-        [FromBody] PayInvoiceRequest httpRequest,
+        [FromRoute] long id,
         CancellationToken cancellationToken)
     {
         Guid userId = HttpContext.GetCurrentUserId();
-        await _client.PayInvoiceAsync(userId, httpRequest.InoviceId, cancellationToken);
+        await _client.PayInvoiceAsync(userId, id, cancellationToken);
         return Ok();
     }
 

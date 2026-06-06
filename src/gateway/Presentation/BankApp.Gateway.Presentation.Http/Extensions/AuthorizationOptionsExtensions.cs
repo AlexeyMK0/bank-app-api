@@ -62,6 +62,21 @@ public static class AuthorizationOptionsExtensions
             .RequireClaim("permissions", AppFeatures.CreateInvoice));
 
         auth.AddPolicy(
+            AppFeatures.ApproveInvoice,
+            policy => policy
+                .RequireAuthenticatedUser());
+
+        auth.AddPolicy(
+            AppFeatures.DeclineInvoice,
+            policy => policy
+                .RequireAuthenticatedUser());
+
+        auth.AddPolicy(
+            AppFeatures.AssignUserToInvoice,
+            policy => policy
+                .RequireAuthenticatedUser());
+
+        auth.AddPolicy(
             AppFeatures.ReadOperation,
             policy => policy
             .RequireAuthenticatedUser()

@@ -19,4 +19,12 @@ public interface IInvoiceService
     Task<GetInvoices.Response> GetInvoicesAsync(
         GetInvoices.Request request,
         CancellationToken cancellationToken);
+
+    Task<ApproveInvoice.Response> ApproveInvoicesAsync(
+        ApproveInvoice.Request request,
+        CancellationToken cancellationToken);
+
+    Task<DeclineInvoice.Response> DeclineInvoicesAsync(
+        DeclineInvoice.Request request,
+        CancellationToken cancellationToken);
 }

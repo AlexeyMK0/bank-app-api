@@ -5,4 +5,6 @@ public enum InvoiceStatus
     Created,
     Paid,
     Cancelled,
+    Declined,
+    Approved,
 }

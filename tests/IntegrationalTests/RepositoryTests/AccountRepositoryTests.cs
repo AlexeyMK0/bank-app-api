@@ -35,7 +35,7 @@ public sealed class AccountRepositoryTests : IAsyncLifetime
         await using AsyncServiceScope scope = _fixture.Services.CreateAsyncScope();
         IAccountRepository accountRepository = scope.ServiceProvider.GetRequiredService<IAccountRepository>();
 
-        var account = new Account(AccountId.Default, new Money(123), new UserId(1));
+        var account = new Account(AccountId.Default, new Money(123), new UserId(1), AccountType.Personal);
 
         // Act
         Account addedAccount = await accountRepository.AddAsync(account, cancellationToken);
@@ -54,12 +54,13 @@ public sealed class AccountRepositoryTests : IAsyncLifetime
         IAccountRepository accountRepository = scope.ServiceProvider.GetRequiredService<IAccountRepository>();
 
         Account accountBefore = await accountRepository.AddAsync(
-            new Account(AccountId.Default, new Money(123), new UserId(1)), cancellationToken);
+            new Account(AccountId.Default, new Money(123), new UserId(1), AccountType.Personal), cancellationToken);
 
         var accountToUpdate = new Account(
             accountBefore.Id,
             accountBefore.Balance.IncreaseBy(new Money(321)),
-            new UserId(3));
+            new UserId(3),
+            AccountType.Personal);
 
         // Act
         Account updatedAccount = await accountRepository.UpdateAsync(accountToUpdate, cancellationToken);

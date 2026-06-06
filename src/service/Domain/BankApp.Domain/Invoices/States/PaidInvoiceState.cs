@@ -1,16 +1,6 @@
 namespace BankApp.Domain.Invoices.States;
 
-public class PaidInvoiceState : IInvoiceState
+public class PaidInvoiceState : TerminalState
 {
-    public bool CanCancel()
-    {
-        return false;
-    }
-
-    public bool CanPay()
-    {
-        return false;
-    }
-
-    public InvoiceStatus Status => InvoiceStatus.Paid;
+    public override InvoiceStatus Status => InvoiceStatus.Paid;
 }

@@ -19,6 +19,7 @@
     <Project Path="src\gateway\Application\BankApp.Gateway.Application.Models\BankApp.Gateway.Application.Models.csproj" />
   </Folder>
   <Folder Name="/src/gateway/Infrastructure/">
+    <Project Path="src/gateway/Infrastructure/BankApp.Gateway.Infrastructure.Lab5Tools/BankApp.Gateway.Infrastructure.Lab5Tools.csproj" />
     <Project Path="src\gateway\Infrastructure\BankApp.Gateway.Infrastructure.Service\BankApp.Gateway.Infrastructure.Service.csproj" />
   </Folder>
   <Folder Name="/src/gateway/Presentation/">
@@ -36,9 +37,11 @@
     <Project Path="src\service\Domain\BankApp.Domain\BankApp.Domain.csproj" />
   </Folder>
   <Folder Name="/src/service/Infrastructure/">
+    <Project Path="src/service/Infrastructure/BankApp.Infrastructure.Kafka/BankApp.Infrastructure.Kafka.csproj" />
     <Project Path="src\service\Infrastructure\BankApp.Infrastructure.Persistence\BankApp.Infrastructure.Persistence.csproj" />
   </Folder>
   <Folder Name="/src/service/Presentation/">
+    <Project Path="src/service/Presentation/BankApp.Presentation.Kafka/BankApp.Presentation.Kafka.csproj" />
     <Project Path="src\service\Presentation\BankApp.Presentation.Grpc\BankApp.Presentation.Grpc.csproj" />
   </Folder>
   <Folder Name="/tests/">

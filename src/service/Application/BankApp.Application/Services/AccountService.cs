@@ -1,5 +1,7 @@
 using BankApp.Application.Abstractions;
+using BankApp.Application.Abstractions.Events;
 using BankApp.Application.Abstractions.Metrics;
+using BankApp.Application.Abstractions.Publishers;
 using BankApp.Application.Contracts.Accounts;
 using BankApp.Application.Contracts.Accounts.Operations;
 using BankApp.Application.Extensions.RepositorySpecifications;
@@ -27,18 +29,21 @@ internal sealed class AccountService : IAccountService
     private readonly IPersistenceContext _context;
     private readonly ILogger<AccountService> _logger;
     private readonly IServiceMetrics _metrics;
+    private readonly IAccountCreatedEventPublisher _publisher;
 
     public AccountService(
         IOptions<AccountServiceOptions> options,
         ILogger<AccountService> logger,
         IServiceMetrics metrics,
         IPersistenceContext context,
-        IPersistenceTransactionProvider transactionProvider)
+        IPersistenceTransactionProvider transactionProvider,
+        IAccountCreatedEventPublisher publisher)
     {
         _logger = logger;
         _metrics = metrics;
         _context = context;
         _transactionProvider = transactionProvider;
+        _publisher = publisher;
         _maxUserAccounts = options.Value.MaxAccountsPerUser;
     }
 
@@ -48,6 +53,7 @@ internal sealed class AccountService : IAccountService
     {
         var userCreatorId = new UserExternalId(request.UserId);
         var userOwnerId = new UserId(request.OwnerId);
+        AccountType accountType = request.AccountType.MapToDomain();
 
         User? user = await _context.UserRepository
             .FindUserByExternalIdAsync(userCreatorId, cancellationToken);
@@ -79,7 +85,11 @@ internal sealed class AccountService : IAccountService
         }
 
         Account newAccount = await _context.AccountRepository.AddAsync(
-            new Account(AccountId.Default, Money.Zero, userOwnerId),
+            new Account(AccountId.Default, Money.Zero, userOwnerId, accountType),
+            cancellationToken);
+
+        await _publisher.PublishAsync(
+            [new AccountCreatedEvent(userOwnerId, newAccount.Id, newAccount.Type)],
             cancellationToken);
 
         _logger.LogInformation("Account {AccountId} created for user {UserId}", newAccount.Id.Value, user.Id.Value);

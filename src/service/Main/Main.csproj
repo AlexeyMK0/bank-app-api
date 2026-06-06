@@ -7,11 +7,16 @@
     <ItemGroup>
       <ProjectReference Include="..\..\..\BankApp.ServiceDefaults\BankApp.ServiceDefaults.csproj" />
       <ProjectReference Include="..\Application\BankApp.Application\BankApp.Application.csproj" />
+      <ProjectReference Include="..\Infrastructure\BankApp.Infrastructure.Kafka\BankApp.Infrastructure.Kafka.csproj" />
       <ProjectReference Include="..\Infrastructure\BankApp.Infrastructure.Persistence\BankApp.Infrastructure.Persistence.csproj" />
       <ProjectReference Include="..\Presentation\BankApp.Presentation.Grpc\BankApp.Presentation.Grpc.csproj" />
+      <ProjectReference Include="..\Presentation\BankApp.Presentation.Kafka\BankApp.Presentation.Kafka.csproj" />
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="Itmo.Dev.Platform.Kafka" />
+      <PackageReference Include="Itmo.Dev.Platform.MessagePersistence" />
+      <PackageReference Include="Itmo.Dev.Platform.MessagePersistence.Postgres" />
       <PackageReference Include="Npgsql.OpenTelemetry" />
     </ItemGroup>
 

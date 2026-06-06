@@ -77,7 +77,7 @@ public static class AccountRepositoryMockSpecification
         Account accountToUpdate,
         Money newBalance)
     {
-        var newAccount = new Account(accountToUpdate.Id, newBalance, accountToUpdate.OwnerUserId);
+        var newAccount = new Account(accountToUpdate.Id, newBalance, accountToUpdate.OwnerUserId, AccountType.Personal);
 
         mock.Setup(repo => repo.UpdateAsync(
                 It.Is<Account>(acc =>

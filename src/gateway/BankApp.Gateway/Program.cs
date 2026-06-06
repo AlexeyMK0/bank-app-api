@@ -6,6 +6,7 @@
 
 using BankApp.Gateway.Application.Contracts;
 using BankApp.Gateway.Application.Services;
+using BankApp.Gateway.Infrastructure.Lab5Tools;
 using BankApp.Gateway.Infrastructure.Service;
 using BankApp.Gateway.Presentation.Http;
 using BankApp.Gateway.Presentation.Http.Extensions;
@@ -29,6 +30,7 @@ builder.Services.AddHybridCache();
 
 builder.Services
     .AddClients()
+    .AddLab5ToolsClients()
     .AddServices()
     .AddPresentationHttp()
     .AddHttpContextAccessor();

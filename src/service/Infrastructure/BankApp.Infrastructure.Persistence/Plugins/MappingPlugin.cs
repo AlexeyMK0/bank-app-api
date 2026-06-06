@@ -1,3 +1,4 @@
+using BankApp.Domain.Accounts;
 using BankApp.Domain.Invoices;
 using Itmo.Dev.Platform.Persistence.Postgres.Plugins;
 using Npgsql;
@@ -9,5 +10,6 @@ public class MappingPlugin : IPostgresDataSourcePlugin
     public void Configure(NpgsqlDataSourceBuilder dataSource)
     {
         dataSource.MapEnum<InvoiceStatus>();
+        dataSource.MapEnum<AccountType>();
     }
 }

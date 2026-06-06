@@ -22,10 +22,10 @@ public sealed partial class AccountServiceTests
     {
         // Arrange
         User user = new AutoFaker<User>().Generate();
-        var expectedAccount = new Account(new AccountId(1), new Money(1234), user.Id);
+        var expectedAccount = new Account(new AccountId(1), new Money(1234), user.Id, AccountType.Personal);
         var amount = new Money(1000);
         Money resultMoney = expectedAccount.Balance.DecreaseBy(amount);
-        var updatedAccount = new Account(expectedAccount.Id, resultMoney, expectedAccount.OwnerUserId);
+        var updatedAccount = new Account(expectedAccount.Id, resultMoney, expectedAccount.OwnerUserId, AccountType.Personal);
         var transactionMock = new Mock<IPersistenceTransaction>();
         transactionMock.Setup(mock => mock.CommitAsync(It.IsAny<CancellationToken>()));
 
@@ -70,7 +70,7 @@ public sealed partial class AccountServiceTests
     {
         // Arrange
         User user = new AutoFaker<User>().Generate();
-        var expectedAccount = new Account(new AccountId(1), new Money(1234), user.Id);
+        var expectedAccount = new Account(new AccountId(1), new Money(1234), user.Id, AccountType.Personal);
         var amount = new Money(1000);
 
         _persistenceContext.UserRepository.SetupQueryByUserExternalId(user.UserExternalId, []);
@@ -89,7 +89,7 @@ public sealed partial class AccountServiceTests
     {
         // Arrange
         User user = new AutoFaker<User>().Generate();
-        var expectedAccount = new Account(new AccountId(1), new Money(1234), user.Id);
+        var expectedAccount = new Account(new AccountId(1), new Money(1234), user.Id, AccountType.Personal);
         var amount = new Money(1000);
 
         _persistenceContext.UserRepository.SetupQueryByUserExternalId(user.UserExternalId, [user]);
@@ -110,7 +110,7 @@ public sealed partial class AccountServiceTests
     {
         // Arrange
         var user = new User(new UserId(1), new AutoFaker<UserExternalId>().Generate());
-        var expectedAccount = new Account(new AccountId(1), new Money(1234), new UserId(2));
+        var expectedAccount = new Account(new AccountId(1), new Money(1234), new UserId(2), AccountType.Personal);
         var amount = new Money(1000);
 
         _persistenceContext.UserRepository.SetupQueryByUserExternalId(user.UserExternalId, [user]);
@@ -131,7 +131,7 @@ public sealed partial class AccountServiceTests
     {
         // Arrange
         User user = new AutoFaker<User>().Generate();
-        var expectedAccount = new Account(new AccountId(1), new Money(5), user.Id);
+        var expectedAccount = new Account(new AccountId(1), new Money(5), user.Id, AccountType.Personal);
         var amount = new Money(1000);
 
         _persistenceContext.UserRepository.SetupQueryByUserExternalId(user.UserExternalId, [user]);

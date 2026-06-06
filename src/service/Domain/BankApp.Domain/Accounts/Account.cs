@@ -11,11 +11,14 @@ public sealed class Account
 
     public UserId OwnerUserId { get; }
 
-    public Account(AccountId id, Money balance, UserId ownerUserId)
+    public AccountType Type { get; }
+
+    public Account(AccountId id, Money balance, UserId ownerUserId, AccountType type)
     {
         Id = id;
         Balance = balance;
         OwnerUserId = ownerUserId;
+        Type = type;
     }
 
     public bool CanWithdraw(Money amount)
@@ -31,5 +34,10 @@ public sealed class Account
     public void Deposit(Money amount)
     {
         Balance = Balance.IncreaseBy(amount);
+    }
+
+    public bool IsCorporate()
+    {
+        return Type is AccountType.Corporate;
     }
 }

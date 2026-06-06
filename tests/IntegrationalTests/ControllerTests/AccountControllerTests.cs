@@ -3,9 +3,11 @@
 using BankApp.Application.Abstractions.Queries;
 using BankApp.Application.Abstractions.Repositories;
 using BankApp.Application.Extensions.RepositorySpecifications;
+using BankApp.Application.Mappers;
 using BankApp.Application.Options;
 using BankApp.Domain.Sessions;
 using BankApp.Grpc;
+using BankApp.Presentation.Grpc.Mappers;
 using Bogus;
 using Google.Type;
 using Grpc.Core;
@@ -14,6 +16,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using TestCommon.Fakers;
 using Account = BankApp.Domain.Accounts.Account;
+using AccountType = BankApp.Domain.Accounts.AccountType;
 
 namespace IntegrationalTests.ControllerTests;
 
@@ -58,7 +61,7 @@ public sealed class AccountControllerTests : IAsyncLifetime
             ? creatorUser
             : await GenerateUserAndAddToRepository(userRepository, _faker, cancellationToken);
 
-        var request = new ProtoCreateAccountRequest(creatorUser.UserExternalId.Value.ToString(), ownerUser.Id.Value);
+        var request = new ProtoCreateAccountRequest(creatorUser.UserExternalId.Value.ToString(), ownerUser.Id.Value, BankApp.Grpc.AccountType.Personal);
 
         // Act & Assert
         var response = await _client.Awaiting(client => client.CreateAccountAsync(request).ResponseAsync)
@@ -89,7 +92,7 @@ public sealed class AccountControllerTests : IAsyncLifetime
 
         long ownerId = creator.Id.Value + 1;
 
-        var request = new ProtoCreateAccountRequest(creator.UserExternalId.Value.ToString(), ownerId);
+        var request = new ProtoCreateAccountRequest(creator.UserExternalId.Value.ToString(), ownerId, BankApp.Grpc.AccountType.Personal);
 
         // Act & Assert
         var response = await _client.Awaiting(c => c.CreateAccountAsync(request).ResponseAsync)
@@ -134,7 +137,7 @@ public sealed class AccountControllerTests : IAsyncLifetime
             accounts[i] = await accountRepository.AddAsync(accounts[i], cancellationToken);
         }
 
-        var request = new ProtoCreateAccountRequest(creatorUser.UserExternalId.Value.ToString(), ownerUser.Id.Value);
+        var request = new ProtoCreateAccountRequest(creatorUser.UserExternalId.Value.ToString(), ownerUser.Id.Value, BankApp.Grpc.AccountType.Personal);
 
         // Act & Assert
         var response = await _client.Awaiting(c => c.CreateAccountAsync(request).ResponseAsync)
@@ -171,7 +174,8 @@ public sealed class AccountControllerTests : IAsyncLifetime
         var expectedAccount = new Account(
             account.Id,
             new BankApp.Domain.ValueObjects.Money(expectedValue),
-            account.OwnerUserId);
+            account.OwnerUserId,
+            AccountType.Personal);
 
         var request = new ProtoWithdrawMoneyRequest(
             actorUser.UserExternalId.Value.ToString(), account.Id.Value, requestAmount);
@@ -207,7 +211,8 @@ public sealed class AccountControllerTests : IAsyncLifetime
         var expectedAccount = new Account(
             account.Id,
             account.Balance,
-            account.OwnerUserId);
+            account.OwnerUserId,
+            AccountType.Personal);
 
         var request = new ProtoWithdrawMoneyRequest(
             actorUser.UserExternalId.Value.ToString(), account.Id.Value, requestAmount);
@@ -335,7 +340,8 @@ public sealed class AccountControllerTests : IAsyncLifetime
         var expectedAccount = new Account(
             account.Id,
             new BankApp.Domain.ValueObjects.Money(expectedValue),
-            account.OwnerUserId);
+            account.OwnerUserId,
+            AccountType.Personal);
 
         var request = new ProtoDepositMoneyRequest(
             actorUser.UserExternalId.Value.ToString(), account.Id.Value, requestAmount);
@@ -371,7 +377,8 @@ public sealed class AccountControllerTests : IAsyncLifetime
         var expectedAccount = new Account(
             account.Id,
             account.Balance,
-            account.OwnerUserId);
+            account.OwnerUserId,
+            AccountType.Personal);
 
         var request = new ProtoDepositMoneyRequest(
             actorUser.UserExternalId.Value.ToString(), account.Id.Value, requestAmount);
@@ -451,7 +458,8 @@ public sealed class AccountControllerTests : IAsyncLifetime
         return new ProtoAccount(
             account.Id.Value,
             new Money { DecimalValue = account.Balance.Value },
-            account.OwnerUserId.Value);
+            account.OwnerUserId.Value,
+            account.Type.MapToDto().MapToProto());
     }
 
     private static async Task<User> GenerateUserAndAddToRepository(
